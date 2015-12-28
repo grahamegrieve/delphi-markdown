@@ -18,6 +18,9 @@ Unit MarkdownProcessor;
 
 interface
 
+uses
+  SysUtils;
+
 Type
   TMarkdownProcessorDialect = (mdDaringFireball);
 
@@ -26,7 +29,7 @@ Type
     function GetUnSafe: boolean; virtual; abstract;
     procedure SetUnSafe(const Value: boolean); virtual; abstract;
   public
-    class function CreateDialect(dialect : mdDaringFireball);
+    class function CreateDialect(dialect : TMarkdownProcessorDialect) : TMarkdownProcessor;
 
     // when Unsafe = true, then the processor can create scripts etc.
     property UnSafe : boolean read GetUnSafe write SetUnSafe;
@@ -35,5 +38,18 @@ Type
 
 implementation
 
+uses
+  MarkdownDaringFireball;
+
+{ TMarkdownProcessor }
+
+class function TMarkdownProcessor.CreateDialect(dialect: TMarkdownProcessorDialect): TMarkdownProcessor;
+begin
+  case dialect of
+    mdDaringFireball : result := TMarkdownDaringFireball.Create;
+  else
+    raise Exception.Create('Unknown Markdown dialect');
+  end;
+end;
 
 end.
