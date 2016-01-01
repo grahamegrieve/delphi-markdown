@@ -22,16 +22,16 @@ Unit MarkdownDaringFireballTests;
 interface
 
 uses
-  Windows, SysUtils, Classes, System.Character, ShellApi,
+  Windows, SysUtils, Classes, Character, ShellApi,
   MarkdownDaringFireball;
 
 const
-  TEST_NAMEs: array of String = [
+  TEST_NAMEs: array[0..21] of String = (
     'Amps and angle encoding', 'Auto links', 'Backslash escapes', 'Blockquotes with code blocks', 'Code Blocks',
     'Code Spans', 'Hard-wrapped paragraphs with list-like lines', 'Horizontal rules', 'Images',
     'Inline HTML (Advanced)', 'Inline HTML (Simple)', 'Inline HTML comments', 'Links, inline style',
     'Links, reference style', 'Links, shortcut references', 'Nested blockquotes', 'Ordered and unordered lists',
-    'Strong and em together', 'Tabs', 'Tidyness', 'Markdown Documentation - Basics', 'Markdown Documentation - Syntax'];
+    'Strong and em together', 'Tabs', 'Tidyness', 'Markdown Documentation - Basics', 'Markdown Documentation - Syntax');
 
 type
   TMarkdownDaringFireballTests = class
@@ -168,7 +168,8 @@ end;
 
 function replaceHacks(str: String): String;
 begin
-  result := str.replace(' />', '/>').replace(' <', '<');
+  str := StringReplace(str, ' />' , '/>', [rfReplaceAll]);
+  result := StringReplace(str, ' <' , '<', [rfReplaceAll]);
 end;
 
 class function TMarkdownDaringFireballTests.tidy(cnt: String): String;
