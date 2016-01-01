@@ -14,6 +14,15 @@
   limitations under the License.
 }
 
+{
+Contribution Credits
+--------------------
+
+- Pavel Stugel - revisions for support of older Delphi versions and FPC
+
+}
+
+
 Unit MarkdownProcessor;
 
 interface
