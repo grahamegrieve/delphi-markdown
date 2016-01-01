@@ -22,7 +22,7 @@ Unit MarkdownDaringFireball;
 interface
 
 uses
-  SysUtils, System.Generics.Collections, System.Character, TypInfo, Math,
+  SysUtils, StrUtils, Generics.Collections, Character, TypInfo, Math,
   MarkdownProcessor;
 
 type
@@ -33,7 +33,8 @@ type
     heu, heul, hevar);
 
 const
-  ENTITY_NAMES: array of String = ['&Acirc;', '&acirc;', '&acute;', '&AElig;', '&aelig;', '&Agrave;', '&agrave;', '&alefsym;', '&Alpha;', '&alpha;', '&amp;', '&and;', '&ang;',
+  // pstfix
+  ENTITY_NAMES: array[0..249] of String = ('&Acirc;', '&acirc;', '&acute;', '&AElig;', '&aelig;', '&Agrave;', '&agrave;', '&alefsym;', '&Alpha;', '&alpha;', '&amp;', '&and;', '&ang;',
     '&apos;', '&Aring;', '&aring;', '&asymp;', '&Atilde;', '&atilde;', '&Auml;', '&auml;', '&bdquo;', '&Beta;', '&beta;', '&brvbar;', '&bull;', '&cap;', '&Ccedil;', '&ccedil;',
     '&cedil;', '&cent;', '&Chi;', '&chi;', '&circ;', '&clubs;', '&cong;', '&copy;', '&crarr;', '&cup;', '&curren;', '&Dagger;', '&dagger;', '&dArr;', '&darr;', '&deg;', '&Delta;',
     '&delta;', '&diams;', '&divide;', '&Eacute;', '&eacute;', '&Ecirc;', '&ecirc;', '&Egrave;', '&egrave;', '&empty;', '&emsp;', '&ensp;', '&Epsilon;', '&epsilon;', '&equiv;',
@@ -48,10 +49,11 @@ const
     '&rsquo;', '&sbquo;', '&Scaron;', '&scaron;', '&sdot;', '&sect;', '&shy;', '&Sigma;', '&sigma;', '&sigmaf;', '&sim;', '&spades;', '&sub;', '&sube;', '&sum;', '&sup;', '&sup1;',
     '&sup2;', '&sup3;', '&supe;', '&szlig;', '&Tau;', '&tau;', '&there4;', '&Theta;', '&theta;', '&thetasym;', '&thinsp;', '&thorn;', '&tilde;', '&times;', '&trade;', '&Uacute;',
     '&uacute;', '&uArr;', '&uarr;', '&Ucirc;', '&ucirc;', '&Ugrave;', '&ugrave;', '&uml;', '&upsih;', '&Upsilon;', '&upsilon;', '&Uuml;', '&uuml;', '&weierp;', '&Xi;', '&xi;',
-    '&Yacute;', '&yacute;', '&yen;', '&Yuml;', '&yuml;', '&Zeta;', '&zeta;', '&zwj;', '&zwnj;'];
+    '&Yacute;', '&yacute;', '&yen;', '&Yuml;', '&yuml;', '&Zeta;', '&zeta;', '&zwj;', '&zwnj;');
 
   // Characters corresponding to ENTITY_NAMES. */
-  ENTITY_CHARS: array of integer = [$00C2, $00E2, $00B4, $00C6, $00E6, $00C0, $00E0, $2135, $0391, $03B1, $0026, $2227, $2220, ord(''''), $00C5, $00E5, $2248, $00C3, $00E3, $00C4,
+  // pstfix
+  ENTITY_CHARS: array[0..249] of integer = ($00C2, $00E2, $00B4, $00C6, $00E6, $00C0, $00E0, $2135, $0391, $03B1, $0026, $2227, $2220, ord(''''), $00C5, $00E5, $2248, $00C3, $00E3, $00C4,
     $00E4, $201E, $0392, $03B2, $00A6, $2022, $2229, $00C7, $00E7, $00B8, $00A2, $03A7, $03C7, $02C6, $2663, $2245, $00A9, $21B5, $222A, $00A4, $2021, $2020, $21D3, $2193, $00B0,
     $0394, $03B4, $2666, $00F7, $00C9, $00E9, $00CA, $00EA, $00C8, $00E8, $2205, $2003, $2002, $0395, $03B5, $2261, $0397, $03B7, $00D0, $00F0, $00CB, $00EB, $20AC, $2203, $0192,
     $2200, $00BD, $00BC, $00BE, $2044, $0393, $03B3, $2265, $003E, $21D4, $2194, $2665, $2026, $00CD, $00ED, $00CE, $00EE, $00A1, $00CC, $00EC, $2111, $221E, $222B, $0399, $03B9,
@@ -61,9 +63,9 @@ const
     $00A3, $2033, $2032, $220F, $221D, $03A8, $03C8, $0022, $221A, $232A, $00BB, $21D2, $2192, $2309, $201D, $211C, $00AE, $230B, $03A1, $03C1, $200F, $203A, $2019, $201A, $0160,
     $0161, $22C5, $00A7, $00AD, $03A3, $03C3, $03C2, $223C, $2660, $2282, $2286, $2211, $2283, $00B9, $00B2, $00B3, $2287, $00DF, $03A4, $03C4, $2234, $0398, $03B8, $03D1, $00DE,
     $00FE, $02DC, $00D7, $2122, $00DA, $00FA, $21D1, $2191, $00DB, $00FB, $00D9, $00F9, $00A8, $03D2, $03A5, $03C5, $00DC, $00FC, $2118, $039E, $03BE, $00DD, $00FD, $00A5, $0178,
-    $00FF, $0396, $03B6, $200D, $200C];
+    $00FF, $0396, $03B6, $200D, $200C);
 
-  LINK_PREFIXES: array of String = ['http', 'https', 'ftp', 'ftps'];
+  LINK_PREFIXES: array[0..3] of String = ('http', 'https', 'ftp', 'ftps');
 
   BLOCK_ELEMENTS: set of THTMLElement = [headdress, heblockquote, hedel, hediv, hedl, hefieldset, heform, heh1, heh2, heh3, heh4, heh5, heh6, hehr, heins, henoscript, heol, hep,
     hepre, hetable, heul];
@@ -673,7 +675,7 @@ begin
           // Read ID up to ']'
           id := line.readUntil([']']);
           // Is ID valid and are there any more characters?
-          if (id <> '') and (line.pos + 2 < line.value.length) then
+          if (id <> '') and (line.pos + 2 < Length(line.value)) then
           begin
             // Check for ':' ([...]:...)
             if (line.value[1 + line.pos + 1] = ':') then
@@ -719,16 +721,16 @@ begin
 
         if (isLinkRef) then
         begin
-          if (id.ToLower = '$profile$') then
+          if (LowerCase(id) = '$profile$') then
           begin
-            FuseExtensions := link.ToLower = 'extended';
+            FuseExtensions := LowerCase(link) = 'extended';
             Femitter.FuseExtensions := FuseExtensions;
             lastLinkRef := nil;
           end
           else
           begin
             // Store linkRef and skip line
-            lr := TLinkRef.Create(link, comment, (comment <> '') and (link.length = 1) and (link[1 + 1] = '*'));
+            lr := TLinkRef.Create(link, comment, (comment <> '') and (Length(link) = 1) and (link[1 + 1] = '*'));
             Femitter.addLinkRef(id, lr);
             if (comment = '') then
               lastLinkRef := lr;
@@ -1173,7 +1175,7 @@ procedure TEmitter.addLinkRef(key: String; linkRef: TLinkRef);
 var
   k : String;
 begin
-  k := key.ToLower;
+  k := LowerCase(key);
   if linkRefs.ContainsKey(k) then
   begin
     linkRefs[k].Free;
@@ -1203,7 +1205,7 @@ begin
         if (FuseExtensions and (root.id <> '')) then
         begin
           out_.append(' id="');
-          TUtils.appendCode(out_, root.id, 0, root.id.length);
+          TUtils.appendCode(out_, root.id, 0, Length(root.id));
           out_.append('"');
         end;
         out_.append('>');
@@ -1225,7 +1227,7 @@ begin
         if (FuseExtensions and (root.id <> '')) then
         begin
           out_.append(' id="');
-          TUtils.appendCode(out_, root.id, 0, root.id.length);
+          TUtils.appendCode(out_, root.id, 0, Length(root.id));
           out_.append('"');
         end;
         out_.append('>');
@@ -1284,7 +1286,7 @@ var
   pos: integer;
 begin
   pos := start;
-  while (pos < s.length) do
+  while (pos < Length(s)) do
   begin
     if getToken(s, pos) = token then
       exit(pos);
@@ -1320,7 +1322,7 @@ begin
     pos := TUtils.skipSpaces(s, pos);
     if (pos < start) then
     begin
-      if linkRefs.TryGetValue(name.ToLower, lr) then
+      if linkRefs.TryGetValue(LowerCase(name), lr) then
       begin
         isAbbrev := lr.isAbbrev;
         link := lr.link;
@@ -1380,7 +1382,7 @@ begin
         id := temp.ToString()
       else
         id := name;
-      if linkRefs.TryGetValue(id.ToLower, lr) then
+      if linkRefs.TryGetValue(LowerCase(id), lr) then
       begin
         link := lr.link;
         hasLink := true;
@@ -1389,7 +1391,7 @@ begin
     end
     else
     begin
-      if linkRefs.TryGetValue(name.ToLower, lr) then
+      if linkRefs.TryGetValue(LowerCase(name), lr) then
       begin
         isAbbrev := lr.isAbbrev;
         link := lr.link;
@@ -1410,7 +1412,7 @@ begin
         if (not FuseExtensions) then
           exit(-1);
         out_.append('<abbr title:="');
-        TUtils.appendValue(out_, comment, 0, comment.length);
+        TUtils.appendValue(out_, comment, 0, Length(comment));
         out_.append('">');
         recursiveEmitLine(out_, name, 0, mtNONE);
         out_.append('</abbr>');
@@ -1419,12 +1421,12 @@ begin
       begin
         FConfig.decorator.openLink(out_);
         out_.append(' href="');
-        TUtils.appendValue(out_, link, 0, link.length);
+        TUtils.appendValue(out_, link, 0, Length(link));
         out_.append('"');
         if (comment <> '') then
         begin
           out_.append(' title="');
-          TUtils.appendValue(out_, comment, 0, comment.length);
+          TUtils.appendValue(out_, comment, 0, Length(comment));
           out_.append('"');
         end;
         out_.append('>');
@@ -1436,14 +1438,14 @@ begin
     begin
       FConfig.decorator.openImage(out_);
       out_.append(' src="');
-      TUtils.appendValue(out_, link, 0, link.length);
+      TUtils.appendValue(out_, link, 0, Length(link));
       out_.append('" alt="');
-      TUtils.appendValue(out_, name, 0, name.length);
+      TUtils.appendValue(out_, name, 0, Length(name));
       out_.append('"');
       if (comment <> '') then
       begin
         out_.append(' title="');
-        TUtils.appendValue(out_, comment, 0, comment.length);
+        TUtils.appendValue(out_, comment, 0, Length(comment));
         out_.append('"');
       end;
       FConfig.decorator.closeImage(out_);
@@ -1473,9 +1475,9 @@ begin
         link := temp.ToString();
         FConfig.decorator.openLink(out_);
         out_.append(' href="');
-        TUtils.appendValue(out_, link, 0, link.length);
+        TUtils.appendValue(out_, link, 0, Length(link));
         out_.append('">');
-        TUtils.appendValue(out_, link, 0, link.length);
+        TUtils.appendValue(out_, link, 0, Length(link));
         FConfig.decorator.closeLink(out_);
         exit(pos);
       end;
@@ -1493,16 +1495,16 @@ begin
         FConfig.decorator.openLink(out_);
         out_.append(' href="');
         TUtils.appendMailto(out_, 'mailto:', 0, 7);
-        TUtils.appendMailto(out_, link, 0, link.length);
+        TUtils.appendMailto(out_, link, 0, Length(link));
         out_.append('">');
-        TUtils.appendMailto(out_, link, 0, link.length);
+        TUtils.appendMailto(out_, link, 0, Length(link));
         FConfig.decorator.closeLink(out_);
         exit(pos);
       end;
     end;
 
     // Check for inline html
-    if (start + 2 < s.length) then
+    if (start + 2 < Length(s)) then
     begin
       temp.Clear;
       exit(TUtils.readXML(out_, s, start, FConfig.safeMode));
@@ -1573,7 +1575,7 @@ begin
   pos := start;
   temp := TStringBuilder.Create();
   try
-    while (pos < s.length) do
+    while (pos < Length(s)) do
     begin
       mt := getToken(s, pos);
       if (token <> mtNONE) and ((mt = token) or ((token = mtEM_STAR) and (mt = mtSTRONG_STAR)) or ((token = mtEM_UNDERSCORE) and (mt = mtSTRONG_UNDERSCORE))) then
@@ -1777,15 +1779,15 @@ begin
   else
     c0 := ' ';
   c := whitespaceToSpace(s[1 + pos]);
-  if (pos + 1 < s.length) then
+  if (pos + 1 < Length(s)) then
     c1 := whitespaceToSpace(s[1 + pos + 1])
   else
     c1 := ' ';
-  if (pos + 2 < s.length) then
+  if (pos + 2 < Length(s)) then
     c2 := whitespaceToSpace(s[1 + pos + 2])
   else
     c2 := ' ';
-  if (pos + 3 < s.length) then
+  if (pos + 3 < Length(s)) then
     c3 := whitespaceToSpace(s[1 + pos + 3])
   else
     c3 := ' ';
@@ -1906,7 +1908,8 @@ begin
     begin
       if (not line.isEmpty) then
       begin
-        s.append(line.value.substring(line.leading, line.value.length - line.trailing));
+//        s.append(line.value.substring(line.leading, line.value.length - line.trailing)); PSTfix
+        s.Append( Copy(line.value, line.leading + 1, Length(line.value) - line.trailing));
         if (line.trailing >= 2) then
           s.append('<br />');
       end;
@@ -1992,7 +1995,8 @@ begin
         if (line.isEmpty) then
           list.add('')
         else if removeIndent then
-          list.add(line.value.substring(4))
+//          list.add(line.value.substring(4)) P{STfix
+          list.Add( Copy(line.value, 5))
         else
           list.add(line.value);
         line := line.next;
@@ -2012,7 +2016,7 @@ begin
           sp := 4
         else
           sp := 0;
-        for i := sp to line.value.length - 1 do
+        for i := sp to Length(line.value) - 1 do
         begin
           c := line.value[1 + i];
           case c of
@@ -2045,7 +2049,7 @@ end;
 function TReader.read: char;
 begin
   inc(FCursor);
-  if FCursor > FValue.length then
+  if FCursor > Length(FValue) then
     result := #0
   else
     result := FValue[FCursor];
@@ -2058,9 +2062,9 @@ var
   pos: integer;
 begin
   pos := start;
-  while (pos < s.length) and ((s[1 + pos] = ' ') or (s[1 + pos] = #10)) do
+  while (pos < Length(s)) and ((s[1 + pos] = ' ') or (s[1 + pos] = #10)) do
     inc(pos);
-  if pos < s.length then
+  if pos < Length(s) then
     result := pos
   else
     result := -1;
@@ -2086,10 +2090,10 @@ var
   ch: char;
 begin
   pos := start;
-  while (pos < s.length) do
+  while (pos < Length(s)) do
   begin
     ch := s[1 + pos];
-    if (ch = '\') and (pos + 1 < s.length) then
+    if (ch = '\') and (pos + 1 < Length(s)) then
       pos := escape(out_, s[1 + pos + 1], pos)
     else
     begin
@@ -2100,7 +2104,7 @@ begin
       inc(pos);
     end;
   end;
-  if pos = s.length then
+  if pos = Length(s) then
     result := -1
   else
     result := pos;
@@ -2112,10 +2116,10 @@ var
   ch: char;
 begin
   pos := start;
-  while (pos < s.length) do
+  while (pos < Length(s)) do
   begin
     ch := s[1 + pos];
-    if (ch = '\') and (pos + 1 < s.length) then
+    if (ch = '\') and (pos + 1 < Length(s)) then
       pos := escape(out_, s[1 + pos + 1], pos)
     else
     begin
@@ -2125,7 +2129,7 @@ begin
     end;
     inc(pos);
   end;
-  if pos = s.length then
+  if pos = Length(s) then
     result := -1
   else
     result := pos;
@@ -2139,10 +2143,10 @@ var
 begin
   pos := start;
   counter := 1;
-  while (pos < s.length) do
+  while (pos < Length(s)) do
   begin
     ch := s[1 + pos];
-    if (ch = '\') and (pos + 1 < s.length) then
+    if (ch = '\') and (pos + 1 < Length(s)) then
       pos := escape(out_, s[1 + pos + 1], pos)
     else
     begin
@@ -2166,7 +2170,7 @@ begin
     end;
     inc(pos);
   end;
-  if pos = s.length then
+  if pos = Length(s) then
     result := -1
   else
     result := pos;
@@ -2180,7 +2184,7 @@ var
 begin
   pos := start;
   counter := 1;
-  while (pos < s.length) do
+  while (pos < Length(s)) do
   begin
     ch := s[1 + pos];
     endReached := false;
@@ -2207,7 +2211,7 @@ begin
       break;
     inc(pos);
   end;
-  if pos = s.length then
+  if pos = Length(s) then
     result := -1
   else
     result := pos;
@@ -2219,7 +2223,7 @@ var
   ch: char;
 begin
   pos := start;
-  while (pos < s.length) do
+  while (pos < Length(s)) do
   begin
     ch := s[1 + pos];
     if CharInSet(ch, cend) then
@@ -2227,7 +2231,7 @@ begin
     out_.append(ch);
     inc(pos);
   end;
-  if pos = s.length then
+  if pos = Length(s) then
     result := -1
   else
     result := pos;
@@ -2239,7 +2243,7 @@ var
   ch: char;
 begin
   pos := start;
-  while (pos < s.length) do
+  while (pos < Length(s)) do
   begin
     ch := s[1 + pos];
     if (ch = cend) then
@@ -2247,7 +2251,7 @@ begin
     out_.append(ch);
     inc(pos);
   end;
-  if pos = s.length then
+  if pos = Length(s) then
     result := -1
   else
     result := pos;
@@ -2262,7 +2266,7 @@ begin
   pos := start;
   inString := false;
   stringChar := #0;
-  while (pos < s.length) do
+  while (pos < Length(s)) do
   begin
     ch := s[1 + pos];
     if (inString) then
@@ -2271,7 +2275,7 @@ begin
       begin
         out_.append(ch);
         inc(pos);
-        if (pos < s.length) then
+        if (pos < Length(s)) then
         begin
           out_.append(ch);
           inc(pos);
@@ -2299,7 +2303,7 @@ begin
     out_.append(ch);
     inc(pos);
   end;
-  if pos = s.length then
+  if pos = Length(s) then
     result := -1
   else
     result := pos;
@@ -2438,7 +2442,8 @@ begin
       pos := readXMLUntil(temp, s, pos, [' ', '/', '>']);
       if (pos = -1) then
         exit(-1);
-      tag := temp.ToString().trim().ToLower;
+//      tag := temp.ToString().trim().ToLower; PSTFix
+        tag := LowerCase( Trim( temp.ToString));
       if (THTML.isUnsafeHtmlElement(tag)) then
         out_.append('&lt;')
       else
@@ -2484,7 +2489,7 @@ var
   i: integer;
   c: char;
 begin
-  for i := offset to value.length - 1 do
+  for i := offset to Length(value) - 1 do
   begin
     c := value[1 + i];
     case c of
@@ -2505,11 +2510,12 @@ var
   i: integer;
   c: char;
 begin
-  for i := 0 to fenceLine.length - 1 do
+  for i := 0 to Length(fenceLine) - 1 do
   begin
     c := fenceLine[1 + i];
     if (not TCharacter.isWhitespace(c)) and (c <> '`') and (c <> '~') then
-      exit(fenceLine.substring(i).trim());
+//      exit(fenceLine.substring(i).trim()); PSTfix
+      Exit(  Trim( Copy(fenceLine, i+1)));
   end;
   result := '';
 end;
@@ -2547,16 +2553,16 @@ end;
 procedure TLine.Init();
 begin
   FLeading := 0;
-  while (leading < value.length) and (value[1 + leading] = ' ') do
+  while (leading < Length(value)) and (value[1 + leading] = ' ') do
     inc(FLeading);
 
-  if (leading = value.length) then
+  if (leading = Length(value)) then
     setEmpty()
   else
   begin
     isEmpty := false;
     trailing := 0;
-    while (value[1 + value.length - trailing - 1] = ' ') do
+    while (value[1 + Length(value) - trailing - 1] = ' ') do
       inc(FTrailing);
   end;
 end;
@@ -2564,18 +2570,18 @@ end;
 procedure TLine.InitLeading();
 begin
   FLeading := 0;
-  while (leading < value.length) and (value[1 + leading] = ' ') do
+  while (leading < Length(value)) and (value[1 + leading] = ' ') do
     inc(FLeading);
-  if (leading = value.length) then
+  if (leading = Length(value)) then
     setEmpty();
 end;
 
 // TODO use Util#skipSpaces
 function TLine.skipSpaces(): boolean;
 begin
-  while (pos < value.length) and (value[1 + pos] = ' ') do
+  while (pos < Length(value)) and (value[1 + pos] = ' ') do
     inc(FPos);
-  result := pos < value.length;
+  result := pos < Length(value);
 end;
 
 // TODO use Util#readUntil
@@ -2588,10 +2594,10 @@ begin
   sb := TStringBuilder.Create();
   try
     pos := self.pos;
-    while (pos < value.length) do
+    while (pos < Length(value)) do
     begin
       ch := value[1 + pos];
-      if (ch = '\') and (pos + 1 < value.length) then
+      if (ch = '\') and (pos + 1 < Length(value)) then
       begin
         c := value[1 + pos + 1];
         if CharInSet(c, ['\', '[', ']', '(', ')', '{', '}', '#', '"', '''', '.', '>', '*', '+', '-', '_', '!', '`', '~']) then
@@ -2612,7 +2618,7 @@ begin
       inc(pos);
     end;
 
-    if (pos < value.length) then
+    if (pos < Length(value)) then
       ch := value[1 + pos]
     else
       ch := #10;
@@ -2646,7 +2652,7 @@ var
   c: char;
 begin
   count := 0;
-  for i := 0 to value.length - 1 do
+  for i := 0 to Length(value) - 1 do
   begin
     c := value[1 + i];
     if (c = ' ') then
@@ -2668,7 +2674,7 @@ var
   c: char;
 begin
   count := 0;
-  for i := 0 to value.length - 1 do
+  for i := 0 to Length(value) - 1 do
   begin
     c := value[1 + i];
     if (c = ' ') and (allowSpaces) then
@@ -2701,7 +2707,7 @@ begin
 
   if (configuration.forceExtendedProfile) then
   begin
-    if (value.length - leading - trailing > 2) then
+    if (Length(value) - leading - trailing > 2) then
     begin
       if (value[1 + leading] = '`') and (countCharsStart('`', configuration.allowSpacesInFencedDelimiters) >= 3) then
         exit(ltFENCED_CODE);
@@ -2710,24 +2716,24 @@ begin
     end;
   end;
 
-  if (value.length - leading - trailing > 2) and ((value[1 + leading] = '*') or (value[1 + leading] = '-') or (value[1 + leading] = '_')) then
+  if (Length(value) - leading - trailing > 2) and ((value[1 + leading] = '*') or (value[1 + leading] = '-') or (value[1 + leading] = '_')) then
   begin
     if (countChars(value[1 + leading]) >= 3) then
       exit(ltHR);
   end;
 
-  if (value.length - leading >= 2) and (value[1 + leading + 1] = ' ') then
+  if (Length(value) - leading >= 2) and (value[1 + leading + 1] = ' ') then
   begin
     if CharInSet(value[1 + leading], ['*', '-', '+']) then
       exit(ltULIST);
   end;
 
-  if (value.length - leading >= 3) and (TCharacter.isDigit(value[1 + leading])) then
+  if (Length(value) - leading >= 3) and (TCharacter.isDigit(value[1 + leading])) then
   begin
     i := leading + 1;
-    while (i < value.length) and (TCharacter.isDigit(value[1 + i])) do
+    while (i < Length(value)) and (TCharacter.isDigit(value[1 + i])) do
       inc(i);
-    if (i + 1 < value.length) and (value[1 + i] = '.') and (value[1 + i + 1] = ' ') then
+    if (i + 1 < Length(value)) and (value[1 + i] = '.') and (value[1 + i + 1] = ' ') then
       exit(ltOLIST);
   end;
 
@@ -2754,23 +2760,23 @@ var
   pos: integer;
 begin
   line := firstLine;
-  if (start + 3 < line.value.length) then
+  if (start + 3 < Length(line.value)) then
   begin
     if (line.value[1 + 2] = '-') and (line.value[1 + 3] = '-') then
     begin
       pos := start + 4;
       while (line <> nil) do
       begin
-        while (pos < line.value.length) and (line.value[1 + pos] <> '-') do
+        while (pos < Length(line.value)) and (line.value[1 + pos] <> '-') do
           inc(pos);
-        if (pos = line.value.length) then
+        if (pos = Length(line.value)) then
         begin
           line := line.next;
           pos := 0;
         end
         else
         begin
-          if (pos + 2 < line.value.length) then
+          if (pos + 2 < Length(line.value)) then
           begin
             if (line.value[1 + pos + 1] = '-') and (line.value[1 + pos + 2] = '>') then
             begin
@@ -2793,17 +2799,17 @@ var
   found: boolean;
   id: String;
 begin
-  if (isEmpty or (value[1 + value.length - trailing - 1] <> '}')) then
+  if (isEmpty or (value[1 + Length(value) - trailing - 1] <> '}')) then
     exit('');
 
   p := leading;
   found := false;
-  while (p < value.length) and (not found) do
+  while (p < Length(value)) and (not found) do
   begin
     case value[1 + p] of
       '\':
         begin
-          if (p + 1 < value.length) then
+          if (p + 1 < Length(value)) then
           begin
             if (value[1 + p + 1]) = '{' then
             begin
@@ -2829,17 +2835,17 @@ begin
 
   if (found) then
   begin
-    if (p + 1 < value.length) and (value[1 + p + 1] = '#') then
+    if (p + 1 < Length(value)) and (value[1 + p + 1] = '#') then
     begin
       start := p + 2;
       p := start;
       found := false;
-      while (p < value.length) and (not found) do
+      while (p < Length(value)) and (not found) do
       begin
         case (value[1 + p]) of
           '\':
             begin
-              if (p + 1 < value.length) then
+              if (p + 1 < Length(value)) then
               begin
                 if (value[1 + p + 1]) = '}' then
                 begin
@@ -2864,17 +2870,20 @@ begin
 
         if (found) then
         begin
-          id := value.substring(start, p).trim();
+//          id := value.substring(start, p).trim(); PSTfix
+          id := Trim( Copy(value, start + 1, p));
           if (leading <> 0) then
           begin
-            value := value.substring(0, leading) + value.substring(leading, start - 2).trim();
+//            value := value.substring(0, leading) + value.substring(leading, start - 2).trim(); PSTfix
+            value := Copy(value, 1, leading) + Trim( Copy( value, leading + 1, start -2));
           end
           else
           begin
-            value := value.substring(leading, start - 2).trim();
+//            value := value.substring(leading, start - 2).trim();  PSTFix
+            value := Trim( Copy(value, leading +1, start -2));
           end;
           trailing := 0;
-          if (id.length > 0) then
+          if (Length(id) > 0) then
             exit(id)
           else
             exit('');
@@ -2911,10 +2920,12 @@ begin
       element := temp.ToString();
       temp.Clear;
       TUtils.getXMLTag(temp, element);
-      tag := temp.ToString().ToLower;
+      tag := LowerCase(temp.ToString());
       if (not THTML.isHtmlBlockElement(tag)) then
         exit(false);
-      if (tag.equals('hr') or element.endsWith('/>')) then
+//      if (tag.equals('hr') or element.endsWith('/>')) then PSTFix
+      if (tag = 'hr') or AnsiEndsText('/>', element) then
+
       begin
         xmlEndLine := self;
         exit(true);
@@ -2924,9 +2935,9 @@ begin
       line := self;
       while (line <> nil) do
       begin
-        while (pos < line.value.length) and (line.value[1 + pos] <> '<') do
+        while (pos < Length(line.value)) and (line.value[1 + pos] <> '<') do
           inc(FPos);
-        if (pos >= line.value.length) then
+        if (pos >= Length(line.value)) then
         begin
           line := line.next;
           pos := 0;
@@ -2940,8 +2951,8 @@ begin
             element := temp.ToString();
             temp.Clear;
             TUtils.getXMLTag(temp, element);
-            tag := temp.ToString().ToLower;
-            if (THTML.isHtmlBlockElement(tag)) and (not tag.equals('hr')) and (not element.endsWith('/>')) then
+            tag := LowerCase(temp.ToString());
+            if (THTML.isHtmlBlockElement(tag)) and (tag <> 'hr') and (not AnsiEndsText('/>', element)) then
             begin
               if (element[1 + 1] = '/') then
               begin
@@ -3109,11 +3120,11 @@ begin
       if (line.value[1 + line.leading] = '>') then
       begin
         rem := line.leading + 1;
-        if (line.leading + 1 < line.value.length) and (line.value[1 + line.leading + 1] = ' ') then
+        if (line.leading + 1 < Length(line.value)) and (line.value[1 + line.leading + 1] = ' ') then
         begin
           inc(rem);
         end;
-        line.value := line.value.substring(rem);
+        line.value := Copy(line.value, rem+1);
         line.InitLeading();
       end;
     end;
@@ -3161,11 +3172,14 @@ begin
     begin
       case (line.getLineType(config)) of
         ltULIST:
-          line.value := line.value.substring(line.leading + 2);
+//          line.value := line.value.substring(line.leading + 2); PSTfix
+          line.value := Copy(line.value, line.leading +3);
         ltOLIST:
-          line.value := line.value.substring(line.value.indexOf('.') + 2);
+//          line.value := line.value.substring(line.value.indexOf('.') + 2); pstfix
+        line.value := Copy(line.value, Pos('.', line.value) + 2);
       else
-        line.value := line.value.substring(Math.min(line.leading, 4));
+//        line.value := line.value.substring(Math.min(line.leading, 4)); pstfix
+        line.value := Copy(line.value, Math.Min(line.leading + 1, 5));
       end;
       line.InitLeading();
     end;
@@ -3231,22 +3245,22 @@ begin
     exit;
   end;
   start := line.leading;
-  while (start < line.value.length) and (line.value[1 + start] = '#') do
+  while (start < Length(line.value)) and (line.value[1 + start] = '#') do
   begin
     inc(level);
     inc(start);
   end;
-  while (start < line.value.length) and (line.value[1 + start] = ' ') do
+  while (start < Length(line.value)) and (line.value[1 + start] = ' ') do
   begin
     inc(start);
   end;
-  if (start >= line.value.length) then
+  if (start >= Length(line.value)) then
   begin
     line.setEmpty();
   end
   else
   begin
-    end_ := line.value.length - line.trailing - 1;
+    end_ := Length(line.value) - line.trailing - 1;
     while (line.value[1 + end_] = '#') do
     begin
       dec(end_);
@@ -3255,7 +3269,7 @@ begin
     begin
       dec(end_);
     end;
-    line.value := line.value.substring(start, end_-start + 1);
+    line.value := Copy(line.value, start+1, end_-start+1);
     line.leading := 0;
     line.trailing := 0;
   end;
