@@ -22,7 +22,7 @@ Unit MarkdownDaringFireball;
 interface
 
 uses
-  SysUtils, StrUtils, Generics.Collections, Character, TypInfo, Math,
+  SysUtils, StrUtils, Classes, Character, TypInfo, Math,
   MarkdownProcessor;
 
 type
@@ -72,6 +72,8 @@ const
 
   UNSAFE_ELEMENTS: set of THTMLElement = [heapplet, hehead, hehtml, hebody, heframe, heframeset, heiframe, hescript, heobject];
 
+  BUFFER_INCREMENT_SIZE = 1024;
+
 Type
   TReader = class
   private
@@ -82,13 +84,33 @@ Type
     function read: char;
   end;
 
+{$IFDEF FPC}
+  TStringBuilder = class
+  private
+    FContent : String;
+    FLength : Integer;
+    FBufferSize : integer;
+    function GetChar(index: integer): char;
+  public
+    Constructor Create;
+
+    procedure Clear;
+    procedure Append(value : String); overload;
+    procedure Append(value : integer); overload;
+    procedure Append(value : TStringBuilder); overload;
+    property ch[index : integer] : char read GetChar; default;
+    function toString : String; override;
+    Property Length : Integer Read FLength;
+  end;
+{$ENDIF}
+
   TUtils = class
   public
     // Skips spaces in the given String. return The new position or -1 if EOL has been reached.
     class function skipSpaces(s: String; start: integer): integer;
 
     // Process the given escape sequence. return The new position.
-    class function escape(out_: TStringBuilder; ch: char; pos: integer): integer;
+    class function escape(out_: TStringBuilder; ch: char; position: integer): integer;
 
     // Reads characters until any 'end' character is encountered. return The new position or -1 if no 'end' char was found.
     class function readUntil(out_: TStringBuilder; s: String; start: integer; cend: TSysCharSet): integer; overload;
@@ -201,7 +223,7 @@ Type
 
   TBlockEmitter = class
   public
-    procedure emitBlock(out_: TStringBuilder; lines: TList<String>; meta: String); virtual; abstract;
+    procedure emitBlock(out_: TStringBuilder; lines: TStringList; meta: String); virtual; abstract;
   end;
 
   TConfiguration = class
@@ -252,7 +274,7 @@ Type
     FXmlEndLine: TLine;
     FPrevEmpty: boolean;
     FPrevious: TLine;
-    FPos: integer;
+    FPosition: integer;
     FValue: string;
     FIsEmpty: boolean;
     FTrailing: integer;
@@ -269,7 +291,7 @@ Type
     Destructor Destroy; Override;
 
     // Current cursor position.
-    property pos: integer read FPos write FPos;
+    property position: integer read FPosition write FPosition;
     // Leading and trailing spaces.
     property leading: integer read FLeading write FLeading;
     property trailing: integer read FTrailing write FTrailing;
@@ -439,14 +461,14 @@ Type
   // Emitter class responsible for generating HTML output.
   TEmitter = class
   private
-    linkRefs: TDictionary<String, TLinkRef>;
+    linkRefs: TStringList;
     FConfig: TConfiguration;
     FuseExtensions: boolean;
     procedure emitCodeLines(out_: TStringBuilder; lines: TLine; meta: String; removeIndent: boolean);
     procedure emitRawLines(out_: TStringBuilder; lines: TLine);
     procedure emitMarkedLines(out_: TStringBuilder; lines: TLine);
     function findToken(s: String; start: integer; token: TMarkToken): integer;
-    function getToken(s: String; pos: integer): TMarkToken;
+    function getToken(s: String; position: integer): TMarkToken;
     function checkLink(out_: TStringBuilder; s: String; start: integer; token: TMarkToken): integer;
     function recursiveEmitLine(out_: TStringBuilder; s: String; start: integer; token: TMarkToken): integer;
     function checkHTML(out_: TStringBuilder; s: String; start: integer): integer;
@@ -598,7 +620,7 @@ var
   block: TBlock;
   sb: TStringBuilder;
   c, ch: char;
-  pos, np: integer;
+  position, np: integer;
   eol, isLinkRef, lineAdded: boolean;
   lastLinkRef, lr: TLinkRef;
   line: TLine;
@@ -612,7 +634,7 @@ begin
     while (c <> #0) do
     begin
       sb.Clear;
-      pos := 0;
+      position := 0;
       eol := false;
       while (not eol) do
       begin
@@ -635,23 +657,23 @@ begin
             end;
           #9:
             begin
-              np := pos + (4 - (pos and 3));
-              while (pos < np) do
+              np := position + (4 - (position and 3));
+              while (position < np) do
               begin
                 sb.append(' ');
-                inc(pos);
+                inc(position);
               end;
               c := reader.read();
             end;
         else
           if (c <> '<') or (not FConfig.panicMode) then
           begin
-            inc(pos);
+            inc(position);
             sb.append(c);
           end
           else
           begin
-            inc(pos, 4);
+            inc(position, 4);
             sb.append('&lt;');
           end;
           c := reader.read();
@@ -671,23 +693,23 @@ begin
         comment := '';
         if (not line.isEmpty) and (line.leading < 4) and (line.value[1 + line.leading] = '[') then
         begin
-          line.pos := line.leading + 1;
+          line.position := line.leading + 1;
           // Read ID up to ']'
           id := line.readUntil([']']);
           // Is ID valid and are there any more characters?
-          if (id <> '') and (line.pos + 2 < Length(line.value)) then
+          if (id <> '') and (line.position + 2 < Length(line.value)) then
           begin
             // Check for ':' ([...]:...)
-            if (line.value[1 + line.pos + 1] = ':') then
+            if (line.value[1 + line.position + 1] = ':') then
             begin
-              line.pos := line.pos + 2;
+              line.position := line.position + 2;
               line.skipSpaces();
               // Check for link syntax
-              if (line.value[1 + line.pos] = '<') then
+              if (line.value[1 + line.position] = '<') then
               begin
-                line.pos := line.pos + 1;
+                line.position := line.position + 1;
                 link := line.readUntil(['>']);
-                line.pos := line.pos + 1;
+                line.position := line.position + 1;
               end
               else
                 link := line.readUntil([' ', #10]);
@@ -698,11 +720,11 @@ begin
                 // Any non-whitespace characters following?
                 if (line.skipSpaces()) then
                 begin
-                  ch := line.value[1 + line.pos];
+                  ch := line.value[1 + line.position];
                   // Read comment
                   if (ch = '"') or (ch = '''') or (ch = '(') then
                   begin
-                    line.pos := line.pos + 1;
+                    line.position := line.position + 1;
                     if ch = '(' then
                       comment := line.readUntil([')'])
                     else
@@ -742,11 +764,11 @@ begin
           // Check for multi-line linkRef
           if (not line.isEmpty and (lastLinkRef <> nil)) then
           begin
-            line.pos := line.leading;
-            ch := line.value[1 + line.pos];
+            line.position := line.leading;
+            ch := line.value[1 + line.position];
             if (ch = '"') or (ch = '''') or (ch = '(') then
             begin
-              line.pos := line.pos + 1;
+              line.position := line.position + 1;
               if ch = '(' then
                 comment := line.readUntil([')'])
               else
@@ -760,7 +782,7 @@ begin
           // No multi-line linkRef, store line
           if (comment = '') then
           begin
-            line.pos := 0;
+            line.position := 0;
             block.AppendLine(line);
             lineAdded := true;
           end;
@@ -1158,15 +1180,17 @@ constructor TEmitter.Create(config: TConfiguration);
 begin
   inherited Create;
   FConfig := config;
-  linkRefs := TDictionary<String, TLinkRef>.Create;
+  linkRefs := TStringList.Create;
+  linkRefs.Sorted := true;
+  linkRefs.Duplicates := dupError;
 end;
 
 destructor TEmitter.Destroy;
 var
-  lr: TLinkRef;
+  i : integer;
 begin
-  for lr in linkRefs.Values do
-    lr.Free;
+  for i := 0 to linkRefs.Count - 1 do
+    linkRefs.Objects[i].Free;
   linkRefs.Free;
   inherited;
 end;
@@ -1174,15 +1198,16 @@ end;
 procedure TEmitter.addLinkRef(key: String; linkRef: TLinkRef);
 var
   k : String;
+  i : integer;
 begin
   k := LowerCase(key);
-  if linkRefs.ContainsKey(k) then
+  if linkRefs.find(k, i) then
   begin
-    linkRefs[k].Free;
-    linkRefs[k] := linkRef;
+    linkRefs.Objects[i].Free;
+    linkRefs.Objects[i] := linkRef;
   end
   else
-    linkRefs.Add(k, linkRef);
+    linkRefs.AddObject(k, linkRef);
 end;
 
 procedure TEmitter.emit(out_: TStringBuilder; root: TBlock);
@@ -1283,14 +1308,14 @@ end;
 
 function TEmitter.findToken(s: String; start: integer; token: TMarkToken): integer;
 var
-  pos: integer;
+  position: integer;
 begin
-  pos := start;
-  while (pos < Length(s)) do
+  position := start;
+  while (position < Length(s)) do
   begin
-    if getToken(s, pos) = token then
-      exit(pos);
-    inc(pos);
+    if getToken(s, position) = token then
+      exit(position);
+    inc(position);
   end;
   result := -1;
 end;
@@ -1298,92 +1323,94 @@ end;
 function TEmitter.checkLink(out_: TStringBuilder; s: String; start: integer; token: TMarkToken): integer;
 var
   isAbbrev, useLt, hasLink: boolean;
-  pos, oldPos: integer;
+  position, oldPos, i: integer;
   temp: TStringBuilder;
   name, link, comment, id: String;
   lr: TLinkRef;
 begin
   isAbbrev := false;
   if (token = mtLINK) then
-    pos := start + 1
+    position := start + 1
   else
-    pos := start + 2;
+    position := start + 2;
   temp := TStringBuilder.Create;
   try
-    pos := TUtils.readMdLinkId(temp, s, pos);
-    if (pos < start) then
+    position := TUtils.readMdLinkId(temp, s, position);
+    if (position < start) then
       exit(-1);
     name := temp.ToString();
     link := '';
     hasLink := false;
     comment := '';
-    oldPos := pos;
-    inc(pos);
-    pos := TUtils.skipSpaces(s, pos);
-    if (pos < start) then
+    oldPos := position;
+    inc(position);
+    position := TUtils.skipSpaces(s, position);
+    if (position < start) then
     begin
-      if linkRefs.TryGetValue(LowerCase(name), lr) then
+      if linkRefs.find(LowerCase(name), i) then
       begin
+        lr := TLinkRef(linkRefs.Objects[i]);
         isAbbrev := lr.isAbbrev;
         link := lr.link;
         hasLink := true;
         comment := lr.title;
-        pos := oldPos;
+        position := oldPos;
       end
       else
         exit(-1);
     end
-    else if (s[1 + pos] = '(') then
+    else if (s[1 + position] = '(') then
     begin
-      inc(pos);
-      pos := TUtils.skipSpaces(s, pos);
-      if (pos < start) then
+      inc(position);
+      position := TUtils.skipSpaces(s, position);
+      if (position < start) then
         exit(-1);
       temp.Clear;
-      useLt := s[1 + pos] = '<';
+      useLt := s[1 + position] = '<';
       if useLt then
-        pos := TUtils.readUntil(temp, s, pos + 1, '>')
+        position := TUtils.readUntil(temp, s, position + 1, '>')
       else
-        pos := TUtils.readMdLink(temp, s, pos);
-      if (pos < start) then
+        position := TUtils.readMdLink(temp, s, position);
+      if (position < start) then
         exit(-1);
       if (useLt) then
-        inc(pos);
+        inc(position);
       link := temp.ToString();
       hasLink := true;
-      if (s[1 + pos] = ' ') then
+      if (s[1 + position] = ' ') then
       begin
-        pos := TUtils.skipSpaces(s, pos);
-        if (pos > start) and (s[1 + pos] = '"') then
+        position := TUtils.skipSpaces(s, position);
+        if (position > start) and (s[1 + position] = '"') then
         begin
-          inc(pos);
+          inc(position);
           temp.Clear;
-          pos := TUtils.readUntil(temp, s, pos, '"');
-          if (pos < start) then
+          position := TUtils.readUntil(temp, s, position, '"');
+          if (position < start) then
             exit(-1);
           comment := temp.ToString();
-          inc(pos);
-          pos := TUtils.skipSpaces(s, pos);
-          if (pos = -1) then
+          inc(position);
+          position := TUtils.skipSpaces(s, position);
+          if (position = -1) then
             exit(-1);
         end;
       end;
-      if (s[1 + pos] <> ')') then
+      if (s[1 + position] <> ')') then
         exit(-1);
     end
-    else if (s[1 + pos] = '[') then
+    else if (s[1 + position] = '[') then
     begin
-      inc(pos);
+      inc(position);
       temp.Clear;
-      pos := TUtils.readRawUntil(temp, s, pos, ']');
-      if (pos < start) then
+      position := TUtils.readRawUntil(temp, s, position, ']');
+      if (position < start) then
         exit(-1);
       if temp.length > 0 then
         id := temp.ToString()
       else
         id := name;
-      if linkRefs.TryGetValue(LowerCase(id), lr) then
+      if linkRefs.find(LowerCase(id), i) then
       begin
+        lr := TLinkRef(linkRefs.Objects[i]);
         link := lr.link;
         hasLink := true;
         comment := lr.title;
@@ -1391,13 +1418,14 @@ begin
     end
     else
     begin
-      if linkRefs.TryGetValue(LowerCase(name), lr) then
+      if linkRefs.find(LowerCase(name), i) then
       begin
+        lr := TLinkRef(linkRefs.Objects[i]);
         isAbbrev := lr.isAbbrev;
         link := lr.link;
         hasLink := true;
         comment := lr.title;
-        pos := oldPos;
+        position := oldPos;
       end
       else
         exit(-1);
@@ -1450,7 +1478,7 @@ begin
       end;
       FConfig.decorator.closeImage(out_);
     end;
-    result := pos;
+    result := position;
   finally
     temp.Free;
   end;
@@ -1459,18 +1487,18 @@ end;
 function TEmitter.checkHTML(out_: TStringBuilder; s: String; start: integer): integer;
 var
   temp: TStringBuilder;
-  pos: integer;
+  position: integer;
   link: String;
 begin
   temp := TStringBuilder.Create();
   try
     // Check for auto links
     temp.Clear;
-    pos := TUtils.readUntil(temp, s, start + 1, [':', ' ', '>', #10]);
-    if (pos <> -1) and (s[1 + pos] = ':') and (THTML.isLinkPrefix(temp.ToString())) then
+    position := TUtils.readUntil(temp, s, start + 1, [':', ' ', '>', #10]);
+    if (position <> -1) and (s[1 + position] = ':') and (THTML.isLinkPrefix(temp.ToString())) then
     begin
-      pos := TUtils.readUntil(temp, s, pos, ['>']);
-      if (pos <> -1) then
+      position := TUtils.readUntil(temp, s, position, ['>']);
+      if (position <> -1) then
       begin
         link := temp.ToString();
         FConfig.decorator.openLink(out_);
@@ -1479,17 +1507,17 @@ begin
         out_.append('">');
         TUtils.appendValue(out_, link, 0, Length(link));
         FConfig.decorator.closeLink(out_);
-        exit(pos);
+        exit(position);
       end;
     end;
 
     // Check for mailto auto link
     temp.Clear;
-    pos := TUtils.readUntil(temp, s, start + 1, ['@', ' ', '>', #10]);
-    if (pos <> -1) and (s[1 + pos] = '@') then
+    position := TUtils.readUntil(temp, s, start + 1, ['@', ' ', '>', #10]);
+    if (position <> -1) and (s[1 + position] = '@') then
     begin
-      pos := TUtils.readUntil(temp, s, pos, '>');
-      if (pos <> -1) then
+      position := TUtils.readUntil(temp, s, position, '>');
+      if (position <> -1) then
       begin
         link := temp.ToString();
         FConfig.decorator.openLink(out_);
@@ -1499,7 +1527,7 @@ begin
         out_.append('">');
         TUtils.appendMailto(out_, link, 0, Length(link));
         FConfig.decorator.closeLink(out_);
-        exit(pos);
+        exit(position);
       end;
     end;
 
@@ -1518,11 +1546,11 @@ end;
 
 class function TEmitter.checkEntity(out_: TStringBuilder; s: String; start: integer): integer;
 var
-  pos, i: integer;
+  position, i: integer;
   c: char;
 begin
-  pos := TUtils.readUntil(out_, s, start, ';');
-  if (pos < 0) or (out_.length < 3) then
+  position := TUtils.readUntil(out_, s, start, ';');
+  if (position < 0) or (out_.length < 3) then
     exit(-1);
   if (out_[1] = '#') then
   begin
@@ -1558,97 +1586,97 @@ begin
     end;
     out_.append(';');
     if THTML.isEntity(out_.ToString()) then
-      exit(pos)
+      exit(position)
     else
       exit(-1);
   end;
 
-  result := pos;
+  result := position;
 end;
 
 function TEmitter.recursiveEmitLine(out_: TStringBuilder; s: String; start: integer; token: TMarkToken): integer;
 var
-  pos, a, b: integer;
+  position, a, b: integer;
   temp: TStringBuilder;
   mt: TMarkToken;
 begin
-  pos := start;
+  position := start;
   temp := TStringBuilder.Create();
   try
-    while (pos < Length(s)) do
+    while (position < Length(s)) do
     begin
-      mt := getToken(s, pos);
+      mt := getToken(s, position);
       if (token <> mtNONE) and ((mt = token) or ((token = mtEM_STAR) and (mt = mtSTRONG_STAR)) or ((token = mtEM_UNDERSCORE) and (mt = mtSTRONG_UNDERSCORE))) then
-        exit(pos);
+        exit(position);
 
       case mt of
         mtIMAGE, mtLINK:
           begin
             temp.Clear;
-            b := checkLink(temp, s, pos, mt);
+            b := checkLink(temp, s, position, mt);
             if (b > 0) then
             begin
               out_.append(temp);
-              pos := b;
+              position := b;
             end
             else
-              out_.append(s[1 + pos]);
+              out_.append(s[1 + position]);
           end;
         mtEM_STAR, mtEM_UNDERSCORE:
           begin
             temp.Clear;
-            b := recursiveEmitLine(temp, s, pos + 1, mt);
+            b := recursiveEmitLine(temp, s, position + 1, mt);
             if (b > 0) then
             begin
               FConfig.decorator.openEmphasis(out_);
               out_.append(temp);
               FConfig.decorator.closeEmphasis(out_);
-              pos := b;
+              position := b;
             end
             else
-              out_.append(s[1 + pos]);
+              out_.append(s[1 + position]);
           end;
         mtSTRONG_STAR, mtSTRONG_UNDERSCORE:
           begin
             temp.Clear;
-            b := recursiveEmitLine(temp, s, pos + 2, mt);
+            b := recursiveEmitLine(temp, s, position + 2, mt);
             if (b > 0) then
             begin
               FConfig.decorator.openStrong(out_);
               out_.append(temp);
               FConfig.decorator.closeStrong(out_);
-              pos := b + 1;
+              position := b + 1;
             end
             else
-              out_.append(s[1 + pos]);
+              out_.append(s[1 + position]);
           end;
         mtSUPER:
           begin
             temp.Clear;
-            b := recursiveEmitLine(temp, s, pos + 1, mt);
+            b := recursiveEmitLine(temp, s, position + 1, mt);
             if (b > 0) then
             begin
               FConfig.decorator.openSuper(out_);
               out_.append(temp);
               FConfig.decorator.closeSuper(out_);
-              pos := b;
+              position := b;
             end
             else
-              out_.append(s[1 + pos]);
+              out_.append(s[1 + position]);
           end;
         mtCODE_SINGLE, mtCODE_DOUBLE:
           begin
             if mt = mtCODE_DOUBLE then
-              a := pos + 2
+              a := position + 2
             else
-              a := pos + 1;
+              a := position + 1;
             b := findToken(s, a, mt);
             if (b > 0) then
             begin
               if mt = mtCODE_DOUBLE then
-                pos := b + 1
+                position := b + 1
               else
-                pos := b + 0;
+                position := b + 0;
               while (a < b) and (s[1 + a] = ' ') do
                 inc(a);
               if (a < b) then
@@ -1661,16 +1689,16 @@ begin
               FConfig.decorator.closeCodeSpan(out_);
             end
             else
-              out_.append(s[1 + pos]);
+              out_.append(s[1 + position]);
           end;
         mtHTML:
           begin
             temp.Clear;
-            b := checkHTML(temp, s, pos);
+            b := checkHTML(temp, s, position);
             if (b > 0) then
             begin
               out_.append(temp);
-              pos := b;
+              position := b;
             end
             else
               out_.append('&lt;');
@@ -1678,11 +1706,11 @@ begin
         mtENTITY:
           begin
             temp.Clear;
-            b := checkEntity(temp, s, pos);
+            b := checkEntity(temp, s, position);
             if (b > 0) then
             begin
               out_.append(temp);
-              pos := b;
+              position := b;
             end
             else
               out_.append('&amp;');
@@ -1690,54 +1718,54 @@ begin
         mtX_LINK_OPEN:
           begin
             temp.Clear;
-            b := recursiveEmitLine(temp, s, pos + 2, mtX_LINK_CLOSE);
+            b := recursiveEmitLine(temp, s, position + 2, mtX_LINK_CLOSE);
             if (b > 0) and (FConfig.specialLinkEmitter <> nil) then
             begin
               FConfig.specialLinkEmitter.emitSpan(out_, temp.ToString());
-              pos := b + 1;
+              position := b + 1;
             end
             else
-              out_.append(s[1 + pos]);
+              out_.append(s[1 + position]);
           end;
         mtX_COPY:
           begin
             out_.append('&copy;');
-            inc(pos, 2);
+            inc(position, 2);
           end;
         mtX_REG:
           begin
             out_.append('&reg;');
-            inc(pos, 2);
+            inc(position, 2);
           end;
         mtX_TRADE:
           begin
             out_.append('&trade;');
-            inc(pos, 3);
+            inc(position, 3);
           end;
         mtX_NDASH:
           begin
             out_.append('&ndash;');
-            inc(pos);
+            inc(position);
           end;
         mtX_MDASH:
           begin
             out_.append('&mdash;');
-            inc(pos, 2);
+            inc(position, 2);
           end;
         mtX_HELLIP:
           begin
             out_.append('&hellip;');
-            inc(pos, 2);
+            inc(position, 2);
           end;
         mtX_LAQUO:
           begin
             out_.append('&laquo;');
-            inc(pos);
+            inc(position);
           end;
         mtX_RAQUO:
           begin
             out_.append('&raquo;');
-            inc(pos);
+            inc(position);
           end;
         mtX_RDQUO:
           out_.append('&rdquo;');
@@ -1745,14 +1773,14 @@ begin
           out_.append('&ldquo;');
         mtESCAPE:
           begin
-            inc(pos);
-            out_.append(s[1 + pos]);
+            inc(position);
+            out_.append(s[1 + position]);
           end;
         // $FALL-THROUGH$
       else
-        out_.append(s[1 + pos]);
+        out_.append(s[1 + position]);
       end;
-      inc(pos);
+      inc(position);
     end;
     result := -1;
   finally
@@ -1768,27 +1796,27 @@ begin
     result := c;
 end;
 
-function TEmitter.getToken(s: String; pos: integer): TMarkToken;
+function TEmitter.getToken(s: String; position: integer): TMarkToken;
 var
   c0, c, c1, c2, c3: char;
 begin
 
   result := mtNONE;
-  if (pos > 0) then
-    c0 := whitespaceToSpace(s[1 + pos - 1])
+  if (position > 0) then
+    c0 := whitespaceToSpace(s[1 + position - 1])
   else
     c0 := ' ';
-  c := whitespaceToSpace(s[1 + pos]);
-  if (pos + 1 < Length(s)) then
-    c1 := whitespaceToSpace(s[1 + pos + 1])
+  c := whitespaceToSpace(s[1 + position]);
+  if (position + 1 < Length(s)) then
+    c1 := whitespaceToSpace(s[1 + position + 1])
   else
     c1 := ' ';
-  if (pos + 2 < Length(s)) then
-    c2 := whitespaceToSpace(s[1 + pos + 2])
+  if (position + 2 < Length(s)) then
+    c2 := whitespaceToSpace(s[1 + position + 2])
   else
     c2 := ' ';
-  if (pos + 3 < Length(s)) then
-    c3 := whitespaceToSpace(s[1 + pos + 3])
+  if (position + 3 < Length(s)) then
+    c3 := whitespaceToSpace(s[1 + position + 3])
   else
     c3 := ' ';
 
@@ -1928,7 +1956,7 @@ var
   s: String;
   line: TLine;
   temp: TStringBuilder;
-  pos, t: integer;
+  position, t: integer;
 begin
   line := lines;
   if (FConfig.safeMode) then
@@ -1943,24 +1971,24 @@ begin
         line := line.next;
       end;
       s := temp.ToString();
-      pos := 0;
-      while pos < length(s) do
+      position := 0;
+      while position < length(s) do
       begin
-        if (s[1 + pos] = '<') then
+        if (s[1 + position] = '<') then
         begin
           temp.Clear;
-          t := TUtils.readXML(temp, s, pos, FConfig.safeMode);
+          t := TUtils.readXML(temp, s, position, FConfig.safeMode);
           if (t <> -1) then
           begin
             out_.append(temp);
-            pos := t;
+            position := t;
           end
           else
-            out_.append(s[1 + pos]);
+            out_.append(s[1 + position]);
         end
         else
-          out_.append(s[1 + pos]);
-        inc(pos);
+          out_.append(s[1 + position]);
+        inc(position);
       end
     finally
       temp.Free;
@@ -1981,14 +2009,14 @@ end;
 procedure TEmitter.emitCodeLines(out_: TStringBuilder; lines: TLine; meta: String; removeIndent: boolean);
 var
   line: TLine;
-  list: TList<String>;
+  list: TStringList;
   i, sp: integer;
   c: char;
 begin
   line := lines;
   if (FConfig.codeBlockEmitter <> nil) then
   begin
-    list := TList<String>.Create;
+    list := TStringList.Create;
     try
       while (line <> nil) do
       begin
@@ -2059,95 +2087,95 @@ end;
 
 class function TUtils.skipSpaces(s: String; start: integer): integer;
 var
-  pos: integer;
+  position: integer;
 begin
-  pos := start;
-  while (pos < Length(s)) and ((s[1 + pos] = ' ') or (s[1 + pos] = #10)) do
-    inc(pos);
-  if pos < Length(s) then
-    result := pos
+  position := start;
+  while (position < Length(s)) and ((s[1 + position] = ' ') or (s[1 + position] = #10)) do
+    inc(position);
+  if position < Length(s) then
+    result := position
   else
     result := -1;
 end;
 
-class function TUtils.escape(out_: TStringBuilder; ch: char; pos: integer): integer;
+class function TUtils.escape(out_: TStringBuilder; ch: char; position: integer): integer;
 begin
   if ch in ['\', '[', ']', '(', ')', '{', '}', '#', '"', '''', '.', '>', '<', '*', '+', '-', '_', '!', '`', '^'] then
   begin
     out_.append(ch);
-    result := pos + 1;
+    result := position + 1;
   end
   else
   begin
     out_.append('\');
-    result := pos;
+    result := position;
   end;
 end;
 
 class function TUtils.readUntil(out_: TStringBuilder; s: String; start: integer; cend: TSysCharSet): integer;
 var
-  pos: integer;
+  position: integer;
   ch: char;
 begin
-  pos := start;
-  while (pos < Length(s)) do
+  position := start;
+  while (position < Length(s)) do
   begin
-    ch := s[1 + pos];
-    if (ch = '\') and (pos + 1 < Length(s)) then
-      pos := escape(out_, s[1 + pos + 1], pos)
+    ch := s[1 + position];
+    if (ch = '\') and (position + 1 < Length(s)) then
+      position := escape(out_, s[1 + position + 1], position)
     else
     begin
       if CharInSet(ch, cend) then
         break
       else
         out_.append(ch);
-      inc(pos);
+      inc(position);
     end;
   end;
-  if pos = Length(s) then
+  if position = Length(s) then
     result := -1
   else
-    result := pos;
+    result := position;
 end;
 
 class function TUtils.readUntil(out_: TStringBuilder; s: String; start: integer; cend: char): integer;
 var
-  pos: integer;
+  position: integer;
   ch: char;
 begin
-  pos := start;
-  while (pos < Length(s)) do
+  position := start;
+  while (position < Length(s)) do
   begin
-    ch := s[1 + pos];
-    if (ch = '\') and (pos + 1 < Length(s)) then
-      pos := escape(out_, s[1 + pos + 1], pos)
+    ch := s[1 + position];
+    if (ch = '\') and (position + 1 < Length(s)) then
+      position := escape(out_, s[1 + position + 1], position)
     else
     begin
       if (ch = cend) then
         break;
       out_.append(ch);
     end;
-    inc(pos);
+    inc(position);
   end;
-  if pos = Length(s) then
+  if position = Length(s) then
     result := -1
   else
-    result := pos;
+    result := position;
 end;
 
 class function TUtils.readMdLink(out_: TStringBuilder; s: String; start: integer): integer;
 var
-  pos, counter: integer;
+  position, counter: integer;
   ch: char;
   endReached: boolean;
 begin
-  pos := start;
+  position := start;
   counter := 1;
-  while (pos < Length(s)) do
+  while (position < Length(s)) do
   begin
-    ch := s[1 + pos];
-    if (ch = '\') and (pos + 1 < Length(s)) then
-      pos := escape(out_, s[1 + pos + 1], pos)
+    ch := s[1 + position];
+    if (ch = '\') and (position + 1 < Length(s)) then
+      position := escape(out_, s[1 + position + 1], position)
     else
     begin
       endReached := false;
@@ -2168,25 +2196,25 @@ begin
         break;
       out_.append(ch);
     end;
-    inc(pos);
+    inc(position);
   end;
-  if pos = Length(s) then
+  if position = Length(s) then
     result := -1
   else
-    result := pos;
+    result := position;
 end;
 
 class function TUtils.readMdLinkId(out_: TStringBuilder; s: String; start: integer): integer;
 var
-  pos, counter: integer;
+  position, counter: integer;
   ch: char;
   endReached: boolean;
 begin
-  pos := start;
+  position := start;
   counter := 1;
-  while (pos < Length(s)) do
+  while (position < Length(s)) do
   begin
-    ch := s[1 + pos];
+    ch := s[1 + position];
     endReached := false;
     case ch of
       #10:
@@ -2209,76 +2237,76 @@ begin
     end;
     if (endReached) then
       break;
-    inc(pos);
+    inc(position);
   end;
-  if pos = Length(s) then
+  if position = Length(s) then
     result := -1
   else
-    result := pos;
+    result := position;
 end;
 
 class function TUtils.readRawUntil(out_: TStringBuilder; s: String; start: integer; cend: TSysCharSet): integer;
 var
-  pos, n: integer;
+  position, n: integer;
   ch: char;
 begin
-  pos := start;
-  while (pos < Length(s)) do
+  position := start;
+  while (position < Length(s)) do
   begin
-    ch := s[1 + pos];
+    ch := s[1 + position];
     if CharInSet(ch, cend) then
       break;
     out_.append(ch);
-    inc(pos);
+    inc(position);
   end;
-  if pos = Length(s) then
+  if position = Length(s) then
     result := -1
   else
-    result := pos;
+    result := position;
 end;
 
 class function TUtils.readRawUntil(out_: TStringBuilder; s: String; start: integer; cend: char): integer;
 var
-  pos: integer;
+  position: integer;
   ch: char;
 begin
-  pos := start;
-  while (pos < Length(s)) do
+  position := start;
+  while (position < Length(s)) do
   begin
-    ch := s[1 + pos];
+    ch := s[1 + position];
     if (ch = cend) then
       break;
     out_.append(ch);
-    inc(pos);
+    inc(position);
   end;
-  if pos = Length(s) then
+  if position = Length(s) then
     result := -1
   else
-    result := pos;
+    result := position;
 end;
 
 class function TUtils.readXMLUntil(out_: TStringBuilder; s: String; start: integer; cend: TSysCharSet): integer;
 var
-  pos, n: integer;
+  position, n: integer;
   ch, stringChar: char;
   inString: boolean;
 begin
-  pos := start;
+  position := start;
   inString := false;
   stringChar := #0;
-  while (pos < Length(s)) do
+  while (position < Length(s)) do
   begin
-    ch := s[1 + pos];
+    ch := s[1 + position];
     if (inString) then
     begin
       if (ch = '\') then
       begin
         out_.append(ch);
-        inc(pos);
-        if (pos < Length(s)) then
+        inc(position);
+        if (position < Length(s)) then
         begin
           out_.append(ch);
-          inc(pos);
+          inc(position);
         end;
         continue;
       end;
@@ -2286,7 +2314,7 @@ begin
       begin
         inString := false;
         out_.append(ch);
-        inc(pos);
+        inc(position);
         continue;
       end;
     end;
@@ -2301,12 +2329,12 @@ begin
         break;
     end;
     out_.append(ch);
-    inc(pos);
+    inc(position);
   end;
-  if pos = Length(s) then
+  if position = Length(s) then
     result := -1
   else
-    result := pos;
+    result := position;
 end;
 
 class procedure TUtils.appendCode(out_: TStringBuilder; s: String; start: integer; e: integer);
@@ -2386,35 +2414,35 @@ end;
 
 class procedure TUtils.getXMLTag(out_: TStringBuilder; bin: TStringBuilder);
 var
-  pos: integer;
+  position: integer;
 begin
-  pos := 1;
+  position := 1;
   if (bin[1] = '/') then
-    inc(pos);
-  while (TCharacter.isLetterOrDigit(bin[pos])) do
+    inc(position);
+  while (TCharacter.isLetterOrDigit(bin[position])) do
   begin
-    out_.append(bin[pos]);
-    inc(pos)
+    out_.append(bin[position]);
+    inc(position)
   end;
 end;
 
 class procedure TUtils.getXMLTag(out_: TStringBuilder; s: String);
 var
-  pos: integer;
+  position: integer;
 begin
-  pos := 1;
+  position := 1;
   if (s[1 + 1] = '/') then
-    inc(pos);
-  while (TCharacter.isLetterOrDigit(s[1 + pos])) do
+    inc(position);
+  while (TCharacter.isLetterOrDigit(s[1 + position])) do
   begin
-    out_.append(s[1 + pos]);
-    inc(pos)
+    out_.append(s[1 + position]);
+    inc(position)
   end;
 end;
 
 class function TUtils.readXML(out_: TStringBuilder; s: String; start: integer; safeMode: boolean): integer;
 var
-  pos: integer;
+  position: integer;
   isCloseTag: boolean;
   temp: TStringBuilder;
   tag: String;
@@ -2422,7 +2450,7 @@ begin
   if (s[1 + start + 1] = '/') then
   begin
     isCloseTag := true;
-    pos := start + 2;
+    position := start + 2;
   end
   else if (s[1 + start + 1] = '!') then
   begin
@@ -2432,15 +2460,15 @@ begin
   else
   begin
     isCloseTag := false;
-    pos := start + 1;
+    position := start + 1;
   end;
 
   if (safeMode) then
   begin
     temp := TStringBuilder.Create();
     try
-      pos := readXMLUntil(temp, s, pos, [' ', '/', '>']);
-      if (pos = -1) then
+      position := readXMLUntil(temp, s, position, [' ', '/', '>']);
+      if (position = -1) then
         exit(-1);
 //      tag := temp.ToString().trim().ToLower; PSTFix
         tag := LowerCase( Trim( temp.ToString));
@@ -2460,26 +2488,26 @@ begin
     out_.append('<');
     if (isCloseTag) then
       out_.append('/');
-    pos := readXMLUntil(out_, s, pos, [' ', '/', '>']);
+    position := readXMLUntil(out_, s, position, [' ', '/', '>']);
   end;
-  if (pos = -1) then
+  if (position = -1) then
     exit(-1);
-  pos := readXMLUntil(out_, s, pos, ['/', '>']);
-  if (pos = -1) then
+  position := readXMLUntil(out_, s, position, ['/', '>']);
+  if (position = -1) then
     exit(-1);
 
-  if (s[1 + pos] = '/') then
+  if (s[1 + position] = '/') then
   begin
     out_.append(' /');
-    pos := readXMLUntil(out_, s, pos + 1, ['>']);
-    if (pos = -1) then
+    position := readXMLUntil(out_, s, position + 1, ['>']);
+    if (position = -1) then
       exit(-1);
   end;
 
-  if (s[1 + pos] = '>') then
+  if (s[1 + position] = '>') then
   begin
     out_.append('>');
-    exit(pos);
+    exit(position);
   end;
   result := -1;
 end;
@@ -2579,31 +2607,31 @@ end;
 // TODO use Util#skipSpaces
 function TLine.skipSpaces(): boolean;
 begin
-  while (pos < Length(value)) and (value[1 + pos] = ' ') do
-    inc(FPos);
-  result := pos < Length(value);
+  while (position < Length(value)) and (value[1 + position] = ' ') do
+    inc(FPosition);
+  result := position < Length(value);
 end;
 
 // TODO use Util#readUntil
 function TLine.readUntil(chend: TSysCharSet): String;
 var
   sb: TStringBuilder;
-  pos: integer;
+  position: integer;
   ch, c: char;
 begin
   sb := TStringBuilder.Create();
   try
-    pos := self.pos;
-    while (pos < Length(value)) do
+    position := self.position;
+    while (position < Length(value)) do
     begin
-      ch := value[1 + pos];
-      if (ch = '\') and (pos + 1 < Length(value)) then
+      ch := value[1 + position];
+      if (ch = '\') and (position + 1 < Length(value)) then
       begin
-        c := value[1 + pos + 1];
+        c := value[1 + position + 1];
         if CharInSet(c, ['\', '[', ']', '(', ')', '{', '}', '#', '"', '''', '.', '>', '*', '+', '-', '_', '!', '`', '~']) then
         begin
           sb.append(c);
-          inc(FPos);
+          inc(FPosition);
         end
         else
         begin
@@ -2615,16 +2643,16 @@ begin
         break
       else
         sb.append(ch);
-      inc(pos);
+      inc(position);
     end;
 
-    if (pos < Length(value)) then
-      ch := value[1 + pos]
+    if (position < Length(value)) then
+      ch := value[1 + position]
     else
       ch := #10;
     if CharInSet(ch, chend) then
     begin
-      self.pos := pos;
+      self.position := position;
       result := sb.ToString();
     end
     else
@@ -2757,34 +2785,34 @@ end;
 function TLine.readXMLComment(firstLine: TLine; start: integer): integer;
 var
   line: TLine;
-  pos: integer;
+  position: integer;
 begin
   line := firstLine;
   if (start + 3 < Length(line.value)) then
   begin
     if (line.value[1 + 2] = '-') and (line.value[1 + 3] = '-') then
     begin
-      pos := start + 4;
+      position := start + 4;
       while (line <> nil) do
       begin
-        while (pos < Length(line.value)) and (line.value[1 + pos] <> '-') do
-          inc(pos);
-        if (pos = Length(line.value)) then
+        while (position < Length(line.value)) and (line.value[1 + position] <> '-') do
+          inc(position);
+        if (position = Length(line.value)) then
         begin
           line := line.next;
-          pos := 0;
+          position := 0;
         end
         else
         begin
-          if (pos + 2 < Length(line.value)) then
+          if (position + 2 < Length(line.value)) then
           begin
-            if (line.value[1 + pos + 1] = '-') and (line.value[1 + pos + 2] = '>') then
+            if (line.value[1 + position + 1] = '-') and (line.value[1 + position + 2] = '>') then
             begin
               xmlEndLine := line;
-              exit(pos + 3);
+              exit(position + 3);
             end;
           end;
-          inc(pos);
+          inc(position);
         end;
       end;
     end;
@@ -2896,17 +2924,17 @@ end;
 
 function TLine.checkHTML: boolean;
 var
-  tags: TList<String>;
+  tags: TStringList;
   temp: TStringBuilder;
   element, tag: String;
   line: TLine;
   newPos: integer;
 begin
   result := false;
-  tags := TList<String>.Create();
+  tags := TStringList.Create();
   temp := TStringBuilder.Create();
   try
-    pos := leading;
+    position := leading;
     if (value[1 + leading + 1] = '!') then
     begin
       if (readXMLComment(self, leading) > 0) then
@@ -2914,8 +2942,8 @@ begin
         exit(true);
       end;
     end;
-    pos := TUtils.readXML(temp, value, leading, false);
-    if (pos > -1) then
+    position := TUtils.readXML(temp, value, leading, false);
+    if (position > -1) then
     begin
       element := temp.ToString();
       temp.Clear;
@@ -2935,17 +2963,17 @@ begin
       line := self;
       while (line <> nil) do
       begin
-        while (pos < Length(line.value)) and (line.value[1 + pos] <> '<') do
-          inc(FPos);
-        if (pos >= Length(line.value)) then
+        while (position < Length(line.value)) and (line.value[1 + position] <> '<') do
+          inc(FPosition);
+        if (position >= Length(line.value)) then
         begin
           line := line.next;
-          pos := 0;
+          position := 0;
         end
         else
         begin
           temp.Clear;
-          newPos := TUtils.readXML(temp, line.value, pos, false);
+          newPos := TUtils.readXML(temp, line.value, position, false);
           if (newPos > 0) then
           begin
             element := temp.ToString();
@@ -2956,7 +2984,7 @@ begin
             begin
               if (element[1 + 1] = '/') then
               begin
-                if (tags.Last <> tag) then
+                if (tags[tags.Count - 1] <> tag) then
                   exit(false);
                 tags.Delete(tags.count - 1);
               end
@@ -2968,11 +2996,11 @@ begin
               xmlEndLine := line;
               break;
             end;
-            pos := newPos;
+            position := newPos;
           end
           else
           begin
-            inc(FPos);
+            inc(FPosition);
           end;
         end;
       end;
@@ -3176,7 +3204,7 @@ begin
           line.value := Copy(line.value, line.leading +3);
         ltOLIST:
 //          line.value := line.value.substring(line.value.indexOf('.') + 2); pstfix
-        line.value := Copy(line.value, Pos('.', line.value) + 2);
+        line.value := Copy(line.value, pos('.', line.value) + 2);
       else
 //        line.value := line.value.substring(Math.min(line.leading, 4)); pstfix
         line.value := Copy(line.value, Math.Min(line.leading + 1, 5));
@@ -3276,5 +3304,58 @@ begin
   self.hlDepth := Math.min(level, 6);
 
 end;
+
+{$IFDEF FPC}
+{ TStringBuilder }
+
+constructor TStringBuilder.Create;
+begin
+  Inherited;
+  FBufferSize := BUFFER_INCREMENT_SIZE;
+end;
+
+procedure TStringBuilder.Append(value: TStringBuilder);
+begin
+  append(value.ToString);
+end;
+
+procedure TStringBuilder.Append(value: integer);
+begin
+  append(inttostr(value));
+end;
+
+procedure TStringBuilder.Append(value: String);
+begin
+  If (value <> '') Then
+  Begin
+    If FLength + System.Length(value) > System.Length(FContent) Then
+      SetLength(FContent, System.Length(FContent) + Math.Max(FBufferSize, System.Length(value)));
+
+    Move(value[1], FContent[FLength + 1], System.Length(value) * SizeOf(Char));
+
+    Inc(FLength, System.Length(value));
+  End;
+end;
+
+procedure TStringBuilder.Clear;
+begin
+  FContent := '';
+  FLength := 0;
+end;
+
+function TStringBuilder.GetChar(index: integer): char;
+begin
+  if (index < 0) or (index >= Length) then
+    raise Exception.Create('Out of bounds');
+  result := FContent[index+1];
+end;
+
+
+function TStringBuilder.toString: String;
+begin
+  Result := Copy(FContent, 1, FLength);
+end;
+
+{$ENDIF}
 
 end.
