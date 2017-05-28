@@ -236,8 +236,7 @@ Type
     FpanicMode: boolean;
     FspecialLinkEmitter: TSpanEmitter;
   public
-    Constructor CreateDefault;
-    Constructor CreateSafe;
+    Constructor Create(safe : boolean);
     Destructor Destroy; override;
 
     property safeMode: boolean read FsafeMode write FsafeMode;
@@ -549,7 +548,7 @@ end;
 constructor TMarkdownDaringFireball.Create;
 begin
   inherited Create;
-  FConfig := TConfiguration.CreateSafe;
+  FConfig := TConfiguration.Create(true);
   Femitter := TEmitter.Create(config);
 end;
 
@@ -1011,19 +1010,12 @@ end;
 
 { TConfiguration }
 
-constructor TConfiguration.CreateDefault;
+constructor TConfiguration.Create(safe : boolean);
 begin
   inherited Create;
   FallowSpacesInFencedDelimiters := true;
   Fdecorator := TDecorator.Create;
-end;
-
-constructor TConfiguration.CreateSafe;
-begin
-  inherited Create;
-  FallowSpacesInFencedDelimiters := true;
-  Fdecorator := TDecorator.Create;
-  FsafeMode := true;
+  FsafeMode := safe;
 end;
 
 destructor TConfiguration.Destroy;
@@ -1873,7 +1865,7 @@ begin
       else
         exit(mtCODE_SINGLE);
     '\':
-      if c1 in ['\', '[', ']', '(', ')', '{', '}', '#', '"', '''', '.', '>', '<', '*', '+', '-', '_', '!', '`', '~', '^'] then
+      if CharInSet(c1, ['\', '[', ']', '(', ')', '{', '}', '#', '"', '''', '.', '>', '<', '*', '+', '-', '_', '!', '`', '~', '^']) then
         exit(mtESCAPE)
       else
         exit(mtNONE);
@@ -2100,7 +2092,7 @@ end;
 
 class function TUtils.escape(out_: TStringBuilder; ch: char; position: integer): integer;
 begin
-  if ch in ['\', '[', ']', '(', ')', '{', '}', '#', '"', '''', '.', '>', '<', '*', '+', '-', '_', '!', '`', '^'] then
+  if CharInSet(ch, ['\', '[', ']', '(', ')', '{', '}', '#', '"', '''', '.', '>', '<', '*', '+', '-', '_', '!', '`', '^']) then
   begin
     out_.append(ch);
     result := position + 1;
@@ -2247,7 +2239,7 @@ end;
 
 class function TUtils.readRawUntil(out_: TStringBuilder; s: String; start: integer; cend: TSysCharSet): integer;
 var
-  position, n: integer;
+  position: integer;
   ch: char;
 begin
   position := start;
@@ -2287,7 +2279,7 @@ end;
 
 class function TUtils.readXMLUntil(out_: TStringBuilder; s: String; start: integer; cend: TSysCharSet): integer;
 var
-  position, n: integer;
+  position : integer;
   ch, stringChar: char;
   inString: boolean;
 begin
