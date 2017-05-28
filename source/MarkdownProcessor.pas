@@ -31,7 +31,7 @@ uses
   SysUtils;
 
 Type
-  TMarkdownProcessorDialect = (mdDaringFireball);
+  TMarkdownProcessorDialect = (mdDaringFireball, mdAsciiDoc);
 
   TMarkdownProcessor = {abstract} class
   protected
