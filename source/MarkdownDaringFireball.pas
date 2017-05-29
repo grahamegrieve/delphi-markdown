@@ -957,7 +957,7 @@ begin
           while (line <> nil) do
           begin
             t := line.getLineType(FConfig);
-            if (not line.isEmpty and (line.prevEmpty and (line.leading = 0) and (not(t in [ltOLIST, ltULIST])))) then
+            if (not line.isEmpty and (line.prevEmpty and (line.leading = 0) and (not(t = type_)))) then
               break;
             line := line.next;
           end;
