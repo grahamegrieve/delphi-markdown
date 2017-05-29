@@ -119,3 +119,5 @@ source/MarkDownTests-ps.dproj
 source/MarkdownDaringFireball-ps.pas
 
 source/Win32/Debug/TestInsightSettings\.ini
+
+*.out

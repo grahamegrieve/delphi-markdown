@@ -2927,7 +2927,7 @@ begin
   temp := TStringBuilder.Create();
   try
     position := leading;
-    if (value[1 + leading + 1] = '!') then
+    if (value.length >= 1 + leading + 1) and (value[1 + leading + 1] = '!') then
     begin
       if (readXMLComment(self, leading) > 0) then
       begin
