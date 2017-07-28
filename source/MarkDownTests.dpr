@@ -39,8 +39,11 @@ uses
   System.SysUtils,
   MarkdownDaringFireball in 'MarkdownDaringFireball.pas',
   MarkdownDaringFireballTests in 'MarkdownDaringFireballTests.pas',
+  MarkdownCommonMark in 'MarkdownCommonMark.pas',
+  MarkdownCommonMarkTests in 'MarkdownCommonMarkTests.pas',
   MarkdownProcessor in 'MarkdownProcessor.pas',
-  MarkdownAsciiDoc in 'MarkdownAsciiDoc.pas';
+  MarkdownAsciiDoc in 'MarkdownAsciiDoc.pas',
+  RegExpr in 'RegExpr.pas';
 
 var
   runner : ITestRunner;
