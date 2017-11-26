@@ -26,13 +26,13 @@ uses
   MarkdownDaringFireball;
 
 const
-  TEST_NAMEs: array[0..24] of String = (
+  TEST_NAMEs: array[0..26] of String = (
     'Amps and angle encoding', 'Auto links', 'Backslash escapes', 'Blockquotes with code blocks', 'Code Blocks',
     'Code Spans', 'Hard-wrapped paragraphs with list-like lines', 'Horizontal rules', 'Images',
     'Inline HTML (Advanced)', 'Inline HTML (Simple)', 'Inline HTML comments', 'Links, inline style',
     'Links, reference style', 'Links, shortcut references', 'Nested blockquotes', 'Ordered and unordered lists',
     'Strong and em together', 'Tabs', 'Tidyness', 'Markdown Documentation - Basics', 'Markdown Documentation - Syntax',
-    'GitHub Issue 1', 'GitHub Issue 2', 'GitHub Issue 3');
+    'GitHub Issue 1', 'GitHub Issue 2', 'GitHub Issue 3', 'GitHub Issue 3a', 'GitHub Issue 4');
 
 var
   TestFolder : String = 'C:\work\markdown\resources\df';

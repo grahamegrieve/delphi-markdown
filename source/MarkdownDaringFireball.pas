@@ -2121,8 +2121,8 @@ begin
         break
       else
         out_.append(ch);
-      inc(position);
     end;
+    inc(position);
   end;
   if position = Length(s) then
     result := -1
