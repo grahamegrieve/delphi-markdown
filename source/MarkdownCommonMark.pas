@@ -17,7 +17,7 @@
   limitations under the License.
 }
 
-Unit MarkdownDaringFireball;
+Unit MarkdownCommonMark;
 
 interface
 
@@ -483,7 +483,7 @@ Type
 
   end;
 
-  TMarkdownDaringFireball = class(TMarkdownProcessor)
+  TMarkdownCommonMark = class(TMarkdownProcessor)
   private
     FConfig: TConfiguration;
     Femitter: TEmitter;
@@ -543,28 +543,28 @@ begin
     exit(defValue);
 end;
 
-{ TMarkdownDaringFireball }
+{ TMarkdownCommonMark }
 
-constructor TMarkdownDaringFireball.Create;
+constructor TMarkdownCommonMark.Create;
 begin
   inherited Create;
   FConfig := TConfiguration.Create(true);
   Femitter := TEmitter.Create(config);
 end;
 
-destructor TMarkdownDaringFireball.Destroy;
+destructor TMarkdownCommonMark.Destroy;
 begin
   FConfig.Free;
   Femitter.Free;
   inherited;
 end;
 
-function TMarkdownDaringFireball.GetUnSafe: boolean;
+function TMarkdownCommonMark.GetUnSafe: boolean;
 begin
   result := not FConfig.safeMode;
 end;
 
-procedure TMarkdownDaringFireball.initListBlock(root: TBlock);
+procedure TMarkdownCommonMark.initListBlock(root: TBlock);
 var
   line: TLine;
   t: TLineType;
@@ -581,7 +581,7 @@ begin
   root.split(root.lineTail).type_ := btLIST_ITEM;
 end;
 
-function TMarkdownDaringFireball.process(source: String): String;
+function TMarkdownCommonMark.process(source: String): String;
 var
   out_: TStringBuilder;
   parent, block: TBlock;
@@ -614,7 +614,7 @@ begin
   end;
 end;
 
-function TMarkdownDaringFireball.readLines(reader : TReader): TBlock;
+function TMarkdownCommonMark.readLines(reader : TReader): TBlock;
 var
   block: TBlock;
   sb: TStringBuilder;
@@ -797,7 +797,7 @@ begin
   end;
 end;
 
-procedure TMarkdownDaringFireball.recurse(root: TBlock; listMode: boolean);
+procedure TMarkdownCommonMark.recurse(root: TBlock; listMode: boolean);
 var
   block, list: TBlock;
   line: TLine;
@@ -989,7 +989,7 @@ begin
   end;
 end;
 
-procedure TMarkdownDaringFireball.SetUnSafe(const value: boolean);
+procedure TMarkdownCommonMark.SetUnSafe(const value: boolean);
 begin
   FConfig.safeMode := not value;
 end;

@@ -31,7 +31,7 @@ uses
   SysUtils;
 
 Type
-  TMarkdownProcessorDialect = (mdDaringFireball);
+  TMarkdownProcessorDialect = (mdDaringFireball, mdCommonMark, mdAsciiDoc);
 
   TMarkdownProcessor = {abstract} class
   protected
@@ -48,7 +48,8 @@ Type
 implementation
 
 uses
-  MarkdownDaringFireball;
+  MarkdownDaringFireball,
+  MarkdownCommonMark;
 
 { TMarkdownProcessor }
 
@@ -56,6 +57,7 @@ class function TMarkdownProcessor.CreateDialect(dialect: TMarkdownProcessorDiale
 begin
   case dialect of
     mdDaringFireball : result := TMarkdownDaringFireball.Create;
+    mdCommonMark : result := TMarkdownCommonMark.Create;
   else
     raise Exception.Create('Unknown Markdown dialect');
   end;
