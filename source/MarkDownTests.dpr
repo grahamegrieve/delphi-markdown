@@ -43,7 +43,8 @@ uses
   MarkdownCommonMarkTests in 'MarkdownCommonMarkTests.pas',
   MarkdownProcessor in 'MarkdownProcessor.pas',
   MarkdownAsciiDoc in 'MarkdownAsciiDoc.pas',
-  RegExpr in 'RegExpr.pas';
+  RegExpr in 'RegExpr.pas',
+  FlexMark in 'FlexMark.pas';
 
 var
   runner : ITestRunner;
