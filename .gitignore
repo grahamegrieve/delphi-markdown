@@ -121,3 +121,9 @@ source/MarkdownDaringFireball-ps.pas
 source/Win32/Debug/TestInsightSettings\.ini
 
 *.out
+
+*.bak
+
+fpc/lib/i386-darwin/
+
+fpc/MarkdownTestProgram\.app/Contents/MacOS/

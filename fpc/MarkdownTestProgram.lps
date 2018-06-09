@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectSession>
+    <Version Value="10"/>
+    <BuildModes Active="Default"/>
+    <Units Count="5">
+      <Unit0>
+        <Filename Value="MarkdownTestProgram.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="2"/>
+        <CursorPos X="46" Y="6"/>
+        <UsageCount Value="23"/>
+        <Loaded Value="True"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="testcase1.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="TestCase1"/>
+        <IsVisibleTab Value="True"/>
+        <CursorPos X="29" Y="11"/>
+        <UsageCount Value="23"/>
+        <Loaded Value="True"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="../source/MarkdownDaringFireball.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="3"/>
+        <TopLine Value="2801"/>
+        <CursorPos X="63" Y="2812"/>
+        <UsageCount Value="23"/>
+        <Loaded Value="True"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="../source/RegExpr.pas"/>
+        <EditorIndex Value="1"/>
+        <TopLine Value="511"/>
+        <CursorPos X="3" Y="531"/>
+        <UsageCount Value="12"/>
+        <Loaded Value="True"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="../source/MarkdownCommonMark.pas"/>
+        <EditorIndex Value="4"/>
+        <TopLine Value="29"/>
+        <CursorPos X="8" Y="49"/>
+        <UsageCount Value="12"/>
+        <Loaded Value="True"/>
+      </Unit4>
+    </Units>
+    <JumpHistory Count="30" HistoryIndex="29">
+      <Position1>
+        <Filename Value="../source/MarkdownDaringFireball.pas"/>
+        <Caret Line="1918" Column="29" TopLine="1886"/>
+      </Position1>
+      <Position2>
+        <Filename Value="../source/MarkdownDaringFireball.pas"/>
+        <Caret Line="1920" Column="45" TopLine="1888"/>
+      </Position2>
+      <Position3>
+        <Filename Value="../source/MarkdownDaringFireball.pas"/>
+        <Caret Line="2423" Column="29" TopLine="2390"/>
+      </Position3>
+      <Position4>
+        <Filename Value="../source/MarkdownDaringFireball.pas"/>
+        <Caret Line="2437" Column="31" TopLine="2404"/>
+      </Position4>
+      <Position5>
+        <Filename Value="../source/MarkdownDaringFireball.pas"/>
+        <Caret Line="1552" Column="39" TopLine="1519"/>
+      </Position5>
+      <Position6>
+        <Filename Value="../source/MarkdownDaringFireball.pas"/>
+        <Caret Line="1548" TopLine="1529"/>
+      </Position6>
+      <Position7>
+        <Filename Value="../source/MarkdownDaringFireball.pas"/>
+        <Caret Line="3371" Column="5" TopLine="3331"/>
+      </Position7>
+      <Position8>
+        <Filename Value="../source/MarkdownDaringFireball.pas"/>
+        <Caret Line="1548" TopLine="1529"/>
+      </Position8>
+      <Position9>
+        <Filename Value="../source/MarkdownDaringFireball.pas"/>
+        <Caret Line="3371" Column="5" TopLine="3331"/>
+      </Position9>
+      <Position10>
+        <Filename Value="../source/MarkdownDaringFireball.pas"/>
+        <Caret Line="1548" Column="43" TopLine="1529"/>
+      </Position10>
+      <Position11>
+        <Filename Value="../source/MarkdownDaringFireball.pas"/>
+        <Caret Line="2" Column="78"/>
+      </Position11>
+      <Position12>
+        <Filename Value="../source/MarkdownDaringFireball.pas"/>
+        <Caret Line="1856" Column="55" TopLine="1836"/>
+      </Position12>
+      <Position13>
+        <Filename Value="../source/MarkdownDaringFireball.pas"/>
+        <Caret Line="1929" Column="55" TopLine="1907"/>
+      </Position13>
+      <Position14>
+        <Filename Value="../source/MarkdownDaringFireball.pas"/>
+        <Caret Line="2432" Column="39" TopLine="2412"/>
+      </Position14>
+      <Position15>
+        <Filename Value="../source/MarkdownDaringFireball.pas"/>
+        <Caret Line="2446" Column="41" TopLine="2426"/>
+      </Position15>
+      <Position16>
+        <Filename Value="../source/MarkdownDaringFireball.pas"/>
+        <Caret Line="2554" Column="29" TopLine="2534"/>
+      </Position16>
+      <Position17>
+        <Filename Value="../source/MarkdownDaringFireball.pas"/>
+        <Caret Line="2628" Column="26" TopLine="2626"/>
+      </Position17>
+      <Position18>
+        <Filename Value="../source/MarkdownDaringFireball.pas"/>
+        <Caret Line="2644" Column="18" TopLine="2630"/>
+      </Position18>
+      <Position19>
+        <Filename Value="../source/MarkdownDaringFireball.pas"/>
+        <Caret Line="2772" Column="56" TopLine="2750"/>
+      </Position19>
+      <Position20>
+        <Filename Value="../source/MarkdownDaringFireball.pas"/>
+        <Caret Line="1539" Column="15" TopLine="1519"/>
+      </Position20>
+      <Position21>
+        <Filename Value="../source/MarkdownDaringFireball.pas"/>
+        <Caret Column="2"/>
+      </Position21>
+      <Position22>
+        <Filename Value="../source/MarkdownDaringFireball.pas"/>
+        <Caret Line="1553" Column="17" TopLine="1517"/>
+      </Position22>
+      <Position23>
+        <Filename Value="../source/MarkdownDaringFireball.pas"/>
+        <Caret Line="2807" Column="6" TopLine="2787"/>
+      </Position23>
+      <Position24>
+        <Filename Value="../source/MarkdownDaringFireball.pas"/>
+      </Position24>
+      <Position25>
+        <Filename Value="../source/MarkdownDaringFireball.pas"/>
+        <Caret Line="2840" TopLine="2800"/>
+      </Position25>
+      <Position26>
+        <Filename Value="../source/MarkdownDaringFireball.pas"/>
+        <Caret Line="2834" Column="32" TopLine="2801"/>
+      </Position26>
+      <Position27>
+        <Filename Value="../source/MarkdownDaringFireball.pas"/>
+        <Caret Line="2808" Column="69" TopLine="2801"/>
+      </Position27>
+      <Position28>
+        <Filename Value="../source/MarkdownDaringFireball.pas"/>
+        <Caret Line="2812" Column="63" TopLine="2801"/>
+      </Position28>
+      <Position29>
+        <Filename Value="testcase1.pas"/>
+        <Caret Line="15" Column="73"/>
+      </Position29>
+      <Position30>
+        <Filename Value="../source/RegExpr.pas"/>
+        <Caret Line="531" Column="3" TopLine="511"/>
+      </Position30>
+    </JumpHistory>
+  </ProjectSession>
+  <Debugging>
+    <BreakPoints Count="1">
+      <Item1>
+        <Kind Value="bpkSource"/>
+        <WatchScope Value="wpsLocal"/>
+        <WatchKind Value="wpkWrite"/>
+        <Source Value="../source/MarkdownCommonMark.pas"/>
+        <Line Value="49"/>
+      </Item1>
+    </BreakPoints>
+  </Debugging>
+</CONFIG>
