@@ -1,220 +1,662 @@
-{
-  This code was translated from TxtMark (https://github.com/rjeschke/txtmark)
-
-  Copyright (C) 2011-2015 René Jeschke <rene_jeschke@yahoo.de>
-  Copyright (C) 2015+ Grahame Grieve <grahameg@gmail.com> (pascal port)
-
-  Licensed under the Apache License, Version 2.0 (the "License");
-  you may not use this file except in compliance with the License.
-  You may obtain a copy of the License at
-
-  http://www.apache.org/licenses/LICENSE-2.0
-
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
-}
-
 Unit MarkdownCommonMark;
 
 interface
 
 uses
-  SysUtils, StrUtils, Classes, Character, TypInfo, Math, SyncObjs,
-  MarkdownProcessor;
+  SysUtils, Generics.Collections;
 
-Type
-  TUtilities = class
-  public
-    /// Reusable utility functions, not directly related to parsing or formatting data.
 
-        /// Writes a warning to the Debug window.
-    class procedure Warning(message : string; const Args: array of const);
-
-    class function IsEscapableSymbol(c : char) : boolean;
-    class function IsAsciiLetter(c : char) : boolean;
-    class function IsAsciiLetterOrDigit(c : char) : boolean;
-    class function IsWhitespace(c : char) : boolean;
-    class procedure CheckUnicodeCategory(c : char; out space : boolean; out punctuation : boolean);
-
-    /// Determines if the first line (ignoring the first <paramref name="startIndex"/>) of a string contains only spaces.
-    class function IsFirstLineBlank(source : string; startIndex : integer) : boolean;
-  end;
-
-  TOutputFormat = (ofHtml, ofSyntaxTree, ofCustomDelegage);
-  TLazyThreadSafetyMode = (ltsmNone, ltsmPublicationOnly, ltsmExecutionAndPublication);
-
-  TFunc<T : class> = function : T;
-
-  TLazy<T : class> = class
-  private
-    FFactory : TFunc<T>;
-    FThreadSafe : boolean;
-    FLock : TCriticalSection;
-    FValue : T;
-    function GetValue: T;
-  public
-    Constructor Create(factory : TFunc<T>); overload;
-    Constructor Create(factory : TFunc<T>; mode : TLazyThreadSafetyMode); overload;
-    Constructor Create(factory : TFunc<T>; isThreadSafe : boolean); overload;
-
-    Destructor Destroy; override;
-
-    property value : T read GetValue;
-  end;
-
-  TCommonMarkSettings = class
-  private
-    FOutputFormat: TOutputFormat;
-    FRenderSoftLineBreaksAsLineBreaks: boolean;
-    FTrackSourcePosition: boolean;
-  public
-    Property OutputFormat : TOutputFormat read FOutputFormat write FOutputFormat;
-    Property RenderSoftLineBreaksAsLineBreaks : boolean read FRenderSoftLineBreaksAsLineBreaks write FRenderSoftLineBreaksAsLineBreaks;
-    property TrackSourcePosition : boolean read FTrackSourcePosition write FTrackSourcePosition;
-  end;
-
-  TMarkdownCommonMark = class(TMarkdownProcessor)
-  private
+// Abstract Syntax Tree
+type
+  TMarkdownObject = class abstract (TObject);
+  TBlock = class abstract (TMarkdownObject)
   protected
+    procedure render(b : TStringBuilder); virtual; abstract;
+  end;
+
+  TContainerBlock = class abstract (TBlock)
+  private
+    FBlocks: TObjectList<TBLock>;
+  protected
+    procedure render(b : TStringBuilder); override;
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    property blocks : TObjectList<TBLock> read FBlocks;
+  end;
+//  TQuoteBlock = class (TContainerBlock);
+  TMarkdownDocument = class (TContainerBlock);
+//  TListItemBlock = class (TContainerBlock);
+//  TListBlock = class (TContainerBlock);
+//  TLinkReferenceDefinitionGroup = class (TContainerBlock);
+
+  TParagraphBlock = class (TContainerBlock)
+  private
+    FClosed: boolean;
+    FHeader: integer;
+  protected
+    procedure render(b : TStringBuilder); override;
+  public
+    property closed : boolean read FClosed write FClosed;
+    property header : integer read FHeader write FHeader;
+  end;
+
+  THeadingBlock = class (TContainerBlock)
+  private
+    FLevel: integer;
+  protected
+    procedure render(b : TStringBuilder); override;
+  public
+    constructor Create(level : Integer);
+    property level : integer read FLevel write FLevel;
+  end;
+
+  TCodeBlock = class (TContainerBlock)
+  protected
+    procedure render(b : TStringBuilder); override;
+  end;
+
+  TLeafBlock = class abstract (TBlock);
+  TTextBlock = class (TLeafBlock)
+  private
+    FText: String;
+  protected
+    procedure render(b : TStringBuilder); override;
+  public
+    constructor Create(text : String);
+    property text : String read FText write FText;
+  end;
+
+  TThematicBreakBlock = class (TLeafBlock)
+  protected
+    procedure render(b : TStringBuilder); override;
+  end;
+
+ //  TLinkReferenceDefinition = class (TLeafBlock);
+//  THtmlBlock = class (TLeafBlock);
+//  TFencedCodeBlock = class (TCodeBLock);
+
+//  TBlankLineBlock = class (TBlock);
+
+
+// Parser
+
+  TCommonMarkParser = class (TObject)
+  private
+    FSource : String;
+    FCursor : integer;
+    FLine : integer;
+    FCol : integer;
+    FBuilder : TStringBuilder;
+
+
+    function done : boolean;
+    function peek : char; overload;
+    function peek(offset : integer) : char; overload;
+    function peekStr(length : integer) : String; overload;
+    function peekline : String;
+    function grab : char; overload;
+    function grab(length : integer) : string; overload;
+    function has(ch : char) : boolean; overload;
+    function has(chs : TSysCharSet) : boolean; overload;
+    function has(s : String) : boolean; overload;
+    function grabTo(ch : char) : string; overload;
+    function grabTo(chs : TSysCharSet) : string; overload;
+    function grabWhile(ch : char) : string; overload;
+    function grabWhile(chs : TSysCharSet) : string; overload;
+    function grabLine: string; overload;
+
+    function isWhitespace(ch : char) : boolean; overload;
+    function isWhitespace(s : String) : boolean; overload;
+    function stripWhitespace(s : String) : String;
+    function escapeHtml(s : String) : String;
+
+    function inPara(blocks : TObjectList<TBlock>) : boolean;
+
+    function parseThematicBreak(blocks : TObjectList<TBlock>; line : String) : boolean;
+    function parseHeader(blocks : TObjectList<TBlock>; line : String) : boolean;
+    function parseCodeBlock(blocks : TObjectList<TBlock>; line : String) : boolean;
+    function parseSeTextHeader(blocks : TObjectList<TBlock>; line : String) : boolean;
+    procedure parseInline(blocks : TObjectList<TBlock>; line : String);
+    procedure check;
+    procedure parse(block : TContainerBlock); overload;
   public
     Constructor Create;
     Destructor Destroy; override;
+    class function parse(src : String) : TMarkdownDocument; overload;
+  end;
 
-    function process(source: String): String; override;
-
+  TCommonMarkRenderer = class (TObject)
+  private
+  public
+    class function render(doc : TMarkdownDocument) : String;
   end;
 
 implementation
 
+{ string utility functions }
 
-{ TMarkdownCommonMark }
-
-constructor TMarkdownCommonMark.Create;
+function allCharsSame(s : String) : boolean;
+var
+  i : integer;
 begin
-
+  result := true;
+  for i := 2 to length(s) do
+    if s[i] <> s[1] then
+      exit(false);
 end;
 
-destructor TMarkdownCommonMark.Destroy;
+function stripFinalChars(s : String; chs : TSysCharSet) : String;
+var
+  i : integer;
 begin
+  i := length(s);
+  while (i > 0) and CharInSet(s[i], chs) do
+    dec(i);
+  result := copy(s, 1, i);
+end;
 
+{ TCommonMarkParser }
+
+class function TCommonMarkParser.parse(src: String): TMarkdownDocument;
+var
+  this : TCommonMarkParser;
+begin
+  this := TCommonMarkParser.Create;
+  try
+    this.FSource := src.Replace(#13#10, #10).replace(#13, #10);
+    this.FCursor := 1;
+    this.FLine := 1;
+    this.FCol := 1;
+    this.check;
+    result := TMarkdownDocument.Create;
+    this.parse(result);
+  finally
+    this.free;
+  end;
+end;
+
+constructor TCommonMarkParser.Create;
+begin
+  inherited Create;
+  FBuilder := TStringBuilder.Create;
+end;
+
+destructor TCommonMarkParser.Destroy;
+begin
+  FBuilder.Free;
   inherited;
 end;
 
-function TMarkdownCommonMark.process(source: String): String;
+function TCommonMarkParser.grab: char;
 begin
-
-end;
-
-{ TUtilities }
-
-class procedure TUtilities.CheckUnicodeCategory(c: char; out space, punctuation: boolean);
-var
-  category : TUnicodeCategory;
-begin
-   if (c <= 'ÿ') then
-   begin
-     space := (c = ' ') or ((c >= '\t') and (c <= '\r')) or (c = #$00a0) or (c = #$0085);
-     punctuation := ((ord(c) >= 33) and (ord(c) <= 47)) or ((ord(c) >= 58) and (ord(c) <= 64)) or ((ord(c) >= 91) and (ord(c) <= 96)) or ((ord(c) >= 123) and (ord(c) <= 126));
-   end
-  else
+  if FCursor > length(FSource) then
+    raise Exception.Create('Read of end of markdown');
+  result := peek;
+  inc(FCursor);
+  if result = #10 then
   begin
-    category := c.GetUnicodeCategory;
-    space := category in [TUnicodeCategory.ucSpaceSeparator, TUnicodeCategory.ucLineSeparator, TUnicodeCategory.ucParagraphSeparator];
-    punctuation := not space and (category in [TUnicodeCategory.ucConnectPunctuation, TUnicodeCategory.ucDashPunctuation, TUnicodeCategory.ucOpenPunctuation, TUnicodeCategory.ucClosePunctuation, TUnicodeCategory.ucInitialPunctuation, TUnicodeCategory.ucFinalPunctuation, TUnicodeCategory.ucOtherPunctuation]);
+    inc(FLine);
+    FCol := 1;
   end
+  else if result = #9 then
+    inc(FCol, 4)
+  else
+    Inc(FCol);
 end;
 
-class function TUtilities.IsAsciiLetter(c: char): boolean;
+procedure TCommonMarkParser.check;
 begin
-  result := ((c >= 'a') and (c <= 'z')) or ((c >= 'A') and (c <= 'Z'));
+  // really, what can we check?
 end;
 
-class function TUtilities.IsAsciiLetterOrDigit(c: char): boolean;
+function TCommonMarkParser.done: boolean;
 begin
-  result := ((c >= 'a') and (c <= 'z')) or ((c >= '0') and (c <= '9')) or ((c >= 'A') and (c <= 'Z'));
+  result := FCursor > length(FSource);
 end;
 
-class function TUtilities.IsEscapableSymbol(c: char): boolean;
-begin
-  result := ((c > ' ') and (c < '0')) or ((c > '9') and (c < 'A')) or ((c > 'Z') and (c < 'a')) or ((c > 'z') and (ord(c) < 127)) or (c = '•');
-end;
-
-class function TUtilities.IsFirstLineBlank(source: string; startIndex: integer): boolean;
+function TCommonMarkParser.escapeHtml(s: String): String;
 var
-  c : char;
-  lastIndex : integer;
+  ch : char;
 begin
-  lastIndex := source.Length;
-  while (startIndex < lastIndex) do
-  begin
-    c := source[startIndex];
-    if (c = #10) then
-      exit(true);
-    if (c <> ' ') then
-      exit(false);
-    inc(startIndex);
-  end;
+  FBuilder.Clear;
+  for ch in s do
+    case ch of
+      '>' : FBuilder.Append('&gt;');
+      '<' : FBuilder.Append('&lt;');
+    else
+      FBuilder.Append(ch);
+    end;
+  result := FBuilder.ToString;
+
+end;
+
+function TCommonMarkParser.grab(length: integer): string;
+var
+  i : integer;
+begin
+  SetLength(result, length);
+  for i := 1 to length do
+    result[i] := grab;
+end;
+
+function TCommonMarkParser.grabTo(chs: TSysCharSet): string;
+begin
+  FBuilder.Clear;
+  while not CharInSet(peek, chs) do
+    FBuilder.Append(grab);
+  result := FBuilder.ToString;
+end;
+
+function TCommonMarkParser.grabWhile(chs: TSysCharSet): string;
+begin
+  FBuilder.Clear;
+  while CharInSet(peek, chs) do
+    FBuilder.Append(grab);
+  result := FBuilder.ToString;
+end;
+
+function TCommonMarkParser.grabWhile(ch: char): string;
+begin
+  FBuilder.Clear;
+  while peek = ch do
+    FBuilder.Append(grab);
+  result := FBuilder.ToString;
+end;
+
+function TCommonMarkParser.grabTo(ch: char): string;
+begin
+  FBuilder.Clear;
+  while peek <> ch do
+    FBuilder.Append(grab);
+  result := FBuilder.ToString;
+end;
+
+function TCommonMarkParser.grabLine: string;
+begin
+  result := grabTo(#10);
+  grab; // read the eoln
+end;
+
+function TCommonMarkParser.has(chs: TSysCharSet): boolean;
+begin
+  result := CharInSet(peek, chs);
+end;
+
+function TCommonMarkParser.has(ch: char): boolean;
+begin
+  result := peek = ch;
+end;
+
+function TCommonMarkParser.has(s: String): boolean;
+begin
+  result := peekStr(length(s)) = s;
+end;
+
+function TCommonMarkParser.isWhitespace(ch: char): boolean;
+begin
+  result := CharInSet(ch, [#10, #9, ' ']);
+end;
+
+function TCommonMarkParser.inPara(blocks: TObjectList<TBlock>): boolean;
+begin
+  result := (blocks.Count > 0) and (blocks.Last is TParagraphBlock) and not (blocks.Last as TParagraphBlock).closed and ((blocks.Last as TParagraphBlock).header = 0);
+end;
+
+function TCommonMarkParser.isWhitespace(s: String): boolean;
+var
+  ch : char;
+begin
   result := true;
+  for ch in s do
+    if not isWhitespace(ch) then
+      exit(false);
 end;
 
-class function TUtilities.IsWhitespace(c: char): boolean;
+function TCommonMarkParser.peek: char;
 begin
-  result := (c = ' ') or (c = #7) or (c = #13) or (c = #10) or (c = #12);
+  if FCursor > length(FSource) then
+    raise Exception.Create('Peek off end of markdown');
+  result := FSource[FCursor];
 end;
 
-class procedure TUtilities.Warning(message: string; const Args: array of const);
+function TCommonMarkParser.peek(offset: integer): char;
 begin
-  writeln(Format(message, args));
+  if FCursor + offset > length(FSource) then
+    raise Exception.Create('Peek off end of markdown');
+  result := FSource[FCursor+offset];
 end;
 
-{ TLazy<T> }
-
-constructor TLazy<T>.Create(factory: TFunc<T>; mode: TLazyThreadSafetyMode);
+function TCommonMarkParser.peekline: String;
+var
+  i : integer;
 begin
-  Create(factory, mode <> TLazyThreadSafetyMode.ltsmNone);
+  FBuilder.Clear;
+  i := 0;
+  while peek(i) <> #10 do
+  begin
+    FBuilder.Append(peek(i));
+    inc(i);
+  end;
+  result := FBuilder.ToString;
 end;
 
-constructor TLazy<T>.Create(factory: TFunc<T>);
+function TCommonMarkParser.peekStr(length: integer): String;
 begin
-  Create(factory, TLazyThreadSafetyMode.ltsmExecutionAndPublication);
+  result := copy(FSource, FCursor, length);
 end;
 
-constructor TLazy<T>.Create(factory: TFunc<T>; isThreadSafe: boolean);
+function TCommonMarkParser.stripWhitespace(s: String): String;
+var
+  ch : Char;
+begin
+  FBuilder.Clear;
+  for ch in s do
+    if not isWhitespace(ch) then
+      FBuilder.append(ch);
+  result := FBuilder.ToString;
+end;
+
+function TCommonMarkParser.parseThematicBreak(blocks : TObjectList<TBlock>; line: String): boolean;
+begin
+  if line.StartsWith('    ') then
+    exit(false);
+  line := stripWhitespace(line);
+  if (line.StartsWith('***') or line.StartsWith('---') or line.StartsWith('___')) and AllCharsSame(line) then
+  begin
+    grabLine;
+    blocks.Add(TThematicBreakBlock.Create);
+    result := true;
+  end
+  else
+    result := false;
+end;
+
+function TCommonMarkParser.parseHeader(blocks : TObjectList<TBlock>; line: String): boolean;
+var
+  l : integer;
+  s : String;
+  b : THeadingBlock;
+begin
+  if line.StartsWith('    ') then
+    exit(false);
+  line := line.Trim;
+  result := true;
+  if line.StartsWith('# ') or (line = '#') then
+    l := 1
+  else if line.StartsWith('## ') or (line = '##') then
+    l := 2
+  else if line.StartsWith('### ') or (line = '###') then
+    l := 3
+  else if line.StartsWith('#### ') or (line = '####') then
+    l := 4
+  else if line.StartsWith('##### ') or (line = '#####') then
+    l := 5
+  else if line.StartsWith('###### ') or (line = '######') then
+    l := 6
+  else
+    exit(False);
+  grabWhile(' ');
+  result := true;
+  grab(l);
+  if peek <> #10 then
+    grab;
+  b := THeadingBlock.Create(l);
+  blocks.Add(b);
+  s := grabLine.trim;
+  if (s <> '') then
+  begin
+    l := length(s);
+    while s[l] = '#' do
+      dec(l);
+    if (l = 0) then
+      s := ''
+    else if (s[l] = ' ') then
+      s := copy(s, 1, l-1);
+  end;
+  parseInline(b.blocks, s);
+end;
+
+procedure TCommonMarkParser.parseInline(blocks : TObjectList<TBlock>; line : String);
+begin
+  blocks.Add(TTextBlock.create(escapeHtml(line.Trim)));
+end;
+
+function TCommonMarkParser.parseSeTextHeader(blocks : TObjectList<TBlock>; line: String): boolean;
+var
+  p : TParagraphBlock;
+  s, n : String;
+begin
+  if line.StartsWith('    ') then
+    exit(false);
+  if blocks.Count = 0 then
+    exit(false);
+  if not (blocks.Last is TParagraphBlock) then
+    exit(false);
+  p := blocks.Last as TParagraphBlock;
+  if p.closed then
+    exit(false);
+  if p.header <> 0 then
+    exit(false);
+  s := line.Trim;
+  if s = '' then
+    exit(false);
+  if not allCharsSame(s) then
+    exit(false);
+
+  if s[1] = '-' then
+  begin
+    grabLine;
+    p.header := 2;
+    exit(true);
+  end
+  else if s[1] = '=' then
+  begin
+    grabLine;
+    p.header := 1;
+    exit(true);
+  end
+  else
+    exit(false);
+end;
+
+function TCommonMarkParser.parseCodeBlock(blocks : TObjectList<TBlock>; line: String): boolean;
+var
+  c : TCodeBlock;
+  s : String;
+  more : boolean;
+begin
+  if not line.StartsWith('    ') then
+    exit(false);
+  if isWhitespace(line) then
+    exit(false);
+  if inPara(blocks) then
+    exit(false);
+  result := true;
+  c := TCodeBlock.Create;
+  blocks.Add(c);
+  more := true;
+  while not done and more do
+  begin
+    s := grabLine;
+    if s.Length > 4 then
+      s := s.Substring(4)
+    else
+      s := '';
+    c.FBlocks.Add(TTextBlock.Create(escapehtml(s)));
+    if not done then
+    begin
+      s := peekLine;
+      if s.Length <= 4 then
+        more := isWhitespace(s)
+      else
+        more := s.StartsWith('    ');
+    end;
+  end;
+  // remove any whitespace lines at the end:
+  while (c.blocks.Count > 0) and isWhitespace((c.blocks.Last as TTextBlock).text) do
+    c.blocks.Delete(c.blocks.Count - 1);
+end;
+
+procedure TCommonMarkParser.parse(block: TContainerBlock);
+var
+  line : String;
+  p : TParagraphBlock;
+  b : TBlock;
+  level : integer;
+begin
+  while not done do // must be at start of line here
+  begin
+    line := peekline;
+    if parseSeTextHeader(block.blocks, line) then
+    else if parseThematicBreak(block.blocks, line) then
+    else if parseHeader(block.blocks, line) then
+    else if parseCodeBlock(block.blocks, line) then
+    else
+    begin
+      if inPara(block.blocks) then
+        p := block.Blocks.Last as TParagraphBlock
+      else
+        p := nil;
+      if line = '' then
+      begin
+        if (p <> nil) then
+          p.closed := true;
+        grabLine;
+      end
+      else if (p = nil) and isWhitespace(line) then
+        grabLine
+      else
+      begin
+        if (p = nil) then
+        begin
+          p := TParagraphBlock.Create;
+          block.blocks.Add(p);
+        end;
+        parseInLine(p.blocks, grabLine);
+      end;
+    end;
+  end;
+end;
+
+{ TCommonMarkRenderer }
+
+class function TCommonMarkRenderer.render(doc: TMarkdownDocument): String;
+var
+  b : TStringBuilder;
+begin
+  b := TStringBuilder.Create;
+  try
+    doc.render(b);
+    result := b.ToString;
+  finally
+    b.Free;
+  end;
+end;
+
+{ TContainerBlock }
+
+constructor TContainerBlock.Create;
+begin
+  inherited create;
+  FBlocks := TObjectList<TBLock>.create(true);
+end;
+
+destructor TContainerBlock.Destroy;
+begin
+  FBlocks.Free;
+  inherited Destroy;
+end;
+
+procedure TContainerBlock.render(b: TStringBuilder);
+var
+  c : TBlock;
+begin
+  for c in FBlocks do
+    c.render(b);
+end;
+
+{ TTextBlock }
+
+constructor TTextBlock.Create(text: String);
+begin
+  inherited Create;
+  FText := text;
+end;
+
+procedure TTextBlock.render(b: TStringBuilder);
+begin
+  b.Append(FText);
+end;
+
+{ THeadingBlock }
+
+constructor THeadingBlock.Create(level: Integer);
 begin
   Inherited Create;
-  FFactory := factory;
-  FThreadSafe := isThreadSafe;
-  if FThreadSafe then
-   FLock := TCriticalSection.Create;
+  FLevel := level;
 end;
 
-destructor TLazy<T>.Destroy;
+procedure THeadingBlock.render(b: TStringBuilder);
 begin
-  FLock.Free;
-  inherited;
+  b.Append('<h'+inttostr(FLevel)+'>');
+  inherited render(b);
+  b.Append('</h'+inttostr(FLevel)+'>');
+  b.Append(#10);
 end;
 
-function TLazy<T>.GetValue: T;
+{ TParagraphBlock }
+
+procedure TParagraphBlock.render(b: TStringBuilder);
+var
+  c : TBlock;
+  first : boolean;
 begin
-  if (Fvalue = nil) then
-  begin
-    if FThreadSafe then
-    begin
-      FLock.Enter;
-      try
-        if (Fvalue = nil) then
-          FValue := FFactory;
-      finally
-        FLock.Leave;
-      end;
-    end
-    else
-      FValue := FFactory;
+  case header of
+    0: b.Append('<p>');
+    1: b.Append('<h1>');
+    2: b.Append('<h2>');
   end;
-  result := FValue;
+  first := true;
+  for c in FBlocks do
+  begin
+    if first then
+      first := false
+    else
+      b.Append(#10);
+    c.render(b);
+  end;
+  case header of
+    0: b.Append('</p>');
+    1: b.Append('</h1>');
+    2: b.Append('</h2>');
+  end;
+  b.Append(#10);
+end;
+
+{ TThematicBreakBlock }
+
+procedure TThematicBreakBlock.render(b: TStringBuilder);
+begin
+  b.Append('<hr />');
+  b.Append(#10);
+end;
+
+{ TCodeBlock }
+
+procedure TCodeBlock.render(b: TStringBuilder);
+var
+  c : TBlock;
+begin
+  b.Append('<pre><code>');
+  for c in FBlocks do
+  begin
+    c.render(b);
+    b.Append(#10);
+  end;
+  b.Append('</code></pre>');
+  b.Append(#10);
 end;
 
 end.
