@@ -48,8 +48,8 @@ Type
 implementation
 
 uses
-  MarkdownDaringFireball,
-  MarkdownCommonMark;
+  MarkdownDaringFireball{$IFNDEF FPC},
+  MarkdownCommonMark {$ENDIF};
 
 { TMarkdownProcessor }
 
@@ -57,7 +57,7 @@ class function TMarkdownProcessor.CreateDialect(dialect: TMarkdownProcessorDiale
 begin
   case dialect of
     mdDaringFireball : result := TMarkdownDaringFireball.Create;
-    mdCommonMark : result := TMarkdownCommonMark.Create;
+//    mdCommonMark : result := TMarkdownCommonMark.Create;
   else
     raise Exception.Create('Unknown Markdown dialect');
   end;

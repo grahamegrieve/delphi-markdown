@@ -22,7 +22,7 @@ Unit MarkdownDaringFireballTests;
 interface
 
 uses
-  Windows, SysUtils, Classes, DUnitX.TestFramework, Character, ShellApi,
+  Windows, SysUtils, Classes, {$IFDEF FPC} DUnitFpc {$ELSE}DUnitX.TestFramework {$ENDIF}, Character, ShellApi,
   MarkdownDaringFireball;
 
 const
