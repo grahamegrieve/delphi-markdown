@@ -116,6 +116,7 @@ var
 begin
   test := findTest(name);
 
+  writeln(name);
   doc := TCommonMarkParser.parse((test.values['markdown'] as TJsonString).value.replace('\n', #10));
   try
     html := TCommonMarkRenderer.render(doc);
