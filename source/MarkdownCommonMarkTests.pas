@@ -53,6 +53,15 @@ begin
   gTests.Free;
 end;
 
+function leftPad(s : String; c : char; l :integer) : String;
+begin
+  result := s;
+  while result.Length < l do
+    insert(c, result, 1);
+end;
+
+{ CommonMarkDownParserTestCaseAttribute }
+
 function CommonMarkDownParserTestCaseAttribute.GetCaseInfoArray: TestCaseInfoArray;
 var
   f : TFileStream;
@@ -77,7 +86,7 @@ begin
   for i := 0 to gTests.Count - 1 do
   begin
     t := gTests.Items[i] as TJSONObject;
-    result[i].Name := t.Values['example'].ToString;
+    result[i].Name := leftPad(t.Values['example'].ToString, '0', 4);
     SetLength(result[i].Values, 1);
     result[i].Values[0] := result[i].Name;
   end;
@@ -94,7 +103,7 @@ begin
   for v in gTests do
   begin
     o := v as TJSONObject;
-    if (o.Values['example'] as TJSONNumber).value = name then
+    if leftPad((o.Values['example'] as TJSONNumber).value, '0', 4) = name then
       exit(o);
   end;
 end;

@@ -98,6 +98,8 @@
         <DCC_STRING_CONST_TRUNCED>error</DCC_STRING_CONST_TRUNCED>
         <DCC_NO_RETVAL>error</DCC_NO_RETVAL>
         <DCC_UNIT_NAME_MISMATCH>error</DCC_UNIT_NAME_MISMATCH>
+        <DCC_ImportedDataReferences>false</DCC_ImportedDataReferences>
+        <DCC_DebugDCUs>false</DCC_DebugDCUs>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
