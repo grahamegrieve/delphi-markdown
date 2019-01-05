@@ -5,7 +5,8 @@
     "html": "<pre><code>foo\tbaz\t\tbim\n</code></pre>\n",
     "markdown": "\tfoo\tbaz\t\tbim\n",
     "example": 1,
-    "start_line": 350
+    "start_line": 350,
+    "pass" : true
   },
   {
     "end_line": 362,
@@ -21,7 +22,8 @@
     "html": "<pre><code>a\ta\nὐ\ta\n</code></pre>\n",
     "markdown": "    a\ta\n    ὐ\ta\n",
     "example": 3,
-    "start_line": 364
+    "start_line": 364,
+    "pass" : true
   },
   {
     "end_line": 388,
@@ -29,7 +31,8 @@
     "html": "<ul>\n<li>\n<p>foo</p>\n<p>bar</p>\n</li>\n</ul>\n",
     "markdown": "  - foo\n\n\tbar\n",
     "example": 4,
-    "start_line": 377
+    "start_line": 377,
+    "pass" : true
   },
   {
     "end_line": 402,
@@ -37,7 +40,8 @@
     "html": "<ul>\n<li>\n<p>foo</p>\n<pre><code>  bar\n</code></pre>\n</li>\n</ul>\n",
     "markdown": "- foo\n\n\t\tbar\n",
     "example": 5,
-    "start_line": 390
+    "start_line": 390,
+    "pass" : true
   },
   {
     "end_line": 420,
@@ -61,7 +65,8 @@
     "html": "<pre><code>foo\nbar\n</code></pre>\n",
     "markdown": "    foo\n\tbar\n",
     "example": 8,
-    "start_line": 434
+    "start_line": 434,
+    "pass" : true
   },
   {
     "end_line": 459,
@@ -69,7 +74,8 @@
     "html": "<ul>\n<li>foo\n<ul>\n<li>bar\n<ul>\n<li>baz</li>\n</ul>\n</li>\n</ul>\n</li>\n</ul>\n",
     "markdown": " - foo\n   - bar\n\t - baz\n",
     "example": 9,
-    "start_line": 443
+    "start_line": 443,
+    "pass" : true
   },
   {
     "end_line": 465,
@@ -77,7 +83,8 @@
     "html": "<h1>Foo</h1>\n",
     "markdown": "#\tFoo\n",
     "example": 10,
-    "start_line": 461
+    "start_line": 461,
+    "pass" : true
   },
   {
     "end_line": 471,
@@ -85,7 +92,8 @@
     "html": "<hr />\n",
     "markdown": "*\t*\t*\t\n",
     "example": 11,
-    "start_line": 467
+    "start_line": 467,
+    "pass" : true
   },
   {
     "end_line": 502,
@@ -2153,7 +2161,8 @@
     "html": "<p>!&quot;#$%&amp;'()*+,-./:;&lt;=&gt;?@[\\]^_`{|}~</p>\n",
     "markdown": "\\!\\\"\\#\\$\\%\\&\\'\\(\\)\\*\\+\\,\\-\\.\\/\\:\\;\\<\\=\\>\\?\\@\\[\\\\\\]\\^\\_\\`\\{\\|\\}\\~\n",
     "example": 289,
-    "start_line": 5389
+    "start_line": 5389,
+    "pass" : true
   },
   {
     "end_line": 5403,
@@ -2161,7 +2170,8 @@
     "html": "<p>\\\t\\A\\a\\ \\3\\φ\\«</p>\n",
     "markdown": "\\\t\\A\\a\\ \\3\\φ\\«\n",
     "example": 290,
-    "start_line": 5399
+    "start_line": 5399,
+    "pass" : true
   },
   {
     "end_line": 5427,
@@ -2169,7 +2179,8 @@
     "html": "<p>*not emphasized*\n&lt;br/&gt; not a tag\n[not a link](/foo)\n`not code`\n1. not a list\n* not a list\n# not a heading\n[foo]: /url &quot;not a reference&quot;</p>\n",
     "markdown": "\\*not emphasized*\n\\<br/> not a tag\n\\[not a link](/foo)\n\\`not code`\n1\\. not a list\n\\* not a list\n\\# not a heading\n\\[foo]: /url \"not a reference\"\n",
     "example": 291,
-    "start_line": 5409
+    "start_line": 5409,
+    "pass" : true
   },
   {
     "end_line": 5436,
@@ -2185,7 +2196,8 @@
     "html": "<p>foo<br />\nbar</p>\n",
     "markdown": "foo\\\nbar\n",
     "example": 293,
-    "start_line": 5441
+    "start_line": 5441,
+    "pass" : true
   },
   {
     "end_line": 5457,
@@ -2254,10 +2266,11 @@
   {
     "end_line": 5546,
     "section": "Entity and numeric character references",
-    "html": "<p>  &amp; © Æ Ď\n¾ ℋ ⅆ\n∲ ≧̸</p>\n",
+    "html": "<p>  &amp; © Æ Ď\n¾ ℋ ⅆ\n∲ ≧̸</p>\n",
     "markdown": "&nbsp; &amp; &copy; &AElig; &Dcaron;\n&frac34; &HilbertSpace; &DifferentialD;\n&ClockwiseContourIntegral; &ngE;\n",
     "example": 302,
-    "start_line": 5538
+    "start_line": 5538,
+    "pass" : true
   },
   {
     "end_line": 5561,
@@ -2265,7 +2278,8 @@
     "html": "<p># Ӓ Ϡ � �</p>\n",
     "markdown": "&#35; &#1234; &#992; &#98765432; &#0;\n",
     "example": 303,
-    "start_line": 5557
+    "start_line": 5557,
+    "pass" : true
   },
   {
     "end_line": 5574,
@@ -2273,7 +2287,8 @@
     "html": "<p>&quot; ആ ಫ</p>\n",
     "markdown": "&#X22; &#XD06; &#xcab;\n",
     "example": 304,
-    "start_line": 5570
+    "start_line": 5570,
+    "pass" : true
   },
   {
     "end_line": 5585,
@@ -2281,7 +2296,8 @@
     "html": "<p>&amp;nbsp &amp;x; &amp;#; &amp;#x;\n&amp;ThisIsNotDefined; &amp;hi?;</p>\n",
     "markdown": "&nbsp &x; &#; &#x;\n&ThisIsNotDefined; &hi?;\n",
     "example": 305,
-    "start_line": 5579
+    "start_line": 5579,
+    "pass" : true
   },
   {
     "end_line": 5596,
@@ -2289,7 +2305,8 @@
     "html": "<p>&amp;copy</p>\n",
     "markdown": "&copy\n",
     "example": 306,
-    "start_line": 5592
+    "start_line": 5592,
+    "pass" : true
   },
   {
     "end_line": 5606,
@@ -2297,7 +2314,8 @@
     "html": "<p>&amp;MadeUpEntity;</p>\n",
     "markdown": "&MadeUpEntity;\n",
     "example": 307,
-    "start_line": 5602
+    "start_line": 5602,
+    "pass" : true
   },
   {
     "end_line": 5617,
@@ -2345,7 +2363,8 @@
     "html": "<pre><code>f&amp;ouml;f&amp;ouml;\n</code></pre>\n",
     "markdown": "    f&ouml;f&ouml;\n",
     "example": 313,
-    "start_line": 5656
+    "start_line": 5656,
+    "pass" : true
   },
   {
     "end_line": 5682,
@@ -2353,7 +2372,8 @@
     "html": "<p><code>foo</code></p>\n",
     "markdown": "`foo`\n",
     "example": 314,
-    "start_line": 5678
+    "start_line": 5678,
+    "pass" : true
   },
   {
     "end_line": 5692,
@@ -2361,7 +2381,8 @@
     "html": "<p><code>foo ` bar</code></p>\n",
     "markdown": "`` foo ` bar  ``\n",
     "example": 315,
-    "start_line": 5688
+    "start_line": 5688,
+    "pass" : true
   },
   {
     "end_line": 5702,
@@ -2369,7 +2390,8 @@
     "html": "<p><code>``</code></p>\n",
     "markdown": "` `` `\n",
     "example": 316,
-    "start_line": 5698
+    "start_line": 5698,
+    "pass" : true
   },
   {
     "end_line": 5713,
@@ -2377,7 +2399,8 @@
     "html": "<p><code>foo</code></p>\n",
     "markdown": "``\nfoo\n``\n",
     "example": 317,
-    "start_line": 5707
+    "start_line": 5707,
+    "pass" : true
   },
   {
     "end_line": 5724,
@@ -2385,15 +2408,17 @@
     "html": "<p><code>foo bar baz</code></p>\n",
     "markdown": "`foo   bar\n  baz`\n",
     "example": 318,
-    "start_line": 5719
+    "start_line": 5719,
+    "pass" : true
   },
   {
     "end_line": 5734,
     "section": "Code spans",
-    "html": "<p><code>a  b</code></p>\n",
-    "markdown": "`a  b`\n",
+    "html": "<p><code>a  b</code></p>\n",
+    "markdown": "`a  b`\n",
     "example": 319,
-    "start_line": 5730
+    "start_line": 5730,
+    "pass" : true
   },
   {
     "end_line": 5754,
@@ -2401,7 +2426,8 @@
     "html": "<p><code>foo `` bar</code></p>\n",
     "markdown": "`foo `` bar`\n",
     "example": 320,
-    "start_line": 5750
+    "start_line": 5750,
+    "pass" : true
   },
   {
     "end_line": 5764,
@@ -2409,7 +2435,8 @@
     "html": "<p><code>foo\\</code>bar`</p>\n",
     "markdown": "`foo\\`bar`\n",
     "example": 321,
-    "start_line": 5760
+    "start_line": 5760,
+    "pass" : true
   },
   {
     "end_line": 5780,
@@ -2417,7 +2444,8 @@
     "html": "<p>*foo<code>*</code></p>\n",
     "markdown": "*foo`*`\n",
     "example": 322,
-    "start_line": 5776
+    "start_line": 5776,
+    "pass" : true
   },
   {
     "end_line": 5789,
@@ -4361,7 +4389,8 @@
     "html": "<p><a href=\"http://foo.bar.baz\">http://foo.bar.baz</a></p>\n",
     "markdown": "<http://foo.bar.baz>\n",
     "example": 565,
-    "start_line": 8431
+    "start_line": 8431,
+    "pass" : true
   },
   {
     "end_line": 8442,
@@ -4369,7 +4398,8 @@
     "html": "<p><a href=\"http://foo.bar.baz/test?q=hello&amp;id=22&amp;boolean\">http://foo.bar.baz/test?q=hello&amp;id=22&amp;boolean</a></p>\n",
     "markdown": "<http://foo.bar.baz/test?q=hello&id=22&boolean>\n",
     "example": 566,
-    "start_line": 8438
+    "start_line": 8438,
+    "pass" : true
   },
   {
     "end_line": 8449,
@@ -4377,7 +4407,8 @@
     "html": "<p><a href=\"irc://foo.bar:2233/baz\">irc://foo.bar:2233/baz</a></p>\n",
     "markdown": "<irc://foo.bar:2233/baz>\n",
     "example": 567,
-    "start_line": 8445
+    "start_line": 8445,
+    "pass" : true
   },
   {
     "end_line": 8458,
@@ -4385,7 +4416,8 @@
     "html": "<p><a href=\"MAILTO:FOO@BAR.BAZ\">MAILTO:FOO@BAR.BAZ</a></p>\n",
     "markdown": "<MAILTO:FOO@BAR.BAZ>\n",
     "example": 568,
-    "start_line": 8454
+    "start_line": 8454,
+    "pass" : true
   },
   {
     "end_line": 8470,
@@ -4393,7 +4425,8 @@
     "html": "<p><a href=\"a+b+c:d\">a+b+c:d</a></p>\n",
     "markdown": "<a+b+c:d>\n",
     "example": 569,
-    "start_line": 8466
+    "start_line": 8466,
+    "pass" : true
   },
   {
     "end_line": 8477,
@@ -4401,7 +4434,8 @@
     "html": "<p><a href=\"made-up-scheme://foo,bar\">made-up-scheme://foo,bar</a></p>\n",
     "markdown": "<made-up-scheme://foo,bar>\n",
     "example": 570,
-    "start_line": 8473
+    "start_line": 8473,
+    "pass" : true
   },
   {
     "end_line": 8484,
@@ -4409,7 +4443,8 @@
     "html": "<p><a href=\"http://../\">http://../</a></p>\n",
     "markdown": "<http://../>\n",
     "example": 571,
-    "start_line": 8480
+    "start_line": 8480,
+    "pass" : true
   },
   {
     "end_line": 8491,
@@ -4417,7 +4452,8 @@
     "html": "<p><a href=\"localhost:5001/foo\">localhost:5001/foo</a></p>\n",
     "markdown": "<localhost:5001/foo>\n",
     "example": 572,
-    "start_line": 8487
+    "start_line": 8487,
+    "pass" : true
   },
   {
     "end_line": 8500,
@@ -4425,7 +4461,8 @@
     "html": "<p>&lt;http://foo.bar/baz bim&gt;</p>\n",
     "markdown": "<http://foo.bar/baz bim>\n",
     "example": 573,
-    "start_line": 8496
+    "start_line": 8496,
+    "pass" : true
   },
   {
     "end_line": 8509,
@@ -4433,7 +4470,8 @@
     "html": "<p><a href=\"http://example.com/%5C%5B%5C\">http://example.com/\\[\\</a></p>\n",
     "markdown": "<http://example.com/\\[\\>\n",
     "example": 574,
-    "start_line": 8505
+    "start_line": 8505,
+    "pass" : true
   },
   {
     "end_line": 8531,
@@ -4441,7 +4479,8 @@
     "html": "<p><a href=\"mailto:foo@bar.example.com\">foo@bar.example.com</a></p>\n",
     "markdown": "<foo@bar.example.com>\n",
     "example": 575,
-    "start_line": 8527
+    "start_line": 8527,
+    "pass" : true
   },
   {
     "end_line": 8538,
@@ -4449,7 +4488,8 @@
     "html": "<p><a href=\"mailto:foo+special@Bar.baz-bar0.com\">foo+special@Bar.baz-bar0.com</a></p>\n",
     "markdown": "<foo+special@Bar.baz-bar0.com>\n",
     "example": 576,
-    "start_line": 8534
+    "start_line": 8534,
+    "pass" : true
   },
   {
     "end_line": 8547,
@@ -4457,7 +4497,8 @@
     "html": "<p>&lt;foo+@bar.example.com&gt;</p>\n",
     "markdown": "<foo\\+@bar.example.com>\n",
     "example": 577,
-    "start_line": 8543
+    "start_line": 8543,
+    "pass" : true
   },
   {
     "end_line": 8556,
@@ -4465,7 +4506,8 @@
     "html": "<p>&lt;&gt;</p>\n",
     "markdown": "<>\n",
     "example": 578,
-    "start_line": 8552
+    "start_line": 8552,
+    "pass" : true
   },
   {
     "end_line": 8563,
@@ -4473,7 +4515,8 @@
     "html": "<p>&lt; http://foo.bar &gt;</p>\n",
     "markdown": "< http://foo.bar >\n",
     "example": 579,
-    "start_line": 8559
+    "start_line": 8559,
+    "pass" : true
   },
   {
     "end_line": 8570,
@@ -4481,7 +4524,8 @@
     "html": "<p>&lt;m:abc&gt;</p>\n",
     "markdown": "<m:abc>\n",
     "example": 580,
-    "start_line": 8566
+    "start_line": 8566,
+    "pass" : true
   },
   {
     "end_line": 8577,
@@ -4489,7 +4533,8 @@
     "html": "<p>&lt;foo.bar.baz&gt;</p>\n",
     "markdown": "<foo.bar.baz>\n",
     "example": 581,
-    "start_line": 8573
+    "start_line": 8573,
+    "pass" : true
   },
   {
     "end_line": 8584,
@@ -4497,7 +4542,8 @@
     "html": "<p>http://example.com</p>\n",
     "markdown": "http://example.com\n",
     "example": 582,
-    "start_line": 8580
+    "start_line": 8580,
+    "pass" : true
   },
   {
     "end_line": 8591,
@@ -4505,7 +4551,8 @@
     "html": "<p>foo@bar.example.com</p>\n",
     "markdown": "foo@bar.example.com\n",
     "example": 583,
-    "start_line": 8587
+    "start_line": 8587,
+    "pass" : true
   },
   {
     "end_line": 8673,
@@ -4513,7 +4560,8 @@
     "html": "<p><a><bab><c2c></p>\n",
     "markdown": "<a><bab><c2c>\n",
     "example": 584,
-    "start_line": 8669
+    "start_line": 8669,
+    "html" : true
   },
   {
     "end_line": 8682,
@@ -4521,7 +4569,8 @@
     "html": "<p><a/><b2/></p>\n",
     "markdown": "<a/><b2/>\n",
     "example": 585,
-    "start_line": 8678
+    "start_line": 8678,
+    "html" : true
   },
   {
     "end_line": 8693,
@@ -4529,7 +4578,8 @@
     "html": "<p><a  /><b2\ndata=\"foo\" ></p>\n",
     "markdown": "<a  /><b2\ndata=\"foo\" >\n",
     "example": 586,
-    "start_line": 8687
+    "start_line": 8687,
+    "html" : true
   },
   {
     "end_line": 8704,
@@ -4537,7 +4587,8 @@
     "html": "<p><a foo=\"bar\" bam = 'baz <em>\"</em>'\n_boolean zoop:33=zoop:33 /></p>\n",
     "markdown": "<a foo=\"bar\" bam = 'baz <em>\"</em>'\n_boolean zoop:33=zoop:33 />\n",
     "example": 587,
-    "start_line": 8698
+    "start_line": 8698,
+    "html" : true
   },
   {
     "end_line": 8713,
@@ -4545,7 +4596,8 @@
     "html": "<p>Foo <responsive-image src=\"foo.jpg\" /></p>\n",
     "markdown": "Foo <responsive-image src=\"foo.jpg\" />\n",
     "example": 588,
-    "start_line": 8709
+    "start_line": 8709,
+    "html" : true
   },
   {
     "end_line": 8722,
@@ -4553,7 +4605,8 @@
     "html": "<p>&lt;33&gt; &lt;__&gt;</p>\n",
     "markdown": "<33> <__>\n",
     "example": 589,
-    "start_line": 8718
+    "start_line": 8718,
+    "html" : true
   },
   {
     "end_line": 8731,
@@ -4561,7 +4614,8 @@
     "html": "<p>&lt;a h*#ref=&quot;hi&quot;&gt;</p>\n",
     "markdown": "<a h*#ref=\"hi\">\n",
     "example": 590,
-    "start_line": 8727
+    "start_line": 8727,
+    "html" : true
   },
   {
     "end_line": 8740,
@@ -4569,7 +4623,8 @@
     "html": "<p>&lt;a href=&quot;hi'&gt; &lt;a href=hi'&gt;</p>\n",
     "markdown": "<a href=\"hi'> <a href=hi'>\n",
     "example": 591,
-    "start_line": 8736
+    "start_line": 8736,
+    "html" : true
   },
   {
     "end_line": 8751,
@@ -4577,7 +4632,8 @@
     "html": "<p>&lt; a&gt;&lt;\nfoo&gt;&lt;bar/ &gt;</p>\n",
     "markdown": "< a><\nfoo><bar/ >\n",
     "example": 592,
-    "start_line": 8745
+    "start_line": 8745,
+    "html" : true
   },
   {
     "end_line": 8760,
@@ -4585,7 +4641,8 @@
     "html": "<p>&lt;a href='bar'title=title&gt;</p>\n",
     "markdown": "<a href='bar'title=title>\n",
     "example": 593,
-    "start_line": 8756
+    "start_line": 8756,
+    "html" : true
   },
   {
     "end_line": 8769,
@@ -4593,7 +4650,8 @@
     "html": "<p></a></foo ></p>\n",
     "markdown": "</a></foo >\n",
     "example": 594,
-    "start_line": 8765
+    "start_line": 8765,
+    "html" : true
   },
   {
     "end_line": 8778,
@@ -4601,7 +4659,8 @@
     "html": "<p>&lt;/a href=&quot;foo&quot;&gt;</p>\n",
     "markdown": "</a href=\"foo\">\n",
     "example": 595,
-    "start_line": 8774
+    "start_line": 8774,
+    "html" : true
   },
   {
     "end_line": 8789,
@@ -4609,7 +4668,8 @@
     "html": "<p>foo <!-- this is a\ncomment - with hyphen --></p>\n",
     "markdown": "foo <!-- this is a\ncomment - with hyphen -->\n",
     "example": 596,
-    "start_line": 8783
+    "start_line": 8783,
+    "html" : true
   },
   {
     "end_line": 8796,
@@ -4617,7 +4677,8 @@
     "html": "<p>foo &lt;!-- not a comment -- two hyphens --&gt;</p>\n",
     "markdown": "foo <!-- not a comment -- two hyphens -->\n",
     "example": 597,
-    "start_line": 8792
+    "start_line": 8792,
+    "html" : true
   },
   {
     "end_line": 8808,
@@ -4625,7 +4686,8 @@
     "html": "<p>foo &lt;!--&gt; foo --&gt;</p>\n<p>foo &lt;!-- foo---&gt;</p>\n",
     "markdown": "foo <!--> foo -->\n\nfoo <!-- foo--->\n",
     "example": 598,
-    "start_line": 8801
+    "start_line": 8801,
+    "html" : true
   },
   {
     "end_line": 8817,
@@ -4633,7 +4695,8 @@
     "html": "<p>foo <?php echo $a; ?></p>\n",
     "markdown": "foo <?php echo $a; ?>\n",
     "example": 599,
-    "start_line": 8813
+    "start_line": 8813,
+    "html" : true
   },
   {
     "end_line": 8826,
@@ -4641,7 +4704,8 @@
     "html": "<p>foo <!ELEMENT br EMPTY></p>\n",
     "markdown": "foo <!ELEMENT br EMPTY>\n",
     "example": 600,
-    "start_line": 8822
+    "start_line": 8822,
+    "html" : true
   },
   {
     "end_line": 8835,
@@ -4649,7 +4713,8 @@
     "html": "<p>foo <![CDATA[>&<]]></p>\n",
     "markdown": "foo <![CDATA[>&<]]>\n",
     "example": 601,
-    "start_line": 8831
+    "start_line": 8831,
+    "html" : true
   },
   {
     "end_line": 8845,
@@ -4657,7 +4722,8 @@
     "html": "<p>foo <a href=\"&ouml;\"></p>\n",
     "markdown": "foo <a href=\"&ouml;\">\n",
     "example": 602,
-    "start_line": 8841
+    "start_line": 8841,
+    "html" : true
   },
   {
     "end_line": 8854,
@@ -4665,7 +4731,8 @@
     "html": "<p>foo <a href=\"\\*\"></p>\n",
     "markdown": "foo <a href=\"\\*\">\n",
     "example": 603,
-    "start_line": 8850
+    "start_line": 8850,
+    "html" : true
   },
   {
     "end_line": 8861,
@@ -4673,7 +4740,8 @@
     "html": "<p>&lt;a href=&quot;&quot;&quot;&gt;</p>\n",
     "markdown": "<a href=\"\\\"\">\n",
     "example": 604,
-    "start_line": 8857
+    "start_line": 8857,
+    "html" : true
   },
   {
     "end_line": 8877,
@@ -4681,7 +4749,8 @@
     "html": "<p>foo<br />\nbaz</p>\n",
     "markdown": "foo  \nbaz\n",
     "example": 605,
-    "start_line": 8871
+    "start_line": 8871,
+    "pass" : true
   },
   {
     "end_line": 8889,
@@ -4689,7 +4758,8 @@
     "html": "<p>foo<br />\nbaz</p>\n",
     "markdown": "foo\\\nbaz\n",
     "example": 606,
-    "start_line": 8883
+    "start_line": 8883,
+    "pass" : true
   },
   {
     "end_line": 8900,
@@ -4697,7 +4767,8 @@
     "html": "<p>foo<br />\nbaz</p>\n",
     "markdown": "foo       \nbaz\n",
     "example": 607,
-    "start_line": 8894
+    "start_line": 8894,
+    "pass" : true
   },
   {
     "end_line": 8911,
@@ -4705,7 +4776,8 @@
     "html": "<p>foo<br />\nbar</p>\n",
     "markdown": "foo  \n     bar\n",
     "example": 608,
-    "start_line": 8905
+    "start_line": 8905,
+    "pass" : true
   },
   {
     "end_line": 8920,
@@ -4713,7 +4785,8 @@
     "html": "<p>foo<br />\nbar</p>\n",
     "markdown": "foo\\\n     bar\n",
     "example": 609,
-    "start_line": 8914
+    "start_line": 8914,
+    "pass" : true
   },
   {
     "end_line": 8932,
@@ -4737,7 +4810,8 @@
     "html": "<p><code>code span</code></p>\n",
     "markdown": "`code  \nspan`\n",
     "example": 612,
-    "start_line": 8946
+    "start_line": 8946,
+    "pass" : true
   },
   {
     "end_line": 8959,
@@ -4745,7 +4819,8 @@
     "html": "<p><code>code\\ span</code></p>\n",
     "markdown": "`code\\\nspan`\n",
     "example": 613,
-    "start_line": 8954
+    "start_line": 8954,
+    "pass" : true
   },
   {
     "end_line": 8970,
@@ -4753,7 +4828,8 @@
     "html": "<p><a href=\"foo  \nbar\"></p>\n",
     "markdown": "<a href=\"foo  \nbar\">\n",
     "example": 614,
-    "start_line": 8964
+    "start_line": 8964,
+    "html" : true
   },
   {
     "end_line": 8979,
@@ -4761,7 +4837,8 @@
     "html": "<p><a href=\"foo\\\nbar\"></p>\n",
     "markdown": "<a href=\"foo\\\nbar\">\n",
     "example": 615,
-    "start_line": 8973
+    "start_line": 8973,
+    "html" : true
   },
   {
     "end_line": 8990,
@@ -4769,7 +4846,8 @@
     "html": "<p>foo\\</p>\n",
     "markdown": "foo\\\n",
     "example": 616,
-    "start_line": 8986
+    "start_line": 8986,
+    "pass" : true
   },
   {
     "end_line": 8997,
@@ -4777,7 +4855,8 @@
     "html": "<p>foo</p>\n",
     "markdown": "foo  \n",
     "example": 617,
-    "start_line": 8993
+    "start_line": 8993,
+    "pass" : true
   },
   {
     "end_line": 9004,
@@ -4785,7 +4864,8 @@
     "html": "<h3>foo\\</h3>\n",
     "markdown": "### foo\\\n",
     "example": 618,
-    "start_line": 9000
+    "start_line": 9000,
+    "pass" : true
   },
   {
     "end_line": 9011,
@@ -4793,7 +4873,8 @@
     "html": "<h3>foo</h3>\n",
     "markdown": "### foo  \n",
     "example": 619,
-    "start_line": 9007
+    "start_line": 9007,
+    "pass" : true
   },
   {
     "end_line": 9028,
@@ -4801,7 +4882,8 @@
     "html": "<p>foo\nbaz</p>\n",
     "markdown": "foo\nbaz\n",
     "example": 620,
-    "start_line": 9022
+    "start_line": 9022,
+    "pass" : true
   },
   {
     "end_line": 9040,
@@ -4809,7 +4891,8 @@
     "html": "<p>foo\nbaz</p>\n",
     "markdown": "foo \n baz\n",
     "example": 621,
-    "start_line": 9034
+    "start_line": 9034,
+    "pass" : true
   },
   {
     "end_line": 9058,
@@ -4817,7 +4900,8 @@
     "html": "<p>hello $.;'there</p>\n",
     "markdown": "hello $.;'there\n",
     "example": 622,
-    "start_line": 9054
+    "start_line": 9054,
+    "pass" : true
   },
   {
     "end_line": 9065,
@@ -4825,7 +4909,8 @@
     "html": "<p>Foo χρῆν</p>\n",
     "markdown": "Foo χρῆν\n",
     "example": 623,
-    "start_line": 9061
+    "start_line": 9061,
+    "pass" : true
   },
   {
     "end_line": 9074,
@@ -4833,6 +4918,7 @@
     "html": "<p>Multiple     spaces</p>\n",
     "markdown": "Multiple     spaces\n",
     "example": 624,
-    "start_line": 9070
+    "start_line": 9070,
+    "pass" : true
   }
 ]

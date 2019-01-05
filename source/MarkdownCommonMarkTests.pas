@@ -119,7 +119,7 @@ begin
   writeln(name);
   doc := TCommonMarkParser.parse((test.values['markdown'] as TJsonString).value.replace('\n', #10));
   try
-    html := TCommonMarkRenderer.render(doc);
+    html := TCommonMarkParser.render(doc);
   finally
     doc.Free;
   end;

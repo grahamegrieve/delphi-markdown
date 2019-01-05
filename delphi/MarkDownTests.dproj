@@ -120,6 +120,7 @@
         <DCCReference Include="..\source\MarkdownAsciiDoc.pas"/>
         <DCCReference Include="RegExpr.pas"/>
         <DCCReference Include="..\..\fhirserver\dependencies\FMM\FastMM4Messages.pas"/>
+        <DCCReference Include="..\source\HTMLEntities.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

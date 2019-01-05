@@ -44,7 +44,8 @@ uses
   MarkdownProcessor in '..\source\MarkdownProcessor.pas',
   MarkdownAsciiDoc in '..\source\MarkdownAsciiDoc.pas',
   RegExpr in 'RegExpr.pas',
-  FastMM4Messages in '..\..\fhirserver\dependencies\FMM\FastMM4Messages.pas';
+  FastMM4Messages in '..\..\fhirserver\dependencies\FMM\FastMM4Messages.pas',
+  HTMLEntities in '..\source\HTMLEntities.pas';
 
 var
   runner : ITestRunner;
