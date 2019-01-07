@@ -40,8 +40,17 @@ not planned to be supported
 
 note: tests related to link references and HTML blocks run (to check that the processing doesn't blow up), but output comparison is never checked
 }
+{
+FPC:
+* how to do regex?
+* how to get unicode category for character?
+}
 
 interface
+
+{$IFDEF FPC}
+{$MODE DELPHI}{$H+}
+{$ENDIF}
 
 uses
   SysUtils, Classes, Math, Generics.Collections, Character, {$IFDEF FPC} RegExpr {$ELSE} System.RegularExpressions {$ENDIF},
@@ -52,9 +61,33 @@ const
   LENGTH_INCREMENT = 116;
   EMAIL_REGEX = '^[a-zA-Z0-9.!#$%&''*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$';
 
-// Abstract Syntax Tree
 type
+  {$IFDEF FPC}
+
+  { TStringBuilder }
+
+  TStringBuilder = class
+  private
+    FBuild : String;
+    FLength : integer;
+  public
+    procedure clear;
+    procedure append(c : char); overload;
+    procedure append(s : String); overload;
+    function toString : String;
+  end;
+
+  { TRegEx }
+
+  TRegEx = class
+  public
+    class function isMatch(cnt, regex : String) : boolean;
+  end;
+
+  {$ENDIF}
   TWhitespaceMode = (wsLeave, wsTrim, wsStrip);
+
+  // Abstract Syntax Tree
 
   // inlines
   TTextNode = class
@@ -459,6 +492,48 @@ begin
   result := CharInSet(ch, ['!', '"', '#', '$', '%', '&', '''', '(', ')', '*', '+', ',', '-', '.', '/', ':', ';', '<', '=', '>', '?',
         '@', '[', '\', ']', '^', '_', '`', '{', '|', '}', '~']);
 end;
+
+{$IFDEF FPC}
+
+{ TRegEx }
+
+class function TRegEx.isMatch(cnt, regex: String): boolean;
+begin
+  result := false; // todo
+end;
+
+{ TStringBuilder }
+
+procedure TStringBuilder.clear;
+begin
+  FLength := 0;
+end;
+
+procedure TStringBuilder.append(c: char);
+begin
+  if FLength+1 > FBuild.Length then
+    setLength(FBuild, FBuild.Length+LENGTH_INCREMENT);
+  inc(FLength);
+  FBuild[FLength] := c;
+end;
+
+procedure TStringBuilder.append(s: String);
+var
+  i : integer;
+begin
+  if FLength+length(s) > FBuild.Length then
+    setLength(FBuild, FBuild.Length+length(s)+LENGTH_INCREMENT);
+  for i := 1 to length(s) do
+    FBuild[FLength+i] := s[i];
+  inc(FLength, length(s));
+end;
+
+function TStringBuilder.toString: String;
+begin
+  result := Copy(FBuild, 1, FLength);
+end;
+
+{$ENDIF}
 
 { TTextNode }
 
@@ -2297,8 +2372,9 @@ procedure TCommonMarkEngine.parseDelimiter(lexer: TTextLexer; nodes: TTextNodes;
   function isPuncForFLanking(c : char) : boolean;
   begin
     result := CharInSet(c, ['!', '"', '#', '$', '%', '&', '''', '(', ')', '*', '+', ',', '-', '.', '/', ':', ';', '<', '=', '>', '?', '@', '[', '\', ']', '^', '_', '`', '{', '|', '}', '~'])
+      {$IFNDEF FPC}
       or (c.GetUnicodeCategory in [TUnicodeCategory.ucConnectPunctuation, TUnicodeCategory.ucDashPunctuation, TUnicodeCategory.ucClosePunctuation,
-        TUnicodeCategory.ucFinalPunctuation, TUnicodeCategory.ucInitialPunctuation, TUnicodeCategory.ucOtherPunctuation, TUnicodeCategory.ucOpenPunctuation, TUnicodeCategory.ucMathSymbol]);
+        TUnicodeCategory.ucFinalPunctuation, TUnicodeCategory.ucInitialPunctuation, TUnicodeCategory.ucOtherPunctuation, TUnicodeCategory.ucOpenPunctuation, TUnicodeCategory.ucMathSymbol]){$ENDIF};
   end;
 
   function isLeftFlanking(cb, ca : char) : boolean;
@@ -2608,7 +2684,7 @@ begin
     else
     begin
       ch := char(i);
-      if (i = 0) or (ch.GetUnicodeCategory = TUnicodeCategory.ucUnassigned) then
+      if (i = 0) {$IFNDEF FPC}or (ch.GetUnicodeCategory = TUnicodeCategory.ucUnassigned) {$ENDIF} then
         ch := #$FFFD;
     end;
     exit(ch);
@@ -2649,7 +2725,7 @@ begin
     else
     begin
       ch := char(i);
-      if (i = 0) or (ch.GetUnicodeCategory = TUnicodeCategory.ucUnassigned) then
+      if (i = 0) {$IFNDEF FPC} or (ch.GetUnicodeCategory = TUnicodeCategory.ucUnassigned) {$ENDIF} then
         ch := #$FFFD;
     end;
     lexer.grab(s.Length+1);

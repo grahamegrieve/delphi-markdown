@@ -33,6 +33,10 @@ POSSIBILITY OF SUCH DAMAGE.
 
 interface
 
+{$IFDEF FPC}
+{$MODE DELPHI}{$H+}
+{$ENDIF}
+
 uses
   SysUtils, Generics.Collections;
 
