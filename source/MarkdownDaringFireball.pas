@@ -516,13 +516,23 @@ Begin
   result := false;
 End;
 
+function StringToShortString(const S: String) : ShortString;
+var
+  i : integer;
+begin
+  SetLength(result, min(s.Length, 255));
+  for i := 1 to length(result) do
+    result[i] := AnsiChar(s[i]);
+end;
+
+
 function StringToEnum(ATypeInfo: PTypeInfo; const AStr: String; defValue: integer): integer;
 var
   LTypeData: PTypeData;
   LPChar: PAnsiChar;
   LValue: ShortString;
 begin
-  LValue := ShortString(AStr);
+  LValue := StringToShortString(AStr);
 
   if ATypeInfo^.Kind = tkEnumeration then
   begin
