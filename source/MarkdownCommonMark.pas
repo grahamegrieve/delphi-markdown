@@ -44,7 +44,7 @@ note: tests related to link references and HTML blocks run (to check that the pr
 interface
 
 uses
-  SysUtils, Classes, Math, Generics.Collections, Character,  System.RegularExpressions,
+  SysUtils, Classes, Math, Generics.Collections, Character, {$IFDEF FPC} RegExpr {$ELSE} System.RegularExpressions {$ENDIF},
   HTMLEntities,
   MarkdownProcessor;
 

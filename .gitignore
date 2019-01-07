@@ -129,3 +129,6 @@ fpc/lib/i386-darwin/
 fpc/MarkdownTestProgram\.app/Contents/MacOS/
 /fpc/lib/x86_64-win64
 /delphi/Win32/Debug/TestInsightSettings.ini
+/fpc/old
+/source/backup
+/fpc/backup

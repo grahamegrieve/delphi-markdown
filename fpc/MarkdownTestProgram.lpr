@@ -4,7 +4,7 @@ program MarkdownTestProgram;
 
 uses
   Interfaces, Forms, GuiTestRunner, TestCase1, MarkdownDaringFireballTests,
-  DUnitFpc;
+  HTMLEntities, MarkdownCommonMark, DUnitFpc;
 
 {$R *.res}
 

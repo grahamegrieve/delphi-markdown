@@ -32,7 +32,7 @@
         <PackageName Value="FCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="5">
+    <Units Count="7">
       <Unit0>
         <Filename Value="MarkdownTestProgram.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -55,6 +55,14 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="DUnitFpc"/>
       </Unit4>
+      <Unit5>
+        <Filename Value="../source/MarkdownCommonMark.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="../source/HTMLEntities.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit6>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

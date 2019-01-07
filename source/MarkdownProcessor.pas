@@ -58,8 +58,8 @@ Type
 implementation
 
 uses
-  MarkdownDaringFireball{$IFNDEF FPC},
-  MarkdownCommonMark {$ENDIF};
+  MarkdownDaringFireball,
+  MarkdownCommonMark;
 
 { TMarkdownProcessor }
 
