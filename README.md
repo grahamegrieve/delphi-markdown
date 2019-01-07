@@ -1,6 +1,6 @@
 # delphi-markdown
 
-Markdown Processor for Delphi. 
+Markdown Processor for Pascal (Delphi/FPC)
 
 ## Basic Information
 
@@ -8,7 +8,7 @@ This is a Pascal (Delphi) library that processes to markdown to HTML.
 At present the following dialects of markdown are supported:
 
 * The Daring Fireball dialect (see https://daringfireball.net/projects/markdown/) (translated from https://github.com/rjeschke/txtmark)
-* The CommonMark Specification (see https://spec.commonmark.org/0.28) (not quite complete: GFM tables + link references)
+* The CommonMark Specification (see https://spec.commonmark.org/0.28) (not quite complete. Stil to do: GFM tables + link references)
 
 All you need to use the library is any unicode version of Delphi, or FPC (lazarus). To run the 
 tests, you also need FastMemoryManager, the Jedi Code Library and DUnitX.
@@ -33,6 +33,9 @@ Generate HTML from the Markdown content:
        html := md.process(markdown); 
   
 Note that the HTML returned is an HTML fragment, not a full HTML page.
+
+Internally, the library includes a comprehensive set of unit tests. For CommonMark,
+the tests are those provided as part of the CommonMark spec.
 
 ## License
 
