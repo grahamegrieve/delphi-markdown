@@ -54,7 +54,7 @@ interface
 
 uses
   SysUtils, Classes, Math, Generics.Collections, Character, {$IFDEF FPC} RegExpr {$ELSE} System.RegularExpressions {$ENDIF},
-  HTMLEntities,
+  MarkdownHTMLEntities,
   MarkdownProcessor;
 
 const
@@ -74,7 +74,7 @@ type
     procedure clear;
     procedure append(c : char); overload;
     procedure append(s : String); overload;
-    function toString : String;
+    function toString : String; override;
   end;
 
   { TRegEx }

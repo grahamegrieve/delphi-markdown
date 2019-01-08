@@ -32,8 +32,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, DUnitX.TestFramework, Character, ShellApi, Generics.Collections,
-  RegExpr, Json,
-  MarkdownCommonMark;
+  Json, MarkdownCommonMark;
 
 var
   TestFile : String = 'C:\work\markdown\resources\commonmark\spec.json';

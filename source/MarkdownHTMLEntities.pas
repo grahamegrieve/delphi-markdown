@@ -1,4 +1,4 @@
-unit HTMLEntities;
+unit MarkdownHTMLEntities;
 
 // from https://html.spec.whatwg.org/entities.json
 

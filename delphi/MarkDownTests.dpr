@@ -51,14 +51,12 @@ uses
   DUnitX.Loggers.Xml.NUnit,
   System.SysUtils,
   MarkdownDaringFireball in '..\source\MarkdownDaringFireball.pas',
-  MarkdownDaringFireballTests in '..\source\MarkdownDaringFireballTests.pas',
+  MarkdownDaringFireballTests in '..\tests\MarkdownDaringFireballTests.pas',
   MarkdownCommonMark in '..\source\MarkdownCommonMark.pas',
-  MarkdownCommonMarkTests in '..\source\MarkdownCommonMarkTests.pas',
+  MarkdownCommonMarkTests in '..\tests\MarkdownCommonMarkTests.pas',
   MarkdownProcessor in '..\source\MarkdownProcessor.pas',
-  MarkdownAsciiDoc in '..\source\MarkdownAsciiDoc.pas',
-  RegExpr in 'RegExpr.pas',
   FastMM4Messages in '..\..\fhirserver\dependencies\FMM\FastMM4Messages.pas',
-  HTMLEntities in '..\source\HTMLEntities.pas';
+  MarkdownHTMLEntities in '..\source\MarkdownHTMLEntities.pas';
 
 var
   runner : ITestRunner;
