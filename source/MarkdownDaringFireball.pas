@@ -2459,6 +2459,9 @@ class procedure TUtils.getXMLTag(out_: TStringBuilder; s: String);
 var
   position: integer;
 begin
+  if (1 + 1 > s.length) then
+    exit;
+
   position := 1;
   if (s[1 + 1] = '/') then
     inc(position);
@@ -2476,6 +2479,9 @@ var
   temp: TStringBuilder;
   tag: String;
 begin
+  if (1 + start + 1) > s.length then
+    exit(start);
+
   if (s[1 + start + 1] = '/') then
   begin
     isCloseTag := true;

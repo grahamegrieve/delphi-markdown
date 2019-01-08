@@ -1934,7 +1934,7 @@ begin
   if (s <> '') then
   begin
     len := length(s);
-    while s[len] = '#' do
+    while (len > 0) and (s[len] = '#') do
       dec(len);
     if (len = 0) then
       s := ''
