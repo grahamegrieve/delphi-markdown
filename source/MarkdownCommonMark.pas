@@ -30,20 +30,19 @@ POSSIBILITY OF SUCH DAMAGE.
 
 
 {
+How to use this - see MarkdownProcessor; this unit is not intended to be used directly
+
 Still to do:
 - link references
 - GFM tables
 - follow up on a few failing tests that I don't understand
+- test under FPC
 
 not planned to be supported
 - HTML blocks
 
 note: tests related to link references and HTML blocks run (to check that the processing doesn't blow up), but output comparison is never checked
-}
-{
-FPC:
-* how to do regex?
-* how to get unicode category for character?
+
 }
 
 interface
@@ -66,7 +65,7 @@ uses
 const
   LENGTH_INCREMENT = 116;
   EMAIL_REGEX = '^[a-zA-Z0-9.!#$%&''*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$';
-  TEST_STYLING = false; // set this true to check line tracking while doing unit tests (10% speed hit)
+  TEST_STYLING = false; // set this true to check style tracking while doing unit tests (10% speed hit)
 
 type
   TCommonMarkStyle = (cmUnknown, cmText, cmEntity, cmControlChar, cmDelimiter, cmCode, cmURL);

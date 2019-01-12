@@ -27,6 +27,24 @@ POSSIBILITY OF SUCH DAMAGE.
 }
 
 {
+How to process markdown:
+
+function processMarkdown(markdownSource : String) : String;
+var
+  proc : TMarkdownProcessor;
+begin
+  proc := TMarkdownProcessor.createDialect(mdDaringFireball); // or flavor of your choice
+  try
+    proc.unsafe := false;
+    result := proc.process(markdownSource);
+  finally
+    proc.free;
+  end;
+end;
+
+}
+
+{
 Contribution Credits
 --------------------
 - Pavel Stugel - revisions for support of older Delphi versions and FPC
@@ -41,7 +59,7 @@ uses
   SysUtils;
 
 Type
-  TMarkdownProcessorDialect = (mdDaringFireball, mdCommonMark, mdAsciiDoc);
+  TMarkdownProcessorDialect = (mdDaringFireball, mdCommonMark{, mdAsciiDoc});
 
   TMarkdownProcessor = class abstract
   protected
