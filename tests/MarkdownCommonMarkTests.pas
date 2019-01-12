@@ -31,7 +31,7 @@ POSSIBILITY OF SUCH DAMAGE.
 interface
 
 uses
-  Windows, SysUtils, Classes, DUnitX.TestFramework, Character, ShellApi, Generics.Collections,
+  Windows, SysUtils, Classes, {$IFDEF FPC} DUnitFpc {$ELSE}DUnitX.TestFramework {$ENDIF}, Character, ShellApi, Generics.Collections,
   Json, MarkdownCommonMark;
 
 var
@@ -120,7 +120,7 @@ end;
 procedure TMarkdownCommonMarkTest.TestCase(name : String);
 var
   test : TJSONObject;
-  doc : TMarkdownDocument;
+  doc : TCommonMarkDocument;
   html, exp : String;
 begin
   test := findTest(name);

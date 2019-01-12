@@ -3,8 +3,8 @@ program MarkdownTestProgram;
 {$mode objfpc}{$H+}
 
 uses
-  Interfaces, Forms, GuiTestRunner, TestCase1, MarkdownDaringFireballTests,
-  HTMLEntities, MarkdownCommonMark, MarkdownCommonMarkTests, DUnitFpc;
+  Interfaces, Forms, GuiTestRunner, TestCase1, HTMLEntities, MarkdownCommonMark,
+  MarkdownCommonMarkTests, MarkdownDaringFireballTests, DUnitFpc;
 
 {$R *.res}
 

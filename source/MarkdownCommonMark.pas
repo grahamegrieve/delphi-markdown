@@ -53,15 +53,24 @@ interface
 {$ENDIF}
 
 uses
-  SysUtils, Classes, Math, Generics.Collections, Character, {$IFDEF FPC} RegExpr {$ELSE} System.RegularExpressions {$ENDIF},
+  SysUtils, Classes, Math, Generics.Collections, Character,
+  {$IFDEF FPC}
+  RegExpr,
+  UnicodeData,
+  {$ELSE}
+  System.RegularExpressions,
+  {$ENDIF}
   MarkdownHTMLEntities,
   MarkdownProcessor;
 
 const
   LENGTH_INCREMENT = 116;
   EMAIL_REGEX = '^[a-zA-Z0-9.!#$%&''*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$';
+  TEST_STYLING = false; // set this true to check line tracking while doing unit tests (10% speed hit)
 
 type
+  TCommonMarkStyle = (cmUnknown, cmText, cmEntity, cmControlChar, cmDelimiter, cmCode, cmURL);
+
   {$IFDEF FPC}
 
   { TStringBuilder }
@@ -85,12 +94,17 @@ type
   end;
 
   {$ENDIF}
-  TWhitespaceMode = (wsLeave, wsTrim, wsStrip);
+  TCMWhitespaceMode = (wsLeave, wsTrim, wsStrip);
+  // parser location tracking is done to support syntax highlighting. The parser won't report any errors from the markdown
+  TLocation = record
+    line : integer;
+    col : integer;
+  end;
 
   // Abstract Syntax Tree
 
   // inlines
-  TTextNode = class
+  TCMTextNode = class
   private
     FName: String;
     FAttrs: TDictionary<String, String>;
@@ -99,6 +113,8 @@ type
     FLength : integer;
     FOpener, FCloser : boolean;
     FActive: boolean;
+    FPos : TLocation; // start offset in this text
+    Start : Integer;
     function GetAttrs: TDictionary<String, String>;
 
     function renderAttrs : String;
@@ -107,7 +123,7 @@ type
     procedure SetName(const Value: String);
     procedure SetActive(const Value: boolean);
   public
-    constructor Create;
+    constructor Create(loc : TLocation);
     destructor Destroy; override;
 
     property name : String read FName write SetName; // '' means just a test node
@@ -122,68 +138,68 @@ type
     function isEmpty : boolean;
   end;
 
-  TTextNodes = class (TObjectList<TTextNode>)
+  TCMTextNodes = class (TObjectList<TCMTextNode>)
   public
-    function addOpener(name : String) : TTextNode;
-    function addText(cnt : String) : TTextNode; // if the last is text and active, add to that
-    function addTextNode(cnt : String) : TTextNode; // always make a new node, and make it inactive
-    function addCloser(name : String) : TTextNode;
+    function addOpener(loc : TLocation; name : String) : TCMTextNode;
+    function addText(loc : TLocation; cnt : String) : TCMTextNode; // if the last is text and active, add to that
+    function addTextNode(loc : TLocation; cnt : String) : TCMTextNode; // always make a new node, and make it inactive
+    function addCloser(loc : TLocation; name : String) : TCMTextNode;
 
     // image parsing
-    function plainTextSince(node : TTextNode) : String;
-    procedure removeAfter(node : TTextNode);
+    function plainTextSince(node : TCMTextNode) : String;
+    procedure removeAfter(node : TCMTextNode);
 
     // emph processing
-    procedure addOpenerAfter(name : String; node : TTextNode);
-    procedure addCloserBefore(name : String; node : TTextNode);
+    procedure addOpenerAfter(name : String; node : TCMTextNode); // line/col = 0,0
+    procedure addCloserBefore(name : String; node : TCMTextNode); // line/col = 0,0
   end;
 
   // blocks
-  TBlock = class abstract (TObject)
+  TCMBlock = class abstract (TObject)
   private
     FClosed: boolean;
     FLine : integer;
   protected
-    procedure render(parent : TBlock; b : TStringBuilder); virtual; abstract;
-    function wsMode : TWhitespaceMode; virtual;
+    procedure render(parent : TCMBlock; b : TStringBuilder); virtual; abstract;
+    function wsMode : TCMWhitespaceMode; virtual;
   public
     constructor Create(line : Integer);
     property closed : boolean read FClosed write FClosed;
     property line : Integer read FLine;
   end;
 
-  TContainerBlock = class abstract (TBlock)
+  TCMContainerBlock = class abstract (TCMBlock)
   private
-    FBlocks: TObjectList<TBLock>;
+    FBlocks: TObjectList<TCMBlock>;
   protected
-    procedure render(parent : TBlock; b : TStringBuilder); override;
+    procedure render(parent : TCMBlock; b : TStringBuilder); override;
   public
     constructor Create(line : Integer);
     destructor Destroy; override;
 
-    property blocks : TObjectList<TBLock> read FBlocks;
+    property blocks : TObjectList<TCMBlock> read FBlocks;
   end;
 
-  TMarkdownDocument = class (TContainerBlock);
+  TCommonMarkDocument = class (TCMContainerBlock);
 
-  TParagraphBlock = class (TContainerBlock)
+  TCMParagraphBlock = class (TCMContainerBlock)
   private
     FHeader: integer;
   protected
-    procedure render(parent : TBlock; b : TStringBuilder); override;
+    procedure render(parent : TCMBlock; b : TStringBuilder); override;
   public
     function isPlainPara : boolean; virtual;
     property header : integer read FHeader write FHeader;
   end;
 
-  TQuoteBlock = class (TParagraphBlock)
+  TCMQuoteBlock = class (TCMParagraphBlock)
   protected
-    procedure render(parent : TBlock; b : TStringBuilder); override;
+    procedure render(parent : TCMBlock; b : TStringBuilder); override;
   public
     function isPlainPara : boolean; override;
   end;
 
-  TListBlock = class (TContainerBlock)
+  TCMListBlock = class (TCMContainerBlock)
   private
     FOrdered: boolean;
     FStart: String;
@@ -194,7 +210,7 @@ type
     FHasSeenEmptyLine : boolean; // parser state
    function grace : integer;
   protected
-    procedure render(parent : TBlock; b : TStringBuilder); override;
+    procedure render(parent : TCMBlock; b : TStringBuilder); override;
   public
     property ordered : boolean read FOrdered write FOrdered;
     property baseIndent : integer read FBaseIndent write FBaseIndent;
@@ -204,50 +220,50 @@ type
     property loose : boolean read FLoose write FLoose;
   end;
 
-  TListItemBlock = class (TParagraphBlock)
+  TCMListItemBlock = class (TCMParagraphBlock)
   protected
-    procedure render(parent : TBlock; b : TStringBuilder); override;
+    procedure render(parent : TCMBlock; b : TStringBuilder); override;
   public
     function isPlainPara : boolean; override;
   end;
 
-  THeadingBlock = class (TContainerBlock)
+  TCMHeadingBlock = class (TCMContainerBlock)
   private
     FLevel: integer;
   protected
-    procedure render(parent : TBlock; b : TStringBuilder); override;
+    procedure render(parent : TCMBlock; b : TStringBuilder); override;
   public
     constructor Create(line, level : Integer);
     property level : integer read FLevel write FLevel;
   end;
 
-  TCodeBlock = class (TContainerBlock)
+  TCMCodeBlock = class (TCMContainerBlock)
   private
     FFenced: boolean;
     FLang: String;
   protected
-    procedure render(parent : TBlock; b : TStringBuilder); override;
-    function wsMode : TWhitespaceMode; override;
+    procedure render(parent : TCMBlock; b : TStringBuilder); override;
+    function wsMode : TCMWhitespaceMode; override;
   public
     property fenced : boolean read FFenced write FFenced;
     property lang : String read FLang write FLang;
   end;
 
-  TLeafBlock = class abstract (TBlock);
+  TCMLeafBlock = class abstract (TCMBlock);
 
-  TThematicBreakBlock = class (TLeafBlock)
+  TCMThematicBreakBlock = class (TCMLeafBlock)
   protected
-    procedure render(parent : TBlock; b : TStringBuilder); override;
+    procedure render(parent : TCMBlock; b : TStringBuilder); override;
   end;
 
-  TTextBlock = class (TLeafBlock)
+  TCMTextBlock = class (TCMLeafBlock)
   private
     FText: String;
-    FNodes : TTextNodes;
+    FNodes : TCMTextNodes;
   protected
-    procedure render(parent : TBlock; b : TStringBuilder); override;
+    procedure render(parent : TCMBlock; b : TStringBuilder); override;
   public
-    constructor Create(list : integer; text : String);
+    constructor Create(line : integer; text : String);
     destructor Destroy; override;
     property text : String read FText write FText;
   end;
@@ -255,90 +271,108 @@ type
   // Parser Infrastructure
   TCommonMarkEngine = class;
 
-  TLine = class
+  TCMLine = class
   private
     FLine : String;
+    FIndex : integer;
     FCursor : integer; // fCursor is the corrected character cursor, not the character offset
     FMark : integer;
-    procedure getOffset(var index : integer; var preSpaces : integer);
+    FStyling : boolean;
+    FStyles : Array of TCommonMarkStyle;
+    FBlockOffset : integer;
+    FBlockPreSpaces : integer;
+    procedure getOffset(position : integer; var index : integer; var preSpaces : integer);
+    procedure reset;
+    procedure markBlock(stop : integer);
+    procedure markStyle(stop : integer; style : TCommonMarkStyle);
+    procedure updateStyle(start, length : integer; style : TCommonMarkStyle);
+    procedure markRemainder(style : TCommonMarkStyle);
+    function GetStyle(index: integer): TCommonMarkStyle;
+    function GetStyleCount: integer;
   public
+    constructor create(styling : boolean; line : string; index : integer);
     procedure mark;
     procedure rewind;
-    procedure reset(line : String);
     procedure advance(len : integer); // advance x number of spaces or characters
     procedure skipWS; // advance from the current cursor until not pointing at whitespace
     function isEmpty : boolean; // is cursor at end of string
     function focus : String; // what is left after cursor
     function countWS : integer; // whitespace count from cursor
     function isWhitespace : boolean; // if everything after cursor is whitespace
+    property Styles[index : integer] : TCommonMarkStyle read GetStyle;
+    property StyleCount : integer read GetStyleCount;
   end;
 
-  TBlockProcessingContext = (bpGeneral, bpCodeBlock, bpFencedCodeBlock);
-  TBlockProcessor = class abstract (TObject)
+  TCMBlockProcessingContext = (bpGeneral, bpCodeBlock, bpFencedCodeBlock);
+  TCMBlockProcessor = class abstract (TObject)
   protected
-    FParent : TBlockProcessor;
+    FParent : TCMBlockProcessor;
 
     // this procedure processes a line for nested blocks
     // return true if the block is done.
     // if false, modify the line, removing prepended characters, and remember to grab the characters as you go
-    function processLine(line : TLine; root : boolean; context : TBlockProcessingContext; var isLazy : boolean) : boolean; virtual; abstract;
+    function processLine(line : TCMLine; root : boolean; context : TCMBlockProcessingContext; var isLazy : boolean) : boolean; virtual; abstract;
     function isList(ordered : boolean; marker : String; indent : integer) : boolean; virtual;
     function inListOrQuote : boolean; virtual;
     function parser : TCommonMarkEngine; virtual;
   public
-    constructor Create(processor : TBlockProcessor);
+    constructor Create(processor : TCMBlockProcessor);
   end;
 
   // this anchors the chain
-  TDocumentProcessor = class (TBlockProcessor)
+  TCMDocumentProcessor = class (TCMBlockProcessor)
   private
     FParser : TCommonMarkEngine;
   protected
-    function processLine(line : TLine; root : boolean; context : TBlockProcessingContext; var isLazy : boolean) : boolean; override;
+    function processLine(line : TCMLine; root : boolean; context : TCMBlockProcessingContext; var isLazy : boolean) : boolean; override;
     function parser : TCommonMarkEngine; override;
   public
     constructor Create(parser : TCommonMarkEngine);
   end;
 
-  TQuoteProcessor = class (TBlockProcessor)
+  TCMQuoteProcessor = class (TCMBlockProcessor)
   private
-    quote : TQuoteBlock;
+    quote : TCMQuoteBlock;
   protected
-    function processLine(line : TLine; root : boolean; context : TBlockProcessingContext; var isLazy : boolean) : boolean; override;
+    function processLine(line : TCMLine; root : boolean; context : TCMBlockProcessingContext; var isLazy : boolean) : boolean; override;
     function inListOrQuote : boolean; override;
   public
-    constructor Create(processor : TBlockProcessor; q : TQuoteBlock);
+    constructor Create(processor : TCMBlockProcessor; q : TCMQuoteBlock);
   end;
 
-  TListProcessor = class (TBlockProcessor)
+  TCMListProcessor = class (TCMBlockProcessor)
   private
-    FList : TListBlock;
-    FItem : TListItemBlock;
+    FList : TCMListBlock;
+    FItem : TCMListItemBlock;
     FHasContent : boolean;
     FEmptyLine : integer;
   protected
-    function processLine(line : TLine; root : boolean; context : TBlockProcessingContext; var isLazy : boolean) : boolean; override;
+    function processLine(line : TCMLine; root : boolean; context : TCMBlockProcessingContext; var isLazy : boolean) : boolean; override;
     function isList(ordered : boolean; marker : String; indent : integer) : boolean; override;
     function inListOrQuote : boolean; override;
   public
-    constructor Create(processor : TBlockProcessor; list : TListBlock; item : TListItemBlock);
+    constructor Create(processor : TCMBlockProcessor; list : TCMListBlock; item : TCMListItemBlock);
     destructor Destroy; override;
   end;
 
-  TTextLexer = class
+  TCMTextLexer = class
   private
     FText : String;
     FCursor : integer;
-    FMark, FMarkCol : Integer;
+    FMark, FMarkCol, FMarkLine : Integer;
     FBuilder : TStringBuilder;
+    FLine : integer;
     FCol : integer;
+    FStartLine : integer;
+    FLines : TObjectList<TCMLine>;
+    FStyling : boolean;
     function GetDone: boolean;
     function GetPeek: char;
     function GetPeekNext: char;
     function GetPeekLast: char;
     function GetPeekEndRun: char;
   public
-    constructor Create(text : String);
+    constructor Create(text : String; lines : TObjectList<TCMLine>; startline : integer; styling : boolean);
     destructor Destroy; override;
 
     procedure mark;
@@ -352,46 +386,47 @@ type
     function peekRun(checkBefore : boolean): String;
     function peekLen(length : integer) : String;
     function peekUntil(chs : TSysCharSet) : String;
-    function grab : char; overload;
-    function grabRun : String; overload;
-    function grab(length : integer) : String; overload;
+    function grab(style : TCommonMarkStyle) : char; overload;
+    function grabRun(style : TCommonMarkStyle) : String; overload;
+    function grab(style : TCommonMarkStyle; length : integer) : String; overload;
     function has(s : string) : boolean;
     function runExistsAfter(s : String) : boolean;
     procedure skipWS;
+    function location : TLocation;
   end;
 
-  TDelimiterMode = (dmNeither, dmOpener, dmCloser, dmBoth);
-  TDelimiter = class
+  TCMDelimiterMode = (dmNeither, dmOpener, dmCloser, dmBoth);
+  TCMDelimiter = class
   private
-    Fmode: TDelimiterMode;
+    Fmode: TCMDelimiterMode;
     Fdelimiter: String;
     Factive: boolean;
-    FNode: TTextNode;
+    FNode: TCMTextNode;
   public
-    constructor Create(node : TTextNode; delimiter : String; mode : TDelimiterMode);
+    constructor Create(node : TCMTextNode; delimiter : String; mode : TCMDelimiterMode);
 
     function isOpener : boolean;
     function isCloser : boolean;
-    property node : TTextNode read FNode;
+    property node : TCMTextNode read FNode;
     property delimiter : String read Fdelimiter write Fdelimiter;
     property active : boolean read Factive write Factive;
-    property mode : TDelimiterMode read Fmode write Fmode;
+    property mode : TCMDelimiterMode read Fmode write Fmode;
     function isEmph : boolean;
   end;
 
   TCommonMarkEngine = class
   private
-    FSource : String;
-    FCursor : integer;
-    FlastLineCursor : Integer;
-    FLineNum : integer;
+    FLines : TObjectList<TCMLine>;
+    FCurrentLine : integer;
     FBuilder : TStringBuilder;
     FEntities : TDictionary<String, String>;
-    FStack : TObjectList<TDelimiter>;
+    FStack : TObjectList<TCMDelimiter>;
+    FStyling : boolean;
 
     // line operations
-    function grabLine : String;
-    function peekLine : String;
+    procedure parseLines(src : String);
+    function grabLine : TCMLine;
+    function peekLine : TCMLine;
     procedure redoLine;
     function done : boolean;
 
@@ -414,46 +449,49 @@ type
 
 
     // status
-    function inPara(blocks : TObjectList<TBlock>; canBeQuote : boolean) : boolean;
-    function inList(blocks : TObjectList<TBlock>; ordered : boolean; marker : String; indent : integer; grace : integer; out list : TListBlock) : boolean;
-    function isBlock(cont : TBlock; blocks : TObjectList<TBlock>; line : String; wsLen : integer = 3) : boolean;
+    function inPara(blocks : TObjectList<TCMBlock>; canBeQuote : boolean) : boolean;
+    function inList(blocks : TObjectList<TCMBlock>; ordered : boolean; marker : String; indent : integer; grace : integer; out list : TCMListBlock) : boolean;
+    function isBlock(cont : TCMBlock; blocks : TObjectList<TCMBlock>; line : String; wsLen : integer = 3) : boolean;
 
     // block parsing
 
-    function parseThematicBreak(blocks : TObjectList<TBlock>; line : TLine) : boolean;
-    function parseHeader(blocks : TObjectList<TBlock>; line : TLine) : boolean;
-    function parseCodeBlock(blocks : TObjectList<TBlock>; line : TLine; processor : TBlockProcessor) : boolean;
-    function parseFencedCodeBlock(blocks : TObjectList<TBlock>; line : TLine; processor : TBlockProcessor) : boolean;
-    function parseSeTextHeader(blocks : TObjectList<TBlock>; line : TLine; isLazy : boolean; processor : TBlockProcessor) : boolean;
-    function parseQuoteBlock(blocks : TObjectList<TBlock>; line : TLine; processor : TBlockProcessor) : boolean;
-    function parseUListBlock(blocks : TObjectList<TBlock>; line : TLine; processor : TBlockProcessor) : boolean;
-    function parseOListBlock(blocks : TObjectList<TBlock>; line : TLine; processor : TBlockProcessor) : boolean;
-    procedure parse(block : TContainerBlock; processor : TBlockProcessor); overload;
+    function parseThematicBreak(blocks : TObjectList<TCMBlock>; line : TCMLine) : boolean;
+    function parseHeader(blocks : TObjectList<TCMBlock>; line : TCMLine) : boolean;
+    function parseCodeBlock(blocks : TObjectList<TCMBlock>; line : TCMLine; processor : TCMBlockProcessor) : boolean;
+    function parseFencedCodeBlock(blocks : TObjectList<TCMBlock>; line : TCMLine; processor : TCMBlockProcessor) : boolean;
+    function parseSeTextHeader(blocks : TObjectList<TCMBlock>; line : TCMLine; isLazy : boolean; processor : TCMBlockProcessor) : boolean;
+    function parseQuoteBlock(blocks : TObjectList<TCMBlock>; line : TCMLine; processor : TCMBlockProcessor) : boolean;
+    function parseUListBlock(blocks : TObjectList<TCMBlock>; line : TCMLine; processor : TCMBlockProcessor) : boolean;
+    function parseOListBlock(blocks : TObjectList<TCMBlock>; line : TCMLine; processor : TCMBlockProcessor) : boolean;
+    procedure parse(block : TCMContainerBlock; processor : TCMBlockProcessor); overload;
 
     // link references
     procedure parseLinkReferences;
 
     // inlines
-    procedure parseTextEscape(lexer : TTextLexer; nodes: TTextNodes; wsMode : TWhitespaceMode);
-    procedure parseEntity(lexer : TTextLexer; nodes : TTextNodes; wsMode : TWhitespaceMode);
-    function parseEntityInner(lexer : TTextLexer) : String;
-    procedure parseBackTick(lexer : TTextLexer; nodes: TTextNodes; wsMode : TWhitespaceMode);
-    procedure parseAutoLink(lexer : TTextLexer; nodes : TTextNodes; wsMode : TWhitespaceMode);
-    procedure parseDelimiter(lexer : TTextLexer; nodes : TTextNodes; wsMode : TWhitespaceMode; canRun : boolean);
-    procedure parseCloseDelimiter(lexer : TTextLexer; nodes : TTextNodes; wsMode : TWhitespaceMode);
-    function processInlineLink(lexer : TTextLexer; nodes : TTextNodes; del : TDelimiter) : boolean;
-    procedure parseTextCore(lexer : TTextLexer; nodes : TTextNodes; wsMode : TWhitespaceMode);
-    procedure parseText(lexer : TTextLexer; nodes : TTextNodes; wsMode : TWhitespaceMode);
-    function processText(text : String; wsMode : TWhitespaceMode) : TTextNodes;
-    procedure parseInline(blocks : TObjectList<TBlock>; line : String);
-    procedure processInlines(block : TBlock; wsMode : TWhitespaceMode);
-    procedure processEmphasis(nodes : TTextNodes; stopDel : TDelimiter);
+    procedure parseTextEscape(lexer : TCMTextLexer; nodes: TCMTextNodes; wsMode : TCMWhitespaceMode);
+    procedure parseEntity(lexer : TCMTextLexer; nodes : TCMTextNodes; wsMode : TCMWhitespaceMode);
+    function parseEntityInner(lexer : TCMTextLexer) : String;
+    procedure parseBackTick(lexer : TCMTextLexer; nodes: TCMTextNodes; wsMode : TCMWhitespaceMode);
+    procedure parseAutoLink(lexer : TCMTextLexer; nodes : TCMTextNodes; wsMode : TCMWhitespaceMode);
+    procedure parseDelimiter(lexer : TCMTextLexer; nodes : TCMTextNodes; wsMode : TCMWhitespaceMode; canRun : boolean);
+    procedure parseCloseDelimiter(lexer : TCMTextLexer; nodes : TCMTextNodes; wsMode : TCMWhitespaceMode);
+    function processInlineLink(lexer : TCMTextLexer; nodes : TCMTextNodes; del : TCMDelimiter) : boolean;
+    procedure parseTextCore(lexer : TCMTextLexer; nodes : TCMTextNodes; wsMode : TCMWhitespaceMode);
+    procedure parseText(lexer : TCMTextLexer; nodes : TCMTextNodes; wsMode : TCMWhitespaceMode);
+    function processText(text : String; wsMode : TCMWhitespaceMode; startLine : integer) : TCMTextNodes;
+    procedure parseInline(blocks : TObjectList<TCMBlock>; line : String);
+    procedure processInlines(block : TCMBlock; wsMode : TCMWhitespaceMode);
+    procedure processEmphasis(nodes : TCMTextNodes; stopDel : TCMDelimiter);
+
+    procedure checkLines;
   public
     Constructor Create;
     Destructor Destroy; override;
     // divided tinto 2 steps in case some consumer wants to process the syntax tree
-    class function parse(src : String) : TMarkdownDocument; overload;
-    class function render(doc : TMarkdownDocument) : String;
+    class function parse(src : String) : TCommonMarkDocument; overload;
+    class function parseStyles(src : String) : TObjectList<TCMLine>; overload;
+    class function render(doc : TCommonMarkDocument) : String;
   end;
 
   TCommonMarkProcessor = class (TMarkdownProcessor)
@@ -466,6 +504,12 @@ type
 
 
 implementation
+
+function null_loc : TLocation;
+begin
+  result.line := 0;
+  result.col := 0;
+end;
 
 procedure debug(s : String);
 begin
@@ -493,13 +537,49 @@ begin
         '@', '[', '\', ']', '^', '_', '`', '{', '|', '}', '~']);
 end;
 
+function isUnicodePunctuation(ch : char) : boolean;
+{$IFDEF FPC}
+var
+  NType: byte;
+{$ENDIF}
+begin
+  {$IFDEF FPC}
+  case ch of
+    '0'..'9',
+    'a'..'z',
+    'A'..'Z',
+    '_': exit(false);
+  end;
+
+  if Ord(ch)<128 then
+    Result:= true
+  else if Ord(ch) >= LOW_SURROGATE_BEGIN then
+    exit(true)
+  else
+  begin
+    NType:= GetProps(Ord(ch))^.Category;
+    Result := not (NType<=UGC_OtherNumber);
+  end;
+  {$ELSE}
+  result := (ch.GetUnicodeCategory in [TUnicodeCategory.ucConnectPunctuation, TUnicodeCategory.ucDashPunctuation, TUnicodeCategory.ucClosePunctuation,
+    TUnicodeCategory.ucFinalPunctuation, TUnicodeCategory.ucInitialPunctuation, TUnicodeCategory.ucOtherPunctuation, TUnicodeCategory.ucOpenPunctuation, TUnicodeCategory.ucMathSymbol]);
+  {$ENDIF}
+end;
+
 {$IFDEF FPC}
 
 { TRegEx }
 
 class function TRegEx.isMatch(cnt, regex: String): boolean;
+var
+  r : TRegExpr;
 begin
-  result := false; // todo
+  r := TRegExpr.create(regex);
+  try
+     result := r.exec(cnt);
+  finally
+    r.free;
+  end;
 end;
 
 { TStringBuilder }
@@ -535,9 +615,9 @@ end;
 
 {$ENDIF}
 
-{ TTextNode }
+{ TCMTextNode }
 
-procedure TTextNode.addText(s: String);
+procedure TCMTextNode.addText(s: String);
 var
   ch : char;
 begin
@@ -545,13 +625,14 @@ begin
     addText(ch);
 end;
 
-constructor TTextNode.Create;
+constructor TCMTextNode.Create;
 begin
   inherited Create;
   FActive := true;
+  FPos := loc;
 end;
 
-procedure TTextNode.addText(ch: char);
+procedure TCMTextNode.addText(ch: char);
 begin
   if FLength+1 > FBuild.Length then
     setLength(FBuild, FBuild.Length+LENGTH_INCREMENT);
@@ -559,37 +640,37 @@ begin
   FBuild[FLength] := ch;
 end;
 
-destructor TTextNode.Destroy;
+destructor TCMTextNode.Destroy;
 begin
   FAttrs.Free;
   inherited;
 end;
 
-function TTextNode.GetAttrs: TDictionary<String, String>;
+function TCMTextNode.GetAttrs: TDictionary<String, String>;
 begin
   if FAttrs = nil then
     FAttrs := TDictionary<String, String>.create;
   result := FAttrs;
 end;
 
-function TTextNode.getText: String;
+function TCMTextNode.getText: String;
 begin
   Active := false;
   result := FContent;
 end;
 
-function TTextNode.isEmpty: boolean;
+function TCMTextNode.isEmpty: boolean;
 begin
   result := FContent = '';
 end;
 
-procedure TTextNode.removeChars(count : integer);
+procedure TCMTextNode.removeChars(count : integer);
 begin
   active := false;
   delete(FContent, 1, count);
 end;
 
-procedure TTextNode.render(b: TStringBuilder);
+procedure TCMTextNode.render(b: TStringBuilder);
 begin
   if FOpener then
   begin
@@ -614,7 +695,7 @@ begin
   end;
 end;
 
-function TTextNode.renderAttrs: String;
+function TCMTextNode.renderAttrs: String;
 var
   s : String;
 begin
@@ -636,7 +717,7 @@ begin
   end;
 end;
 
-procedure TTextNode.SetActive(const Value: boolean);
+procedure TCMTextNode.SetActive(const Value: boolean);
 begin
   if active <> Value then
   begin
@@ -646,7 +727,7 @@ begin
   end;
 end;
 
-procedure TTextNode.SetName(const Value: String);
+procedure TCMTextNode.SetName(const Value: String);
 begin
   FContent := '';
   FLength := 0;
@@ -654,53 +735,53 @@ begin
   active := false;
 end;
 
-{ TTextNodes }
+{ TCMTextNodes }
 
-function TTextNodes.addCloser(name: String): TTextNode;
+function TCMTextNodes.addCloser(loc : TLocation; name: String): TCMTextNode;
 begin
   if count > 0 then
     last.active := false;
-  result := TTextNode.Create;
+  result := TCMTextNode.Create(loc);
   add(result);
   result.name := name;
   result.closer := true;
 end;
 
-procedure TTextNodes.addCloserBefore(name: String; node: TTextNode);
+procedure TCMTextNodes.addCloserBefore(name: String; node: TCMTextNode);
 var
-  n : TTextNode;
+  n : TCMTextNode;
 begin
-  n := TTextNode.Create;
+  n := TCMTextNode.Create(null_loc);
   insert(IndexOf(node), n);
   n.name := name;
   n.closer := true;
 end;
 
-function TTextNodes.addOpener(name: String): TTextNode;
+function TCMTextNodes.addOpener(loc : TLocation; name: String): TCMTextNode;
 begin
   if count > 0 then
     last.active := false;
-  result := TTextNode.Create;
+  result := TCMTextNode.Create(loc);
   add(result);
   result.name := name;
   result.opener := true;
 end;
 
-procedure TTextNodes.addOpenerAfter(name: String; node: TTextNode);
+procedure TCMTextNodes.addOpenerAfter(name: String; node: TCMTextNode);
 var
-  n : TTextNode;
+  n : TCMTextNode;
 begin
-  n := TTextNode.Create;
+  n := TCMTextNode.Create(null_loc);
   Insert(IndexOf(node)+1, n);
   n.name := name;
   n.opener := true;
 end;
 
-function TTextNodes.addText(cnt: String): TTextNode;
+function TCMTextNodes.addText(loc : TLocation; cnt: String): TCMTextNode;
 begin
   if (count = 0) or (not last.active or last.opener or last.closer) then
   begin
-    result := TTextNode.Create;
+    result := TCMTextNode.Create(loc);
     add(result);
   end
   else
@@ -708,17 +789,17 @@ begin
   result.addText(cnt);
 end;
 
-function TTextNodes.addTextNode(cnt: String): TTextNode;
+function TCMTextNodes.addTextNode(loc : TLocation; cnt: String): TCMTextNode;
 begin
   if count > 0 then
     last.active := false;
-  result := TTextNode.Create;
+  result := TCMTextNode.Create(loc);
   add(result);
   result.addText(cnt);
   result.active := false;
 end;
 
-function TTextNodes.plainTextSince(node: TTextNode): String;
+function TCMTextNodes.plainTextSince(node: TCMTextNode): String;
 var
   i : integer;
 begin
@@ -730,7 +811,7 @@ begin
       result := result + Items[i].getText;
 end;
 
-procedure TTextNodes.removeAfter(node: TTextNode);
+procedure TCMTextNodes.removeAfter(node: TCMTextNode);
 var
   i : integer;
   ndx : integer;
@@ -740,51 +821,51 @@ begin
     Delete(i);
 end;
 
-{ TBlock }
+{ TCMBlock }
 
-constructor TBlock.Create(line: Integer);
+constructor TCMBlock.Create(line: Integer);
 begin
   Inherited Create;
   FLine := line;
 end;
 
-function TBlock.wsMode: TWhitespaceMode;
+function TCMBlock.wsMode: TCMWhitespaceMode;
 begin
   result := wsTrim;
 end;
 
-{ TContainerBlock }
+{ TCMContainerBlock }
 
-constructor TContainerBlock.Create;
+constructor TCMContainerBlock.Create;
 begin
   inherited create(line);
-  FBlocks := TObjectList<TBLock>.create(true);
+  FBlocks := TObjectList<TCMBlock>.create(true);
 end;
 
-destructor TContainerBlock.Destroy;
+destructor TCMContainerBlock.Destroy;
 begin
   FBlocks.Free;
   inherited Destroy;
 end;
 
-procedure TContainerBlock.render(parent : TBlock; b: TStringBuilder);
+procedure TCMContainerBlock.render(parent : TCMBlock; b: TStringBuilder);
 var
-  c : TBlock;
+  c : TCMBlock;
 begin
   for c in FBlocks do
     c.render(self, b);
 end;
 
-{ TParagraphBlock }
+{ TCMParagraphBlock }
 
-function TParagraphBlock.isPlainPara: boolean;
+function TCMParagraphBlock.isPlainPara: boolean;
 begin
   result := FHeader = 0;
 end;
 
-procedure TParagraphBlock.render(parent : TBlock; b: TStringBuilder);
+procedure TCMParagraphBlock.render(parent : TCMBlock; b: TStringBuilder);
 var
-  c : TBlock;
+  c : TCMBlock;
   first : boolean;
 begin
   case header of
@@ -809,16 +890,16 @@ begin
   b.Append(#10);
 end;
 
-{ TQuoteBlock }
+{ TCMQuoteBlock }
 
-function TQuoteBlock.isPlainPara: boolean;
+function TCMQuoteBlock.isPlainPara: boolean;
 begin
   result := false;
 end;
 
-procedure TQuoteBlock.render(parent : TBlock; b: TStringBuilder);
+procedure TCMQuoteBlock.render(parent : TCMBlock; b: TStringBuilder);
 var
-  c : TBlock;
+  c : TCMBlock;
 begin
   b.Append('<blockquote>'#10);
   for c in FBlocks do
@@ -826,9 +907,9 @@ begin
   b.Append('</blockquote>'#10);
 end;
 
-{ TListBlock }
+{ TCMListBlock }
 
-function TListBlock.grace: integer;
+function TCMListBlock.grace: integer;
 begin
   if ordered then
     result := 2
@@ -836,9 +917,9 @@ begin
     result := 1;
 end;
 
-procedure TListBlock.render(parent : TBlock; b: TStringBuilder);
+procedure TCMListBlock.render(parent : TCMBlock; b: TStringBuilder);
 var
-  c : TBlock;
+  c : TCMBlock;
 begin
   if not ordered then
     b.Append('<ul>'#10)
@@ -854,16 +935,16 @@ begin
     b.Append('</ul>'#10);
 end;
 
-{ TListItemBlock }
+{ TCMListItemBlock }
 
-function TListItemBlock.isPlainPara: boolean;
+function TCMListItemBlock.isPlainPara: boolean;
 begin
   result := false;
 end;
 
-procedure TListItemBlock.render(parent : TBlock; b: TStringBuilder);
+procedure TCMListItemBlock.render(parent : TCMBlock; b: TStringBuilder);
 var
-  c, cp : TBlock;
+  c, cp : TCMBlock;
   first, rFirst : boolean;
 begin
   if Blocks.Count = 0 then
@@ -873,10 +954,10 @@ begin
     b.Append('<li>');
     rFirst := true;
     for c in FBlocks do
-      if (c is TParagraphBlock) and (c as TParagraphBlock).isPlainPara and not (parent as TListBlock).loose then
+      if (c is TCMParagraphBlock) and (c as TCMParagraphBlock).isPlainPara and not (parent as TCMListBlock).loose then
       begin
         first := true;
-        for cp in (c as TParagraphBlock).Blocks do
+        for cp in (c as TCMParagraphBlock).Blocks do
         begin
           if first then
             first := false
@@ -898,15 +979,15 @@ begin
   b.Append('</li>'#10);
 end;
 
-{ THeadingBlock }
+{ TCMHeadingBlock }
 
-constructor THeadingBlock.Create(line, level: Integer);
+constructor TCMHeadingBlock.Create(line, level: Integer);
 begin
   Inherited Create(line);
   FLevel := level;
 end;
 
-procedure THeadingBlock.render(parent : TBlock; b: TStringBuilder);
+procedure TCMHeadingBlock.render(parent : TCMBlock; b: TStringBuilder);
 begin
   b.Append('<h'+inttostr(FLevel)+'>');
   inherited render(parent, b);
@@ -914,11 +995,11 @@ begin
   b.Append(#10);
 end;
 
-{ TCodeBlock }
+{ TCMCodeBlock }
 
-procedure TCodeBlock.render(parent : TBlock; b: TStringBuilder);
+procedure TCMCodeBlock.render(parent : TCMBlock; b: TStringBuilder);
 var
-  c : TBlock;
+  c : TCMBlock;
 begin
   if lang <> '' then
     b.Append('<pre><code class="language-'+lang+'">')
@@ -933,88 +1014,130 @@ begin
   b.Append(#10);
 end;
 
-function TCodeBlock.wsMode: TWhitespaceMode;
+function TCMCodeBlock.wsMode: TCMWhitespaceMode;
 begin
   result := wsLeave;
 end;
 
-{ TThematicBreakBlock }
+{ TCMThematicBreakBlock }
 
-procedure TThematicBreakBlock.render(parent : TBlock; b: TStringBuilder);
+procedure TCMThematicBreakBlock.render(parent : TCMBlock; b: TStringBuilder);
 begin
   b.Append('<hr />');
   b.Append(#10);
 end;
 
-{ TTextBlock }
+{ TCMTextBlock }
 
-constructor TTextBlock.Create(list : integer; text: String);
+constructor TCMTextBlock.Create(line : integer; text: String);
 begin
   inherited Create(line);
   FText := text;
 end;
 
-destructor TTextBlock.Destroy;
+destructor TCMTextBlock.Destroy;
 begin
   FNodes.Free;
   inherited;
 end;
 
-procedure TTextBlock.render(parent : TBlock; b: TStringBuilder);
+procedure TCMTextBlock.render(parent : TCMBlock; b: TStringBuilder);
 var
-  n : TTextNode;
+  n : TCMTextNode;
 begin
   for n in FNodes do
     n.render(b);
 end;
 
-{ TLine }
+{ TCMLine }
 
-procedure TLine.reset(line: String);
+procedure TCMLine.reset;
+var
+  i : integer;
 begin
-  FLine := line;
   FCursor := 1;
+  if FStyling then
+  begin
+    SetLength(FStyles, length(FLine));
+    for i := 0 to length(FLine) - 1 do
+      FStyles[i] := cmUnknown;
+  end;
 end;
 
-procedure TLine.rewind;
+procedure TCMLine.rewind;
 begin
   FCursor := FMark;
 end;
 
-procedure TLine.advance(len: integer);
+procedure TCMLine.advance(len: integer);
 begin
   inc(FCursor, len);
+  markBlock(FCursor-1);
 end;
 
-function TLine.isEmpty: boolean;
+function TCMLine.isEmpty: boolean;
 var
   index, preSpaces: integer;
 begin
-  getOffset(index, preSpaces);
+  getOffset(FCursor, index, preSpaces);
   result := (preSpaces = 0) and (index > FLine.Length);
 end;
 
-function TLine.isWhitespace: boolean;
+function TCMLine.isWhitespace: boolean;
 var
   index, preSpaces, i: integer;
 begin
-  getOffset(index, preSpaces);
+  getOffset(FCursor, index, preSpaces);
   result := true;
   for i := index to FLine.Length do
     if not isWhitespaceChar(Fline[i]) then
       exit(false);
 end;
 
-procedure TLine.mark;
+procedure TCMLine.mark;
 begin
   FMark := FCursor;
 end;
 
-function TLine.countWS: integer;
+procedure TCMLine.markBlock(stop: integer);
+var
+  i : integer;
+begin
+  getOffset(stop+1, i, FBlockPreSpaces);
+  FBlockOffset := i-1;
+  markStyle(FBlockOffset, cmControlChar);
+end;
+
+procedure TCMLine.markRemainder(style: TCommonMarkStyle);
+var
+  i : integer;
+begin
+  if not FStyling then
+    exit;
+
+  i := Length(FStyles) - 1;
+  while (i >=0) and (FStyles[i] = cmUnknown) do
+  begin
+    FStyles[i] := style;
+    dec(i);
+  end;
+end;
+
+procedure TCMLine.markStyle(stop: integer; style: TCommonMarkStyle);
+var
+  i : integer;
+begin
+  if not FStyling then
+    exit;
+  for i := 0 to Min(stop, FLine.length) - 1 do
+    FStyles[i] := style;
+end;
+
+function TCMLine.countWS: integer;
 var
   index, preSpaces, c, len: integer;
 begin
-  getOffset(index, preSpaces);
+  getOffset(FCursor, index, preSpaces);
   result := preSpaces;
   c := FCursor + preSpaces; // for tab stop tracking
   while (index <= FLine.Length) and isWhitespaceChar(FLine[index]) do
@@ -1033,24 +1156,33 @@ begin
   end;
 end;
 
-function TLine.focus: String;
+constructor TCMLine.create(styling : boolean; line: string; index: integer);
+begin
+  inherited create;
+  FStyling := styling;
+  FLine := line;
+  FIndex := index;
+  reset;
+end;
+
+function TCMLine.focus: String;
 var
   index, preSpaces, i: integer;
 begin
-  getOffset(index, preSpaces);
+  getOffset(FCursor, index, preSpaces);
   SetLength(result, preSpaces);
   for i := 1 to result.Length do
     result[i] := ' ';
   result := result+FLine.Substring(index-1);
 end;
 
-procedure TLine.getOffset(var index, preSpaces: integer);
+procedure TCMLine.getOffset(position : integer; var index, preSpaces: integer);
 var
   c, len : integer;
 begin
   c := 1;
   index := 1;
-  while (c < FCursor) and (index <= Fline.length) do
+  while (c < position) and (index <= Fline.length) do
   begin
     if FLine[index] = #9 then
       len := 4 - ((c - 1) mod 4)
@@ -1062,14 +1194,24 @@ begin
   if index > Fline.length then
     preSpaces := 0
   else
-    preSpaces := c - FCursor;
+    preSpaces := c - position;
 end;
 
-procedure TLine.skipWS;
+function TCMLine.GetStyle(index: integer): TCommonMarkStyle;
+begin
+  result := FStyles[index];
+end;
+
+function TCMLine.GetStyleCount: integer;
+begin
+  result := length(FStyles);
+end;
+
+procedure TCMLine.skipWS;
 var
   index, preSpaces, c, len: integer;
 begin
-  getOffset(index, preSpaces);
+  getOffset(FCursor, index, preSpaces);
   c := FCursor + preSpaces; // for tab stop tracking
   while (index <= FLine.Length) and isWhitespaceChar(FLine[index]) do
   begin
@@ -1087,62 +1229,72 @@ begin
   FCursor := c;
 end;
 
-{ TBlockProcessor }
+procedure TCMLine.updateStyle(start, length: integer; style: TCommonMarkStyle);
+var
+  i : integer;
+begin
+  if not FStyling then
+    exit;
+  for i := start + FBlockOffset to Min(start + FBlockOffset + length, FLine.length) - 1 do
+    FStyles[i] := style;
+end;
 
-constructor TBlockProcessor.Create(processor: TBlockProcessor);
+{ TCMBlockProcessor }
+
+constructor TCMBlockProcessor.Create(processor: TCMBlockProcessor);
 begin
   inherited Create;
   FParent := processor;
 end;
 
-function TBlockProcessor.inListOrQuote: boolean;
+function TCMBlockProcessor.inListOrQuote: boolean;
 begin
    result := false;
 end;
 
-function TBlockProcessor.isList(ordered: boolean; marker: String; indent: integer): boolean;
+function TCMBlockProcessor.isList(ordered: boolean; marker: String; indent: integer): boolean;
 begin
   result := false;
 end;
 
-function TBlockProcessor.parser: TCommonMarkEngine;
+function TCMBlockProcessor.parser: TCommonMarkEngine;
 begin
   result := FParent.parser;
 end;
 
-{ TDocumentProcessor }
+{ TCMDocumentProcessor }
 
-constructor TDocumentProcessor.Create(parser : TCommonMarkEngine);
+constructor TCMDocumentProcessor.Create(parser : TCommonMarkEngine);
 begin
   inherited Create(nil);
   FParser := parser;
 end;
 
-function TDocumentProcessor.parser: TCommonMarkEngine;
+function TCMDocumentProcessor.parser: TCommonMarkEngine;
 begin
   result := FParser;
 end;
 
-function TDocumentProcessor.processLine(line: TLine; root : boolean; context : TBlockProcessingContext; var isLazy : boolean): boolean;
+function TCMDocumentProcessor.processLine(line: TCMLine; root : boolean; context : TCMBlockProcessingContext; var isLazy : boolean): boolean;
 begin
   result := false; // document is only ended by end of source
   isLazy := false;
 end;
 
-{ TQuoteProcessor }
+{ TCMQuoteProcessor }
 
-constructor TQuoteProcessor.Create(processor : TBlockProcessor; q: TQuoteBlock);
+constructor TCMQuoteProcessor.Create(processor : TCMBlockProcessor; q: TCMQuoteBlock);
 begin
   inherited Create(processor);
   quote := q;
 end;
 
-function TQuoteProcessor.inListOrQuote: boolean;
+function TCMQuoteProcessor.inListOrQuote: boolean;
 begin
   result := true;
 end;
 
-function TQuoteProcessor.processLine(line: TLine; root : boolean; context : TBlockProcessingContext; var isLazy : boolean): boolean;
+function TCMQuoteProcessor.processLine(line: TCMLine; root : boolean; context : TCMBlockProcessingContext; var isLazy : boolean): boolean;
 var
   len : integer;
 begin
@@ -1172,40 +1324,41 @@ begin
   end
 end;
 
-{ TListProcessor }
+{ TCMListProcessor }
 
-constructor TListProcessor.Create(processor: TBlockProcessor; list : TListBLock; item: TListItemBlock);
+constructor TCMListProcessor.Create(processor: TCMBlockProcessor; list : TCMListBlock; item: TCMListItemBlock);
 begin
   inherited Create(processor);
   Flist := list;
   Fitem := item;
+  FEmptyLine := -1;
 end;
 
-destructor TListProcessor.Destroy;
+destructor TCMListProcessor.Destroy;
 begin
-  if FList.FHasSeenEmptyLine and not FList.FLoose and (FParent is TListProcessor) then
-    (FParent as TListProcessor).FList.FHasSeenEmptyLine := true;
+  if FList.FHasSeenEmptyLine and not FList.FLoose and (FParent is TCMListProcessor) then
+    (FParent as TCMListProcessor).FList.FHasSeenEmptyLine := true;
   inherited;
 end;
 
-function TListProcessor.inListOrQuote: boolean;
+function TCMListProcessor.inListOrQuote: boolean;
 begin
   result := true;
 end;
 
-function TListProcessor.isList(ordered: boolean; marker: String; indent: integer): boolean;
+function TCMListProcessor.isList(ordered: boolean; marker: String; indent: integer): boolean;
 begin
   result := (FList.ordered = ordered) and (FList.marker = marker) and (indent < FList.lastIndent + 1);
 end;
 
-function TListProcessor.processLine(line: TLine; root: boolean; context : TBlockProcessingContext; var isLazy : boolean): boolean;
+function TCMListProcessor.processLine(line: TCMLine; root: boolean; context : TCMBlockProcessingContext; var isLazy : boolean): boolean;
 var
   len : integer;
 begin
   result := FParent.processLine(line, false, context, isLazy);
   if not result then
   begin
-    if parser.FLineNum = FItem.line then
+    if parser.FCurrentLine = FItem.line then
       line.advance(FList.lastIndent)
     else if line.countWS >= FList.LastIndent then
     begin
@@ -1232,42 +1385,48 @@ begin
         isLazy := true;
         if not FHasContent then
         begin
-          if FEmptyLine = 0 then
-            FEmptyLine := parser.FLineNum
-          else if FEmptyLine <> parser.FLineNum then
+          if FEmptyLine = -1 then
+            FEmptyLine := parser.FCurrentLine
+          else if FEmptyLine <> parser.FCurrentLine then
             result := true;
         end;
-        if (context = bpGeneral) and (parser.FLineNum <> FItem.line) then
+        if (context = bpGeneral) and (parser.FCurrentLine <> FItem.line) then
           FList.FHasSeenEmptyLine := true;
       end;
     end;
-  end
+  end;
 end;
 
 
-{ TTextLexer }
+{ TCMTextLexer }
 
-constructor TTextLexer.Create(text: String);
+constructor TCMTextLexer.Create(text: String; lines : TObjectList<TCMLine>; startline : integer; styling : boolean);
 begin
   inherited Create;
   FText := text;
   FCursor := 1;
   FBuilder := TStringBuilder.create;
+  FLines := lines;
+  FStartLine := startline;
+  FLine := 0;
+  FCol := 1;
+  FStyling := styling;
 end;
 
-destructor TTextLexer.Destroy;
+destructor TCMTextLexer.Destroy;
 begin
   FBuilder.Free;
   inherited;
 end;
 
-procedure TTextLexer.rewind;
+procedure TCMTextLexer.rewind;
 begin
   FCursor := FMark;
+  FLine := FMarkLine;
   FCol := FMarkCol;
 end;
 
-function TTextLexer.runExistsAfter(s: String): boolean;
+function TCMTextLexer.runExistsAfter(s: String): boolean;
 var
   i, len : integer;
 begin
@@ -1282,18 +1441,18 @@ begin
   end;
 end;
 
-procedure TTextLexer.skipWS;
+procedure TCMTextLexer.skipWS;
 begin
   while isWhitespaceChar(peek) do
-    grab;
+    grab(cmText);
 end;
 
-function TTextLexer.GetDone: boolean;
+function TCMTextLexer.GetDone: boolean;
 begin
   result := FCursor > FText.Length;
 end;
 
-function TTextLexer.GetPeek: char;
+function TCMTextLexer.GetPeek: char;
 begin
   if done then
     result := #0
@@ -1301,7 +1460,7 @@ begin
     result := FText[FCursor];
 end;
 
-function TTextLexer.GetPeekEndRun: char;
+function TCMTextLexer.GetPeekEndRun: char;
 var
   i : integer;
   c : char;
@@ -1321,7 +1480,7 @@ begin
   end;
 end;
 
-function TTextLexer.GetPeekLast: char;
+function TCMTextLexer.GetPeekLast: char;
 begin
   if FCursor = 1 then
     result := #0
@@ -1329,7 +1488,7 @@ begin
     result := FText[FCursor-1];
 end;
 
-function TTextLexer.GetPeekNext: char;
+function TCMTextLexer.GetPeekNext: char;
 begin
   if FCursor >= FText.Length then
     result := #0
@@ -1337,7 +1496,7 @@ begin
     result := FText[FCursor+1];
 end;
 
-function TTextLexer.peekRun(checkBefore : boolean): String;
+function TCMTextLexer.peekRun(checkBefore : boolean): String;
 var
   i : integer;
   c : char;
@@ -1356,55 +1515,78 @@ begin
   result := FBuilder.ToString;
 end;
 
-function TTextLexer.grab(length: integer): String;
+function TCMTextLexer.grab(style : TCommonMarkStyle; length: integer): String;
 var
   i : integer;
 begin
   FBuilder.clear;
   for i := 1 to length do
     if not done then
-      FBuilder.Append(grab);
+      FBuilder.Append(grab(style));
   result := FBuilder.toString;
 end;
 
-function TTextLexer.grabRun: String;
+function TCMTextLexer.grabRun(style : TCommonMarkStyle): String;
 var
   c : char;
 begin
   FBuilder.Clear;
   c := peek;
   while peek = c do
-     FBuilder.append(grab);
+     FBuilder.append(grab(style));
   result := FBuilder.ToString;
 end;
 
-function TTextLexer.grab: char;
+function TCMTextLexer.grab(style : TCommonMarkStyle): char;
+var
+  line : TCMLine;
 begin
   if done then
     result := #0
   else
   begin
+    // first task: mark the character we are grabbing with the specified style
     result := FText[FCursor];
+    if result <> #10 then
+    begin
+      line := FLines[FStartLine + FLine];
+      if FStyling and (FCol - 1 >= line.FBlockPreSpaces) then
+      begin
+        if FCol - 1 + line.FBlockOffset - line.FBlockPreSpaces >= length(line.FStyles) then
+          writeln('problem');
+        line.FStyles[FCol - 1 + line.FBlockOffset - line.FBlockPreSpaces] := style;
+      end;
+    end;
     inc(FCursor);
     if result = #10 then
-      FCol := 1
+    begin
+      FCol := 1;
+      inc(FLine);
+    end
     else
       inc(FCol);
   end;
 end;
 
-function TTextLexer.has(s: string): boolean;
+function TCMTextLexer.has(s: string): boolean;
 begin
   result := peekLen(s.Length) = s;
 end;
 
-procedure TTextLexer.mark;
+function TCMTextLexer.location: TLocation;
+begin
+  result.line := FLine + FStartLine;
+  result.col := FCol;
+end;
+
+procedure TCMTextLexer.mark;
 begin
   FMark := FCursor;
+  FMarkLine := FLine;
   FMarkCol := FCol;
 end;
 
-function TTextLexer.peekUntil(chs : TSysCharSet) : String;
+function TCMTextLexer.peekUntil(chs : TSysCharSet) : String;
 var
   i : integer;
 begin
@@ -1421,7 +1603,7 @@ begin
     result := FBuilder.ToString;
 end;
 
-function TTextLexer.peekLen(length: integer): String;
+function TCMTextLexer.peekLen(length: integer): String;
 var
   i : integer;
 begin
@@ -1434,9 +1616,9 @@ begin
   result := FBuilder.ToString;
 end;
 
-{ TDelimiter }
+{ TCMDelimiter }
 
-constructor TDelimiter.Create(node: TTextNode; delimiter : String; mode: TDelimiterMode);
+constructor TCMDelimiter.Create(node: TCMTextNode; delimiter : String; mode: TCMDelimiterMode);
 begin
   inherited create;
   FNode := node;
@@ -1445,39 +1627,39 @@ begin
   FActive := true;
 end;
 
-function TDelimiter.isCloser: boolean;
+function TCMDelimiter.isCloser: boolean;
 begin
   result := mode in [dmCloser, dmBoth];
 end;
 
-function TDelimiter.isEmph: boolean;
+function TCMDelimiter.isEmph: boolean;
 begin
   result := (delimiter <> '[') and (delimiter <> '![');
 end;
 
-function TDelimiter.isOpener: boolean;
+function TCMDelimiter.isOpener: boolean;
 begin
   result := mode in [dmOpener, dmBoth];
 end;
 
 { TCommonMarkEngine }
 
-class function TCommonMarkEngine.parse(src: String): TMarkdownDocument;
+class function TCommonMarkEngine.parse(src: String): TCommonMarkDocument;
 var
   this : TCommonMarkEngine;
-  doc : TDocumentProcessor;
+  doc : TCMDocumentProcessor;
 begin
   this := TCommonMarkEngine.Create;
   try
-    this.FSource := src.Replace(#13#10, #10).replace(#13, #10);
-    this.FCursor := 1;
-    this.FLineNum := 0;
-    doc := TDocumentProcessor.Create(this);
+    this.FStyling := TEST_STYLING;
+    this.parseLines(src.Replace(#13#10, #10).replace(#13, #10));
+    doc := TCMDocumentProcessor.Create(this);
     try
-      result := TMarkdownDocument.Create(1);
+      result := TCommonMarkDocument.Create(1);
       this.parse(result, doc);
       this.parseLinkReferences;
       this.processInlines(result, wsTrim);
+      this.checkLines;
     finally
       doc.Free;
     end;
@@ -1486,7 +1668,37 @@ begin
   end;
 end;
 
-class function TCommonMarkEngine.render(doc: TMarkdownDocument): String;
+class function TCommonMarkEngine.parseStyles(src: String): TObjectList<TCMLine>;
+var
+  this : TCommonMarkEngine;
+  doc : TCMDocumentProcessor;
+  obj : TCommonMarkDocument;
+begin
+  this := TCommonMarkEngine.Create;
+  try
+    this.FStyling := true;
+    this.parseLines(src.Replace(#13#10, #10).replace(#13, #10));
+    doc := TCMDocumentProcessor.Create(this);
+    try
+      obj := TCommonMarkDocument.Create(1);
+      try
+        this.parse(obj, doc);
+        this.parseLinkReferences;
+        this.processInlines(obj, wsTrim);
+        result := this.FLines;
+        this.FLines := nil;
+      finally
+        obj.Free;
+      end;
+    finally
+      doc.Free;
+    end;
+  finally
+    this.free;
+  end;
+end;
+
+class function TCommonMarkEngine.render(doc: TCommonMarkDocument): String;
 var
   b : TStringBuilder;
 begin
@@ -1503,7 +1715,8 @@ constructor TCommonMarkEngine.Create;
 begin
   inherited Create;
   FBuilder := TStringBuilder.Create;
-  FStack := TObjectList<TDelimiter>.Create(true);
+  FStack := TObjectList<TCMDelimiter>.Create(true);
+  FLines := TObjectList<TCMLine>.create(true);
   FEntities := TDictionary<String, String>.create;
   registerEntities(FEntities);
 end;
@@ -1513,39 +1726,34 @@ begin
   FEntities.Free;
   FStack.Free;
   FBuilder.Free;
+  FLines.Free;
   inherited;
 end;
 
-function TCommonMarkEngine.grabLine: String;
+function TCommonMarkEngine.grabLine: TCMLine;
 begin
-  FlastLineCursor := FCursor;
-  while (FCursor <= FSource.Length) and (FSource[FCursor] <> #10) do
-    inc(FCursor);
-  result := copy(FSource, FlastLineCursor, FCursor - FlastLineCursor);
-  inc(FLineNum);
-  if (FCursor <= FSource.Length) then
-    inc(FCursor);
+  inc(FCurrentLine);
+  result := FLines[FCurrentLine];
+  result.reset;
 end;
 
-function TCommonMarkEngine.peekLine: String;
-var
-  i : integer;
+function TCommonMarkEngine.peekLine: TCMLine;
 begin
-  i := FCursor;
-  while (i <= FSource.Length) and (FSource[i] <> #10) do
-    inc(i);
-  result := copy(FSource, FCursor, i - FCursor);
+  if FCurrentLine = FLines.Count - 1 then
+    result := nil
+  else
+    result := FLines[FCurrentLine+1];
 end;
 
 procedure TCommonMarkEngine.redoLine;
 begin
-  dec(FLineNum);
-  FCursor := FlastLineCursor;
+  FLines[FCurrentLine].reset;
+  dec(FCurrentLine);
 end;
 
 function TCommonMarkEngine.done: boolean;
 begin
-  result := FCursor > length(FSource);
+  result := FCurrentLine = FLines.Count - 1
 end;
 
 
@@ -1592,6 +1800,29 @@ begin
   for i := 2 to length(s) do
     if s[i] <> s[1] then
       exit(false);
+end;
+
+const
+  STYLE_CODES : array [TCommonMarkStyle] of String = ('?', '.', '&', 'C', 'D', 'X', 'u');
+
+procedure TCommonMarkEngine.checkLines;
+var
+  i : integer;
+  l : TCMLine;
+begin
+  if not TEST_STYLING then
+    exit;
+
+//  for l in FLines do
+//  begin
+//    for i := 0 to length(l.FStyles) - 1 do
+//      write(STYLE_CODES[l.FStyles[i]]);
+//    writeln;
+//  end;
+  for l in FLines do
+    for i := 0 to length(l.FStyles) - 1 do
+      if l.FStyles[i] = cmUnknown then
+        raise Exception.Create('Unknown style @ '+inttostr(l.FIndex)+', '+inttostr(i));
 end;
 
 function TCommonMarkEngine.copyTo(s : String; chs : TSysCharSet) : String;
@@ -1760,28 +1991,28 @@ begin
 end;
 
 
-function TCommonMarkEngine.inList(blocks: TObjectList<TBlock>; ordered: boolean; marker : String; indent : integer; grace : integer; out list: TListBlock): boolean;
+function TCommonMarkEngine.inList(blocks: TObjectList<TCMBlock>; ordered: boolean; marker : String; indent : integer; grace : integer; out list: TCMListBlock): boolean;
 begin
-  result := (blocks.Count > 0) and (blocks.Last is TListBlock);
+  result := (blocks.Count > 0) and (blocks.Last is TCMListBlock);
   if result then
   begin
-    list := blocks.Last as TListBlock;
+    list := blocks.Last as TCMListBlock;
     result := not list.closed and (list.ordered = ordered) and (list.marker = marker)
        and (indent <= list.LastIndent + grace);
   end;
 end;
 
-function TCommonMarkEngine.inPara(blocks: TObjectList<TBlock>; canBeQuote : boolean): boolean;
+function TCommonMarkEngine.inPara(blocks: TObjectList<TCMBlock>; canBeQuote : boolean): boolean;
 begin
-  result := (blocks.Count > 0) and (blocks.Last is TParagraphBlock) and not (blocks.Last as TParagraphBlock).closed and ((blocks.Last as TParagraphBlock).header = 0);
-  if result and not canBeQuote and not (blocks.Last as TParagraphBlock).isPlainPara then
+  result := (blocks.Count > 0) and (blocks.Last is TCMParagraphBlock) and not (blocks.Last as TCMParagraphBlock).closed and ((blocks.Last as TCMParagraphBlock).header = 0);
+  if result and not canBeQuote and not (blocks.Last as TCMParagraphBlock).isPlainPara then
     result := false;
 end;
 
-function TCommonMarkEngine.isBlock(cont : TBlock; blocks : TObjectList<TBlock>; line: String; wsLen : integer = 3): boolean;
+function TCommonMarkEngine.isBlock(cont : TCMBlock; blocks : TObjectList<TCMBlock>; line: String; wsLen : integer = 3): boolean;
   function inOrderedList : boolean;
   begin
-    result := (cont is TListBlock) and (cont as TListBlock).ordered;
+    result := (cont is TCMListBlock) and (cont as TCMListBlock).ordered;
   end;
 var
   len : integer;
@@ -1806,7 +2037,7 @@ begin
     exit(true);
   if (countWS(line) >= 4) and not InPara(blocks, false) then // code block
     exit(true);
-  p := (blocks.count > 0) and (blocks.last is TParagraphBlock) and not (blocks.last.closed);
+  p := (blocks.count > 0) and (blocks.last is TCMParagraphBlock) and not (blocks.last.closed);
   // ok now look for ordered list
   len := countWS(line);
   s := removeWS(line, len);
@@ -1828,7 +2059,7 @@ begin
 end;
 
 
-function TCommonMarkEngine.parseThematicBreak(blocks : TObjectList<TBlock>; line: TLine): boolean;
+function TCommonMarkEngine.parseThematicBreak(blocks : TObjectList<TCMBlock>; line: TCMLine): boolean;
 var
   s : String;
 begin
@@ -1837,18 +2068,19 @@ begin
   s := stripWhitespace(line.focus);
   if (s.StartsWith('***') or s.StartsWith('---') or s.StartsWith('___')) and AllCharsSame(s) then
   begin
-    blocks.Add(TThematicBreakBlock.Create(FlineNum));
+    blocks.Add(TCMThematicBreakBlock.Create(FCurrentLine));
+    line.markStyle(line.FLine.Length, cmControlChar);
     result := true;
   end
   else
     result := false;
 end;
 
-function TCommonMarkEngine.parseUListBlock(blocks: TObjectList<TBlock>; line: TLine; processor: TBlockProcessor): boolean;
+function TCommonMarkEngine.parseUListBlock(blocks: TObjectList<TCMBlock>; line: TCMLine; processor: TCMBlockProcessor): boolean;
 var
-  list : TListBlock;
-  li : TListItemBlock;
-  lp : TListProcessor;
+  list : TCMListBlock;
+  li : TCMListItemBlock;
+  lp : TCMListProcessor;
   i, i2 : integer;
   s, m : String;
 begin
@@ -1882,7 +2114,7 @@ begin
   end;
   if not inList(blocks, false, m, i+i2+1, 1, list) then
   begin
-    list := TListBlock.Create(FLineNum);
+    list := TCMListBlock.Create(FCurrentLine);
     blocks.add(list);
     list.ordered := false;
     list.BaseIndent := i+i2+1;
@@ -1891,12 +2123,12 @@ begin
   end
   else
     list.Lastindent := i+i2+1;
-  li := TListItemBlock.Create(FLineNum);
+  li := TCMListItemBlock.Create(FCurrentLine);
   list.blocks.Add(li);
   result := true;
   redoLine;
   // now, instead of grabbing the >, we recurse and get the processor to do that
-  lp := TListProcessor.Create(processor, list, li);
+  lp := TCMListProcessor.Create(processor, list, li);
   try
     parse(li, lp);
   finally
@@ -1904,11 +2136,11 @@ begin
   end;
 end;
 
-function TCommonMarkEngine.parseHeader(blocks : TObjectList<TBlock>; line: TLine): boolean;
+function TCommonMarkEngine.parseHeader(blocks : TObjectList<TCMBlock>; line: TCMLine): boolean;
 var
   len : integer;
   ls, s : String;
-  b : THeadingBlock;
+  b : TCMHeadingBlock;
 begin
   if line.countWS >= 4 then
     exit(false);
@@ -1928,10 +2160,12 @@ begin
   else
     exit(False);
   result := true;
-  b := THeadingBlock.Create(FLineNum, len);
+  b := TCMHeadingBlock.Create(FCurrentLine, len);
   blocks.Add(b);
-  s := ls.substring(len).trim;
-  if (s <> '') then
+  line.markBlock(len);
+  line.skipWS;
+  s := ls.substring(len);
+  if not isWhitespace(s) then
   begin
     len := length(s);
     while (len > 0) and (s[len] = '#') do
@@ -1941,27 +2175,28 @@ begin
     else if (s[len] = ' ') then
       s := copy(s, 1, len-1);
   end;
+  line.markRemainder(cmText);
   parseInline(b.blocks, s);
 end;
 
-procedure TCommonMarkEngine.parseInline(blocks : TObjectList<TBlock>; line : String);
+procedure TCommonMarkEngine.parseInline(blocks : TObjectList<TCMBlock>; line : String);
 var
-  b : TTextBlock;
+  b : TCMTextBlock;
 begin
-  if (blocks.Count > 0) and (blocks.Last is TTextBlock) then
+  if (blocks.Count > 0) and (blocks.Last is TCMTextBlock) then
   begin
-    b := blocks.Last as TTextBlock;
+    b := blocks.Last as TCMTextBlock;
     b.FText := b.FText+#10+line;
   end
   else
-    blocks.Add(TTextBlock.create(FLineNum, line));
+    blocks.Add(TCMTextBlock.create(FCurrentLine, line));
 end;
 
-function TCommonMarkEngine.parseOListBlock(blocks: TObjectList<TBlock>; line: TLine; processor: TBlockProcessor): boolean;
+function TCommonMarkEngine.parseOListBlock(blocks: TObjectList<TCMBlock>; line: TCMLine; processor: TCMBlockProcessor): boolean;
 var
-  list : TListBlock;
-  li : TListItemBlock;
-  lp : TListProcessor;
+  list : TCMListBlock;
+  li : TCMListItemBlock;
+  lp : TCMListProcessor;
   i, i2 : integer;
   s,sl, m, ls : String;
 begin
@@ -2009,7 +2244,7 @@ begin
   end;
   if not inList(blocks, true, m, i+i2, 2, list) then
   begin
-    list := TListBlock.Create(FLineNum);
+    list := TCMListBlock.Create(FCurrentLine);
     blocks.add(list);
     list.ordered := true;
     list.baseIndent := i+i2;
@@ -2022,11 +2257,11 @@ begin
   end
   else
     list.lastIndent := i+i2;
-  li := TListItemBlock.Create(FLineNum);
+  li := TCMListItemBlock.Create(FCurrentLine);
   list.blocks.Add(li);
   redoLine;
   // now, instead of grabbing the >, we recurse and get the processor to do that
-  lp := TListProcessor.Create(processor, list, li);
+  lp := TCMListProcessor.Create(processor, list, li);
   try
     parse(li, lp);
   finally
@@ -2034,23 +2269,23 @@ begin
   end;
 end;
 
-function TCommonMarkEngine.parseQuoteBlock(blocks: TObjectList<TBlock>; line: TLine; processor : TBlockProcessor): boolean;
+function TCommonMarkEngine.parseQuoteBlock(blocks: TObjectList<TCMBlock>; line: TCMLine; processor : TCMBlockProcessor): boolean;
 var
   s : String;
-  q : TQuoteBlock;
-  qp : TQuoteProcessor;
+  q : TCMQuoteBlock;
+  qp : TCMQuoteProcessor;
 begin
   if line.countWS >= 4 then
     exit(false);
   s := line.focus.Trim;
   if not s.StartsWith('>') then
     exit(false);
-  q := TQuoteBlock.Create(FLineNum);
+  q := TCMQuoteBlock.Create(FCurrentLine);
   blocks.add(q);
   result := true;
   redoline;
   // now, instead of grabbing the >, we recurse and get the processor to do that
-  qp := TQuoteProcessor.Create(processor, q);
+  qp := TCMQuoteProcessor.Create(processor, q);
   try
     parse(q, qp);
   finally
@@ -2059,9 +2294,9 @@ begin
   q.closed := true;
 end;
 
-function TCommonMarkEngine.parseSeTextHeader(blocks : TObjectList<TBlock>; line: TLine; isLazy : boolean; processor : TBlockProcessor): boolean;
+function TCommonMarkEngine.parseSeTextHeader(blocks : TObjectList<TCMBlock>; line: TCMLine; isLazy : boolean; processor : TCMBlockProcessor): boolean;
 var
-  p : TParagraphBlock;
+  p : TCMParagraphBlock;
   s : String;
 begin
   if line.countWS >= 4 then
@@ -2070,7 +2305,7 @@ begin
     exit(false);
   if not inPara(blocks, false) then
     exit(false);
-  p := blocks.Last as TParagraphBlock;
+  p := blocks.Last as TCMParagraphBlock;
   if p.closed then
     exit(false);
   if p.header <> 0 then
@@ -2086,20 +2321,22 @@ begin
   if s[1] = '-' then
   begin
     p.header := 2;
+    line.markStyle(line.FLine.Length, cmControlChar);
     exit(true);
   end
   else if s[1] = '=' then
   begin
     p.header := 1;
+    line.markStyle(line.FLine.Length, cmControlChar);
     exit(true);
   end
   else
     exit(false);
 end;
 
-function TCommonMarkEngine.parseCodeBlock(blocks : TObjectList<TBlock>; line: TLine; processor : TBlockProcessor): boolean;
+function TCommonMarkEngine.parseCodeBlock(blocks : TObjectList<TCMBlock>; line: TCMLine; processor : TCMBlockProcessor): boolean;
 var
-  c : TCodeBlock;
+  c : TCMCodeBlock;
   s : String;
   more : boolean;
   isLazy : boolean;
@@ -2114,18 +2351,18 @@ begin
   if inPara(blocks, true) then
     exit(false);
   result := true;
-  c := TCodeBlock.Create(FLineNum);
+  c := TCMCodeBlock.Create(FCurrentLine);
   blocks.Add(c);
   line.advance(indent);
   s := line.focus;
   repeat
-    c.FBlocks.Add(TTextBlock.Create(FLineNum, s));
+    c.FBlocks.Add(TCMTextBlock.Create(line.FIndex, s));
     if done then
       more := false
     else
     begin
-      line.reset(peekLine);
-      if processor.processLine(line, true, bpCodeBlock, isLazy) then
+      line := peekLine;
+      if (line = nil) or processor.processLine(line, true, bpCodeBlock, isLazy) then
         break;
       s := line.focus;
       if lengthWSCorrected(s) <= indent then
@@ -2134,18 +2371,19 @@ begin
         more := countWS(s) >= indent;
       if more then
       begin
-        line.reset(grabLine);
+        line := grabLine;
         processor.processLine(line, true, bpCodeBlock, isLazy);
-        s := removeWS(line.focus, indent);
+        line.advance(indent);
+        s := line.focus;
       end;
     end;
   until not more;
   // remove any whitespace lines at the end:
-  while (c.blocks.Count > 0) and isWhitespace((c.blocks.Last as TTextBlock).text) do
+  while (c.blocks.Count > 0) and isWhitespace((c.blocks.Last as TCMTextBlock).text) do
     c.blocks.Delete(c.blocks.Count - 1);
 end;
 
-function TCommonMarkEngine.parseFencedCodeBlock(blocks: TObjectList<TBlock>; line: TLine; processor : TBlockProcessor): boolean;
+function TCommonMarkEngine.parseFencedCodeBlock(blocks: TObjectList<TCMBlock>; line: TCMLine; processor : TCMBlockProcessor): boolean;
 var
   toEnd : String;
   isLazy : boolean;
@@ -2154,8 +2392,8 @@ var
   var
     s : String;
   begin
-    line.reset(peekLine);
-    if processor.processLine(line, true, bpFencedCodeBlock, isLazy) then
+    line := peekLine;
+    if (line = nil) or processor.processLine(line, true, bpFencedCodeBlock, isLazy) then
     begin
       result := true;
       terminated := true;
@@ -2169,7 +2407,7 @@ var
     end;
   end;
 var
-  c : TCodeBlock;
+  c : TCMCodeBlock;
   s, s1, lang : String;
   indent, i, j : integer;
 begin
@@ -2188,7 +2426,6 @@ begin
   indent := 0;
   while s[indent+1] = ' ' do
     inc(indent);
-
   s := s.subString(indent);
   s := after(s, [toEnd[1]]).trim;
   i := 1;
@@ -2220,8 +2457,11 @@ begin
     if lang.contains(toEnd[1]) then
       exit(false);
   end;
+  line.markStyle(indent, cmText);
+  line.markStyle(indent+toEnd.Length, cmControlChar);
+  line.markRemainder(cmText);
 
-  c := TCodeBlock.Create(FLineNum);
+  c := TCMCodeBlock.Create(FCurrentLine);
   blocks.Add(c);
   c.fenced := true;
   c.lang := lang;
@@ -2229,8 +2469,8 @@ begin
 
   while not done and not terminated and not isEnded do
   begin
-    line.reset(grabLine);
-    if processor.processLine(line, true, bpFencedCodeBlock, isLazy) then
+    line := grabLine;
+    if (line = nil) or processor.processLine(line, true, bpFencedCodeBlock, isLazy) then
       break;
     s := line.focus;
     if indent > 0 then
@@ -2240,68 +2480,82 @@ begin
         inc(i);
       if i > 0 then
         s := s.Substring(i);
+      line.advance(i);
     end;
-    c.FBlocks.Add(TTextBlock.Create(FLineNum, s));
+    c.FBlocks.Add(TCMTextBlock.Create(FCurrentLine, s));
   end;
   if not done and not terminated then
-    grabLine;
+    grabLine.markRemainder(cmControlChar);
 end;
 
-procedure TCommonMarkEngine.parse(block: TContainerBlock; processor : TBlockProcessor);
+procedure TCommonMarkEngine.parse(block: TCMContainerBlock; processor : TCMBlockProcessor);
 var
-  line : TLine;
-  p : TParagraphBlock;
+  line : TCMLine;
+  p : TCMParagraphBlock;
   isLazy : boolean;
 begin
-  line := TLine.Create;
-  try
-    while not done do // must be at start of line here
+  while not done do // must be at start of line here
+  begin
+    line := grabLine;
+    if processor.processLine(line, true, bpGeneral, isLazy) then
     begin
-      line.reset(grabLine);
-      if processor.processLine(line, true, bpGeneral, isLazy) then
+    // ok, we're done with this set of blocks, we'll try the line again one further up
+      debug('redo: "'+line.focus+'"');
+      redoLine;
+      exit;
+    end
+    else
+      debug('Line: "'+line.focus+'"');
+    if parseSeTextHeader(block.blocks, line, isLazy, processor) then
+    else if parseThematicBreak(block.blocks, line) then
+    else if parseHeader(block.blocks, line) then
+    else if parseQuoteBlock(block.blocks, line, processor) then
+    else if parseUListBlock(block.blocks, line, processor) then
+    else if parseOListBlock(block.blocks, line, processor) then
+    else if parseCodeBlock(block.blocks, line, processor) then
+    else if parseFencedCodeBlock(block.blocks, line, processor) then
+    else
+    begin
+      if inPara(block.blocks, true) then
+        p := block.Blocks.Last as TCMParagraphBlock
+      else
+        p := nil;
+      if line.isEmpty or line.isWhitespace then
       begin
-      // ok, we're done with this set of blocks, we'll try the line again one further up
-        debug('redo: "'+line.focus+'"');
-        redoLine;
-        exit;
+        line.markRemainder(cmText);
+        if (p <> nil) then
+          p.closed := true;
       end
       else
-        debug('Line: "'+line.focus+'"');
-      if parseSeTextHeader(block.blocks, line, isLazy, processor) then
-      else if parseThematicBreak(block.blocks, line) then
-      else if parseHeader(block.blocks, line) then
-      else if parseQuoteBlock(block.blocks, line, processor) then
-      else if parseUListBlock(block.blocks, line, processor) then
-      else if parseOListBlock(block.blocks, line, processor) then
-      else if parseCodeBlock(block.blocks, line, processor) then
-      else if parseFencedCodeBlock(block.blocks, line, processor) then
-      else
       begin
-        if inPara(block.blocks, true) then
-          p := block.Blocks.Last as TParagraphBlock
-        else
-          p := nil;
-        if line.isEmpty or line.isWhitespace then
+        if (p = nil) then
         begin
-          if (p <> nil) then
-            p.closed := true;
-        end
-        else
-        begin
-          if (p = nil) then
-          begin
-            p := TParagraphBlock.Create(FLineNum);
-            block.blocks.Add(p);
-          end;
-          parseInLine(p.blocks, line.focus);
+          p := TCMParagraphBlock.Create(FCurrentLine);
+          block.blocks.Add(p);
         end;
+        parseInLine(p.blocks, line.focus);
       end;
     end;
-  finally
-    line.Free;
   end;
 end;
 
+
+procedure TCommonMarkEngine.parseLines(src: String);
+var
+  i, j : integer;
+begin
+  FLines.Clear;
+  i := 1;
+  while (i <= src.Length) do
+  begin
+    j := i;
+    while (i <= src.Length) and (src[i] <> #10) do
+      inc(i);
+    FLines.Add(TCMLine.Create(FStyling, copy(src, j, i - j), FLines.Count));
+    inc(i);
+  end;
+  FCurrentLine := -1;
+end;
 
 procedure TCommonMarkEngine.parseLinkReferences;
 begin
@@ -2309,7 +2563,7 @@ begin
 end;
 
 
-procedure TCommonMarkEngine.parseAutoLink(lexer: TTextLexer; nodes: TTextNodes; wsMode: TWhitespaceMode);
+procedure TCommonMarkEngine.parseAutoLink(lexer: TCMTextLexer; nodes: TCMTextNodes; wsMode: TCMWhitespaceMode);
   function isAbsoluteUri(s : String) : boolean;
   var
     scheme, tail : String;
@@ -2333,37 +2587,46 @@ procedure TCommonMarkEngine.parseAutoLink(lexer: TTextLexer; nodes: TTextNodes; 
   end;
 var
   s : String;
-  a : TTextNode;
+  a : TCMTextNode;
+  ok : boolean;
 begin
-  lexer.grab;
+  lexer.mark;
+  lexer.grab(cmControlChar);
   s := lexer.peekUntil(['>']);
   if (wsMode <> wsLeave) then
   begin
+    ok := true;
     if isAbsoluteURI(s) then
     begin
-      a := nodes.addOpener('a');
+      a := nodes.addOpener(lexer.location, 'a');
       a.attrs.Add('href', urlEscape(s));
-      nodes.addText(htmlEscape(s));
-      nodes.addCloser('a');
-      lexer.grab(s.Length + 1);
-      exit;
+      nodes.addText(lexer.location, htmlEscape(s));
+      nodes.addCloser(lexer.location, 'a');
+      lexer.grab(cmURL, s.Length);
+      lexer.grab(cmControlChar);
     end else if TRegEx.IsMatch(s, EMAIL_REGEX) then
     begin
-      a := nodes.addOpener('a');
+      a := nodes.addOpener(lexer.location, 'a');
       a.attrs.Add('href', 'mailto:'+htmlEscape(s));
-      nodes.addText(htmlEscape(s));
-      nodes.addCloser('a');
-      lexer.grab(s.Length + 1);
-      exit;
+      nodes.addText(lexer.location, htmlEscape(s));
+      nodes.addCloser(lexer.location, 'a');
+      lexer.grab(cmURL, s.Length);
+      lexer.grab(cmControlChar);
     end
     else
-      nodes.addText('&lt;');
+      ok := false;
   end
   else
-    nodes.addText('&lt;');
+    ok := false;
+  if not ok then
+  begin
+    lexer.rewind;
+    nodes.addText(lexer.location, '&lt;');
+    lexer.grab(cmText);
+  end;
 end;
 
-procedure TCommonMarkEngine.parseDelimiter(lexer: TTextLexer; nodes: TTextNodes; wsMode: TWhitespaceMode; canRun : boolean);
+procedure TCommonMarkEngine.parseDelimiter(lexer: TCMTextLexer; nodes: TCMTextNodes; wsMode: TCMWhitespaceMode; canRun : boolean);
   function isWSForFLanking(c : char) : boolean;
   begin
     result := CharInSet(c,[#0, #10]) or IsWhiteSpace(c);
@@ -2372,9 +2635,7 @@ procedure TCommonMarkEngine.parseDelimiter(lexer: TTextLexer; nodes: TTextNodes;
   function isPuncForFLanking(c : char) : boolean;
   begin
     result := CharInSet(c, ['!', '"', '#', '$', '%', '&', '''', '(', ')', '*', '+', ',', '-', '.', '/', ':', ';', '<', '=', '>', '?', '@', '[', '\', ']', '^', '_', '`', '{', '|', '}', '~'])
-      {$IFNDEF FPC}
-      or (c.GetUnicodeCategory in [TUnicodeCategory.ucConnectPunctuation, TUnicodeCategory.ucDashPunctuation, TUnicodeCategory.ucClosePunctuation,
-        TUnicodeCategory.ucFinalPunctuation, TUnicodeCategory.ucInitialPunctuation, TUnicodeCategory.ucOtherPunctuation, TUnicodeCategory.ucOpenPunctuation, TUnicodeCategory.ucMathSymbol]){$ENDIF};
+      or isUnicodePunctuation(c);
   end;
 
   function isLeftFlanking(cb, ca : char) : boolean;
@@ -2410,8 +2671,9 @@ var
   s : String;
   cb, ca : char;
   bb, ba : boolean;
-  m : TDelimiterMode;
-  n : TTextNode;
+  m : TCMDelimiterMode;
+  n : TCMTextNode;
+  p : TLocation;
 begin
   if canRun then
     s := lexer.peekRun(false)
@@ -2420,7 +2682,8 @@ begin
   else
     s := lexer.peek;
   cb := lexer.peekLast;
-  lexer.grab(s.Length);
+  p := lexer.location;
+  lexer.grab(cmUnknown, s.Length); // have to sort out the style later
   ca := lexer.peek;
   bb := isLeftFlanking(cb, ca);
   ba := isRightFLanking(cb, ca);
@@ -2435,11 +2698,11 @@ begin
     m := dmCloser
   else
     m := dmNeither;
-  n := nodes.addTextNode(s);
-  FStack.Add(TDelimiter.Create(n, s, m));
+  n := nodes.addTextNode(p, s);
+  FStack.Add(TCMDelimiter.Create(n, s, m));
 end;
 
-procedure TCommonMarkEngine.parseBackTick(lexer: TTextLexer; nodes: TTextNodes; wsMode: TWhitespaceMode);
+procedure TCommonMarkEngine.parseBackTick(lexer: TCMTextLexer; nodes: TCMTextNodes; wsMode: TCMWhitespaceMode);
 var
   s : String;
   ws, first : boolean;
@@ -2448,8 +2711,8 @@ begin
   s := lexer.peekRun(false);
   if lexer.runExistsAfter(s) then
   begin
-    nodes.addOpener('code');
-    lexer.grab(s.Length);
+    nodes.addOpener(lexer.location, 'code');
+    lexer.grab(cmControlChar, s.Length);
     ws := false;
     first := true;
     while lexer.peekRun(true) <> s do
@@ -2458,74 +2721,80 @@ begin
       if CharInSet(ch, [' ', #10]) then
       begin
         ws := true;
-        lexer.grab;
+        lexer.grab(cmText);
       end
       else
       begin
         if ws and not first then
-          nodes.addText(' ');
+          nodes.addText(lexer.location, ' ');
         first := false;
         ws := false;
-        nodes.addText(htmlEscape(lexer.grab));
+        nodes.addText(lexer.location, htmlEscape(lexer.grab(cmCode)));
       end;
     end;
-    nodes.addCloser('code');
-    lexer.grab(s.Length);
+    nodes.addCloser(lexer.location, 'code');
+    lexer.grab(cmControlChar, s.Length);
   end
   else
-    nodes.addText(lexer.grab(s.Length));
+    nodes.addText(lexer.location, lexer.grab(cmText, s.Length));
 end;
 
-procedure TCommonMarkEngine.parseTextEscape(lexer: TTextLexer; nodes: TTextNodes; wsMode: TWhitespaceMode);
+procedure TCommonMarkEngine.parseTextEscape(lexer: TCMTextLexer; nodes: TCMTextNodes; wsMode: TCMWhitespaceMode);
 begin
-  lexer.grab;
+  lexer.mark;
+  lexer.grab(cmControlChar);
   if isEscapable(lexer.peek) then
-    nodes.addText(htmlEscape(lexer.grab))
+    nodes.addText(lexer.location, htmlEscape(lexer.grab(cmEntity)))
   else if lexer.peek = #10 then
-    nodes.addText('<br />')
+    nodes.addText(lexer.location, '<br />')
   else
-    nodes.addText('\');
+  begin
+    lexer.rewind;
+    nodes.addText(lexer.location, lexer.grab(cmText));
+  end;
 end;
 
-function TCommonMarkEngine.processInlineLink(lexer: TTextLexer; nodes: TTextNodes; del : TDelimiter): boolean;
+function TCommonMarkEngine.processInlineLink(lexer: TCMTextLexer; nodes: TCMTextNodes; del : TCMDelimiter): boolean;
 var
   lvl : integer;
   url : String;
   marker : char;
   title : String;
   b : TStringBuilder;
-  d : TDelimiter;
+  d : TCMDelimiter;
+  line : TCMLine;
 begin
   result := false;
-  if lexer.peek <> '(' then
-    exit(false);
   b := TStringBuilder.Create;
   lexer.mark;
   try
-    lexer.grab; // (
+    lexer.grab(cmDelimiter);
+    if lexer.peek <> '(' then
+      exit(false);
+    lexer.grab(cmControlChar); // (
     lexer.skipWS;
     if lexer.peek = '<' then
     begin
-      lexer.grab;
+      lexer.grab(cmControlChar);
       while not lexer.done and (lexer.peek <> '>') do
       begin
         if (lexer.peek = '\') and isEscapable(lexer.peekNext) then
         begin
-         lexer.grab;
+         lexer.grab(cmControlChar);
          if lexer.done then
            exit;
-         b.Append(lexer.grab);
+         b.Append(lexer.grab(cmURL));
         end
         else if isWhitespaceChar(lexer.peek) then
           exit
         else if lexer.peek = '&' then
           b.Append(parseEntityInner(lexer))
         else
-          b.Append(lexer.grab);
+          b.Append(lexer.grab(cmUrl));
       end;
       if lexer.done then
         exit;
-      lexer.grab;
+      lexer.grab(cmControlChar);
     end
     else
     begin
@@ -2534,10 +2803,10 @@ begin
       begin
         if (lexer.peek = '\') and isEscapable(lexer.peekNext) then
         begin
-         lexer.grab;
+         lexer.grab(cmControlChar);
          if lexer.done then
            exit;
-         b.Append(lexer.grab);
+         b.Append(lexer.grab(cmURL));
         end
         else if isWhitespaceChar(lexer.peek) then
           exit
@@ -2549,7 +2818,7 @@ begin
             inc(lvl)
           else if lexer.peek = ')' then
             dec(lvl);
-          b.Append(lexer.grab);
+          b.Append(lexer.grab(cmUrl));
         end;
       end;
       if lexer.done then
@@ -2561,7 +2830,7 @@ begin
     begin
       b.clear;
       lexer.skipWS;
-      marker := lexer.grab;
+      marker := lexer.grab(cmControlChar);
       if not CharInSet(marker, ['"', '''', '(']) then
         exit;
       if marker = '(' then
@@ -2570,29 +2839,32 @@ begin
       begin
         if (lexer.peek = '\') then
         begin
-          lexer.grab;
+          lexer.grab(cmControlChar);
           if lexer.done then
             exit;
-          b.Append(htmlEscape(lexer.grab));
+          b.Append(htmlEscape(lexer.grab(cmEntity)));
         end
         else if lexer.peek = '&' then
           b.Append(htmlEscape(parseEntityInner(lexer)))
         else if lexer.peek = #10 then
           b.Append(' ')
         else if lexer.peek = '"' then
-          b.Append(htmlEscape(lexer.grab))
+          b.Append(htmlEscape(lexer.grab(cmControlChar)))
         else
-          b.Append(lexer.grab);
+          b.Append(lexer.grab(cmText));
       end;
       if lexer.done then
         exit;
-      lexer.grab;
+      lexer.grab(cmControlChar);
       title := b.toString;
     end;
     lexer.skipWS;
     if lexer.peek <> ')' then
       exit;
-    lexer.grab;
+    lexer.grab(cmControlChar);
+    line := FLines[del.FNode.FPos.line];
+    line.updateStyle(del.FNode.FPos.col-1, length(del.FNode.FContent), cmDelimiter);
+
     if del.delimiter = '![' then
     begin
       del.Node.name := 'img';
@@ -2611,7 +2883,7 @@ begin
       del.Node.attrs.Add('href', url);
       if title <> '' then
         del.node.attrs.Add('title', title);
-      nodes.addCloser('a');
+      nodes.addCloser(lexer.location, 'a');
       for d in FStack do
         if d = del then
           break
@@ -2628,12 +2900,12 @@ begin
   end;
 end;
 
-procedure TCommonMarkEngine.parseCloseDelimiter(lexer: TTextLexer; nodes: TTextNodes; wsMode: TWhitespaceMode);
+procedure TCommonMarkEngine.parseCloseDelimiter(lexer: TCMTextLexer; nodes: TCMTextNodes; wsMode: TCMWhitespaceMode);
 var
   i : integer;
-  d : TDelimiter;
+  d : TCMDelimiter;
+  line : TCMLine;
 begin
-  lexer.grab; // ]
   d := nil;
   for i := FStack.Count - 1 downto 0 do
     if (FStack[i].delimiter = '[') or (FStack[i].delimiter = '![') then
@@ -2643,13 +2915,15 @@ begin
     end;
   if d = nil then
   begin
-    nodes.addText(']');
+    nodes.addText(lexer.location, lexer.grab(cmText));
     exit;
   end;
   if not d.active then
   begin
+    line := FLines[d.FNode.FPos.line];
+    line.updateStyle(d.FNode.FPos.col-1, length(d.FNode.FContent), cmText);
     FStack.Remove(d);
-    nodes.addText(']');
+    nodes.addText(lexer.location, lexer.grab(cmText));
     exit;
   end;
   // now, look ahead, do we have
@@ -2659,8 +2933,10 @@ begin
   //  - shortcut reference link/image [label]
   if not processInlineLink(lexer, nodes, d) then
   begin
+    line := FLines[d.FNode.FPos.line];
+    line.updateStyle(d.FNode.FPos.col-1, length(d.FNode.FContent), cmText);
     FStack.Remove(d);
-    nodes.addText(']');
+    nodes.addText(lexer.location, lexer.grab(cmText));
     exit;
   end;
 end;
@@ -2693,28 +2969,28 @@ begin
     exit('');
 end;
 
-procedure TCommonMarkEngine.parseEntity(lexer: TTextLexer; nodes: TTextNodes; wsMode: TWhitespaceMode);
+procedure TCommonMarkEngine.parseEntity(lexer: TCMTextLexer; nodes: TCMTextNodes; wsMode: TCMWhitespaceMode);
 begin
   if wsMode = wsLeave then // code block
   begin
-    nodes.addText('&amp;');
-    lexer.grab;
+    nodes.addText(lexer.location, '&amp;');
+    lexer.grab(cmEntity);
   end
   else
-    nodes.addText(htmlEscape(parseEntityInner(lexer)));
+    nodes.addText(lexer.location, htmlEscape(parseEntityInner(lexer)));
 end;
 
-function TCommonMarkEngine.parseEntityInner(lexer: TTextLexer): String;
+function TCommonMarkEngine.parseEntityInner(lexer: TCMTextLexer): String;
 var
   s, c : String;
   ch : char;
   i : integer;
 begin
-  lexer.grab;
+  lexer.grab(cmEntity);
   s := lexer.peekUntil([';']);
   if FEntities.TryGetValue('&'+s+';', c) then
   begin
-    lexer.grab(s.Length+1);
+    lexer.grab(cmEntity, s.Length+1);
     exit(c);
   end
   else if (s <> '') and s.StartsWith('#') and (s.Length <= 9) and (StrToIntDef(s.Substring(1), -1) <> -1) then
@@ -2728,22 +3004,22 @@ begin
       if (i = 0) {$IFNDEF FPC} or (ch.GetUnicodeCategory = TUnicodeCategory.ucUnassigned) {$ENDIF} then
         ch := #$FFFD;
     end;
-    lexer.grab(s.Length+1);
+    lexer.grab(cmEntity, s.Length+1);
     exit(ch);
   end
   else
     exit('&');
 end;
 
-procedure TCommonMarkEngine.parseTextCore(lexer: TTextLexer; nodes: TTextNodes; wsMode: TWhitespaceMode);
+procedure TCommonMarkEngine.parseTextCore(lexer: TCMTextLexer; nodes: TCMTextNodes; wsMode: TCMWhitespaceMode);
 begin
   if wsMode = wsLeave then // code block
-    nodes.addText(htmlEscape(lexer.grab))
+    nodes.addText(lexer.location, htmlEscape(lexer.grab(cmCode)))
   else
   case lexer.peek of
     '\' : parseTextEscape(lexer, nodes, wsMode);
     '<' : parseAutoLink(lexer, nodes, wsMode);
-    '>', '"' : nodes.addText(htmlEscape(lexer.grab));
+    '>', '"' : nodes.addText(lexer.location, htmlEscape(lexer.grab(cmText)));
     '&' : parseEntity(lexer, nodes, wsMode);
     '`' : parseBackTick(lexer, nodes, wsMode);
     '*' : parseDelimiter(lexer, nodes, wsMode, true);
@@ -2751,19 +3027,19 @@ begin
              isWhitespaceChar(lexer.peekEndRun) or isEscapable(lexer.peekEndRun) or (lexer.peekEndRun = #0) then
             parseDelimiter(lexer, nodes, wsMode, true)
           else
-            nodes.addText(htmlEscape(lexer.grabRun));
+            nodes.addText(lexer.location, htmlEscape(lexer.grabRun(cmText)));
     '[' : parseDelimiter(lexer, nodes, wsMode, false);
     '!' : if lexer.peekNext = '[' then
             parseDelimiter(lexer, nodes, wsMode, false)
           else
-            nodes.addText(lexer.grab);
+            nodes.addText(lexer.location, lexer.grab(cmText));
     ']' : parseCloseDelimiter(lexer, nodes, wsMode);
   else
-    nodes.addText(lexer.grab);
+    nodes.addText(lexer.location, lexer.grab(cmText));
   end;
 end;
 
-procedure TCommonMarkEngine.parseText(lexer: TTextLexer; nodes: TTextNodes; wsMode : TWhitespaceMode);
+procedure TCommonMarkEngine.parseText(lexer: TCMTextLexer; nodes: TCMTextNodes; wsMode : TCMWhitespaceMode);
 var
   seenNonWhitespace : boolean;
   whiteSpace : string;
@@ -2775,7 +3051,7 @@ begin
   begin
     if (wsMode <> wsLeave) and isWhitespace(lexer.peek) and ((lexer.peek <> #10) or (wsMode = wsStrip)) then
     begin
-      c := lexer.grab;
+      c := lexer.grab(cmText);
       if seenNonWhitespace then
       begin
         whitespace := whitespace + c;
@@ -2789,7 +3065,7 @@ begin
         begin
           seenNonWhitespace := false;
           if whitespace.EndsWith('  ') then
-            nodes.addText('<br />');
+            nodes.addText(lexer.location, '<br />');
           whitespace := '';
         end
         else
@@ -2797,9 +3073,9 @@ begin
           if whiteSpace <> '' then
           begin
             if wsMode = wsStrip then
-              nodes.addText(' ')
+              nodes.addText(lexer.location, ' ')
             else
-              nodes.addText(whitespace);
+              nodes.addText(lexer.location, whitespace);
             whiteSpace := '';
           end;
           seenNonWhitespace := true;
@@ -2810,12 +3086,12 @@ begin
   end;
 end;
 
-function TCommonMarkEngine.processText(text: String; wsMode : TWhitespaceMode): TTextNodes;
+function TCommonMarkEngine.processText(text: String; wsMode : TCMWhitespaceMode; startLine : integer): TCMTextNodes;
 var
-  lexer : TTextLexer;
+  lexer : TCMTextLexer;
 begin
-  result := TTextNodes.Create;
-  lexer := TTextLexer.Create(text);
+  result := TCMTextNodes.Create;
+  lexer := TCMTextLexer.Create(text, FLines, startLine, FStyling);
   try
     parseText(lexer, result, wsMode);
   finally
@@ -2825,26 +3101,27 @@ begin
   Assert(FStack.count = 0);
 end;
 
-procedure TCommonMarkEngine.processInlines(block: TBlock; wsMode : TWhitespaceMode);
+procedure TCommonMarkEngine.processInlines(block: TCMBlock; wsMode : TCMWhitespaceMode);
 var
-  c : TBlock;
+  c : TCMBlock;
 begin
-  if block is TTextBlock then
+  if block is TCMTextBlock then
   begin
-    (block as TTextBlock).FNodes := processText((block as TTextBlock).FText, wsMode);
+    (block as TCMTextBlock).FNodes := processText((block as TCMTextBlock).FText, wsMode, block.line);
   end;
-  if block is TContainerBlock then
-    for c in (block as TContainerBlock).blocks do
+  if block is TCMContainerBlock then
+    for c in (block as TCMContainerBlock).blocks do
       processInlines(c, block.wsMode);
 end;
 
-procedure TCommonMarkEngine.processEmphasis(nodes : TTextNodes; stopDel: TDelimiter);
+procedure TCommonMarkEngine.processEmphasis(nodes : TCMTextNodes; stopDel: TCMDelimiter);
 var
-  current, index, bottom, bottomU, bottomA, bottomW, count, iO, iC :  integer;
+  current, index, bottom, bottomU, bottomA, bottomW, count, iO, iC, i :  integer;
   strong : boolean;
   n : String;
-  o, c : TDelimiter;
-  function IsMatch(i, c : TDelimiter) : boolean;
+  o, c : TCMDelimiter;
+  ol, cl, line : TCMLine;
+  function IsMatch(i, c : TCMDelimiter) : boolean;
   begin
     result := (i.delimiter[1] = c.delimiter[1]) and i.isOpener;
     if result and ((i.mode = dmBoth) or (c.mode = dmBoth)) then
@@ -2876,12 +3153,17 @@ begin
       // we have a match
       o := FStack[index];
       c := FStack[current];
+      ol := FLines[o.FNode.FPos.line];
+      cl := FLines[c.FNode.FPos.line];
       strong := (c.delimiter.Length > 1) and (o.delimiter.Length > 1);
       if strong then n := 'strong' else n := 'em';
       if strong then count := 2 else count := 1;
       nodes.addOpenerAfter(n, o.node);
       nodes.addCloserBefore(n, c.node);
+      ol.updateStyle(o.FNode.FPos.col-1+(o.FNode.FContent.Length - count), count, cmDelimiter);
       o.node.removeChars(count);
+      cl.updateStyle(c.FNode.FPos.col-1, count, cmDelimiter);
+      c.FNode.FPos.col := c.FNode.FPos.col + count;
       c.node.removeChars(count);
       o.delimiter := o.delimiter.Substring(count);
       c.delimiter := c.delimiter.Substring(count);
@@ -2889,6 +3171,12 @@ begin
       iC := FStack.IndexOf(c);
       if iC > iO + 1 then
       begin
+        for i := iO+1 to iC-iO do
+        begin
+          line := FLines[FStack[i].FNode.FPos.line];
+          line.updateStyle(FStack[i].FNode.FPos.col-1, length(FStack[i].FNode.FContent), cmText);
+        end;
+
         FStack.DeleteRange(iO+1, iC-iO-1);
         dec(current, iC-iO-1);
       end;
@@ -2914,11 +3202,19 @@ begin
       if FStack[current].mode = dmBoth then
         inc(current)
       else
+      begin
+        cl := FLines[FStack[current].FNode.FPos.line];
+        cl.updateStyle(FStack[current].FNode.FPos.col-1, FStack[current].node.FContent.Length, cmText);
         FStack.Delete(current);
+      end;
     end;
   end;
   for index := FStack.Count - 1 downto bottom do
+  begin
+    line := FLines[FStack[index].FNode.FPos.line];
+    line.updateStyle(FStack[index].FNode.FPos.col-1, length(FStack[index].FNode.FContent), cmText);
     FStack.Delete(index);
+  end;
 end;
 
 { TCommonMarkProcessor }
@@ -2930,7 +3226,7 @@ end;
 
 function TCommonMarkProcessor.process(source: String): String;
 var
-  doc : TMarkdownDocument;
+  doc : TCommonMarkDocument;
 begin
   doc := TCommonMarkEngine.parse(source);
   try

@@ -100,6 +100,8 @@
         <DCC_UNIT_NAME_MISMATCH>error</DCC_UNIT_NAME_MISMATCH>
         <DCC_ImportedDataReferences>false</DCC_ImportedDataReferences>
         <DCC_DebugDCUs>false</DCC_DebugDCUs>
+        <DCC_IntegerOverflowCheck>true</DCC_IntegerOverflowCheck>
+        <DCC_RangeChecking>true</DCC_RangeChecking>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>

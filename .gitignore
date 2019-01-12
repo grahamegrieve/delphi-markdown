@@ -132,3 +132,4 @@ fpc/MarkdownTestProgram\.app/Contents/MacOS/
 /fpc/old
 /source/backup
 /fpc/backup
+/tests/backup
