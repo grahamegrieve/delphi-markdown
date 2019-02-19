@@ -35,31 +35,53 @@ uses
   Json, MarkdownCommonMark;
 
 var
-  TestFile : String = 'C:\work\markdown\resources\commonmark\spec.json';
+  TestFileCM: String = 'C:\work\markdown\resources\commonmark\spec.json';
+  TestFileGFM: String = 'C:\work\markdown\resources\commonmark\gfm_tests.json';
 
 type
-  CommonMarkDownParserTestCaseAttribute = class (CustomTestCaseSourceAttribute)
+  CommonMarkDownParserTestCaseAttributeBase = class abstract (CustomTestCaseSourceAttribute)
   protected
     function GetCaseInfoArray : TestCaseInfoArray; override;
   end;
 
-  [TextFixture]
-  TMarkdownCommonMarkTest = class
-  private
+  CommonMarkDownParserTestCaseAttribute = class (CommonMarkDownParserTestCaseAttributeBase);
+  GFMParserTestCaseAttribute = class (CommonMarkDownParserTestCaseAttributeBase);
+
+  TMarkdownCommonMarkTestBase = class abstract
+  protected
     function findTest(name : String) : TJSONObject;
+    function tests : TJSONArray; virtual; abstract;
+    procedure Test(Name : String);
+  end;
+
+  [TextFixture]
+  TMarkdownCommonMarkTest = class (TMarkdownCommonMarkTestBase)
+  protected
+    function tests : TJSONArray; override;
   public
     [CommonMarkDownParserTestCase]
+    procedure TestCase(Name : String);
+  end;
+
+  [TextFixture]
+  TMarkdownGFMTest = class (TMarkdownCommonMarkTestBase)
+  protected
+    function tests : TJSONArray; override;
+  public
+    [GFMParserTestCase]
     procedure TestCase(Name : String);
   end;
 
 implementation
 
 var
-  gTests : TJSONArray = nil;
+  gTestsBase : TJSONArray = nil;
+  gTestsGFM : TJSONArray = nil;
 
 procedure FreeTests;
 begin
-  gTests.Free;
+  gTestsBase.Free;
+  gTestsGFM.Free;
 end;
 
 function leftPad(s : String; c : char; l :integer) : String;
@@ -69,47 +91,74 @@ begin
     insert(c, result, 1);
 end;
 
-{ CommonMarkDownParserTestCaseAttribute }
+{ CommonMarkDownParserTestCaseAttributeBase }
 
-function CommonMarkDownParserTestCaseAttribute.GetCaseInfoArray: TestCaseInfoArray;
+function CommonMarkDownParserTestCaseAttributeBase.GetCaseInfoArray: TestCaseInfoArray;
 var
   f : TFileStream;
   b : TBytes;
   s : String;
-  i : integer;
+  i, c : integer;
   t : TJSONObject;
+  tests : TJSONArray;
 begin
-  if gTests = nil then
+  if self is CommonMarkDownParserTestCaseAttribute then
   begin
-    f := TFileStream.Create(TestFile, fmOpenRead + fmShareDenyWrite);
-    try
-      SetLength(b, f.Size);
-      f.Read(b[0], f.Size);
-    finally
-      f.Free;
+    if gTestsBase = nil then
+    begin
+      f := TFileStream.Create(TestFileCM, fmOpenRead + fmShareDenyWrite);
+      try
+        SetLength(b, f.Size);
+        f.Read(b[0], f.Size);
+      finally
+        f.Free;
+      end;
+      s := TEncoding.UTF8.GetString(b);
+      gTestsBase :=  TJSONObject.ParseJSONValue(s) as TJSONArray;
     end;
-    s := TEncoding.UTF8.GetString(b);
-    gTests :=  TJSONObject.ParseJSONValue(s) as TJSONArray;
-  end;
-  SetLength(result, gTests.Count);
-  for i := 0 to gTests.Count - 1 do
+    tests := gTestsBase;
+  end
+  else
   begin
-    t := gTests.Items[i] as TJSONObject;
-    result[i].Name := leftPad(t.Values['example'].ToString, '0', 4);
-    SetLength(result[i].Values, 1);
-    result[i].Values[0] := result[i].Name;
+    if gTestsGFM = nil then
+    begin
+      f := TFileStream.Create(TestFileGFM, fmOpenRead + fmShareDenyWrite);
+      try
+        SetLength(b, f.Size);
+        f.Read(b[0], f.Size);
+      finally
+        f.Free;
+      end;
+      s := TEncoding.UTF8.GetString(b);
+      gTestsGFM :=  TJSONObject.ParseJSONValue(s) as TJSONArray;
+    end;
+    tests := gTestsGFM;
   end;
+  SetLength(result, tests.Count);
+  c := 0;
+  for i := 0 to tests.Count - 1 do
+  begin
+    t := tests.Items[i] as TJSONObject;
+    if (t.Values['mode'] = nil) then
+    begin
+      result[c].Name := leftPad(t.Values['example'].ToString, '0', 4);
+      SetLength(result[c].Values, 1);
+      result[c].Values[0] := result[c].Name;
+      inc(c);
+    end;
+  end;
+  SetLength(result, c);
 end;
 
-{ TMarkdownCommonMarkTest }
+{ TMarkdownCommonMarkTestBase }
 
-function TMarkdownCommonMarkTest.findTest(name: String): TJSONObject;
+function TMarkdownCommonMarkTestBase.findTest(name: String): TJSONObject;
 var
   v : TJSONValue;
   o : TJSONObject;
 begin
   result := nil;
-  for v in gTests do
+  for v in tests do
   begin
     o := v as TJSONObject;
     if leftPad((o.Values['example'] as TJSONNumber).value, '0', 4) = name then
@@ -117,7 +166,7 @@ begin
   end;
 end;
 
-procedure TMarkdownCommonMarkTest.TestCase(name : String);
+procedure TMarkdownCommonMarkTestBase.Test(name : String);
 var
   test : TJSONObject;
   doc : TCommonMarkDocument;
@@ -126,20 +175,45 @@ begin
   test := findTest(name);
 
   writeln(name);
-  doc := TCommonMarkEngine.parse((test.values['markdown'] as TJsonString).value.replace('\n', #10));
+  doc := TCommonMarkEngine.parse((test.values['markdown'] as TJsonString).value.replace('\n', #10), self is TMarkdownGFMTest);
   try
     html := TCommonMarkEngine.render(doc);
   finally
     doc.Free;
   end;
   exp := (test.values['html'] as TJsonString).value.replace('\n', #10);
-  if (test.Values['mode'] = nil) then
+//  if (test.Values['mode'] = nil) then
     Assert.isTrue(html = exp);
 end;
 
 
+{ TMarkdownCommonMarkTest }
+
+procedure TMarkdownCommonMarkTest.TestCase(Name: String);
+begin
+  test(name);
+end;
+
+function TMarkdownCommonMarkTest.tests: TJSONArray;
+begin
+  result := gTestsBase;
+end;
+
+{ TMarkdownGFMTest }
+
+procedure TMarkdownGFMTest.TestCase(Name: String);
+begin
+  test(name);
+end;
+
+function TMarkdownGFMTest.tests: TJSONArray;
+begin
+  result := gTestsGFM;
+end;
+
 initialization
   TDUnitX.RegisterTestFixture(TMarkdownCommonMarkTest);
+  TDUnitX.RegisterTestFixture(TMarkdownGFMTest);
 finalization
   freeTests;
 end.

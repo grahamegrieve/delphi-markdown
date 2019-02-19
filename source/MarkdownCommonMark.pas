@@ -43,6 +43,8 @@ not planned to be supported
 
 note: tests related to link references and HTML blocks run (to check that the processing doesn't blow up), but output comparison is never checked
 
+
+note about GFM: the GFM tests and the CommonMark tests disagree about proper processing of lists indented more than 3 spaces....
 }
 
 interface
@@ -68,7 +70,7 @@ const
   TEST_STYLING = false; // set this true to check style tracking while doing unit tests (10% speed hit)
 
 type
-  TCommonMarkStyle = (cmUnknown, cmText, cmEntity, cmControlChar, cmDelimiter, cmCode, cmURL);
+  TCommonMarkStyle = (cmUnknown, cmText, cmEntity, cmControlChar, cmDelimiter, cmCode, cmURL, cmTableMarker);
 
   {$IFDEF FPC}
 
@@ -248,6 +250,24 @@ type
     property lang : String read FLang write FLang;
   end;
 
+  // contained blocks are cells
+  TCMTableRowBlock = class (TCMContainerBlock)
+  protected
+    procedure render(parent : TCMBlock; b : TStringBuilder); override;
+  end;
+
+  TTextAlign = (taLeft, taCenter, taRight);
+
+  // contained blocks are rows. The first row is the title row
+  TCMTableBlock = class (TCMContainerBlock)
+  private
+    FColumns: TArray<TTextAlign>;
+  protected
+    procedure render(parent : TCMBlock; b : TStringBuilder); override;
+  public
+    property columns : TArray<TTextAlign> read FColumns;
+  end;
+
   TCMLeafBlock = class abstract (TCMBlock);
 
   TCMThematicBreakBlock = class (TCMLeafBlock)
@@ -310,7 +330,7 @@ type
     // this procedure processes a line for nested blocks
     // return true if the block is done.
     // if false, modify the line, removing prepended characters, and remember to grab the characters as you go
-    function processLine(line : TCMLine; root : boolean; context : TCMBlockProcessingContext; var isLazy : boolean) : boolean; virtual; abstract;
+    function processLine(line : TCMLine; root : boolean; context : TCMBlockProcessingContext; isGFM : boolean; var isLazy : boolean) : boolean; virtual; abstract;
     function isList(ordered : boolean; marker : String; indent : integer) : boolean; virtual;
     function inListOrQuote : boolean; virtual;
     function parser : TCommonMarkEngine; virtual;
@@ -323,7 +343,7 @@ type
   private
     FParser : TCommonMarkEngine;
   protected
-    function processLine(line : TCMLine; root : boolean; context : TCMBlockProcessingContext; var isLazy : boolean) : boolean; override;
+    function processLine(line : TCMLine; root : boolean; context : TCMBlockProcessingContext; isGFM : boolean; var isLazy : boolean) : boolean; override;
     function parser : TCommonMarkEngine; override;
   public
     constructor Create(parser : TCommonMarkEngine);
@@ -333,7 +353,7 @@ type
   private
     quote : TCMQuoteBlock;
   protected
-    function processLine(line : TCMLine; root : boolean; context : TCMBlockProcessingContext; var isLazy : boolean) : boolean; override;
+    function processLine(line : TCMLine; root : boolean; context : TCMBlockProcessingContext; isGFM : boolean; var isLazy : boolean) : boolean; override;
     function inListOrQuote : boolean; override;
   public
     constructor Create(processor : TCMBlockProcessor; q : TCMQuoteBlock);
@@ -346,7 +366,7 @@ type
     FHasContent : boolean;
     FEmptyLine : integer;
   protected
-    function processLine(line : TCMLine; root : boolean; context : TCMBlockProcessingContext; var isLazy : boolean) : boolean; override;
+    function processLine(line : TCMLine; root : boolean; context : TCMBlockProcessingContext; isGFM : boolean; var isLazy : boolean) : boolean; override;
     function isList(ordered : boolean; marker : String; indent : integer) : boolean; override;
     function inListOrQuote : boolean; override;
   public
@@ -421,6 +441,7 @@ type
     FEntities : TDictionary<String, String>;
     FStack : TObjectList<TCMDelimiter>;
     FStyling : boolean;
+    FGFMExtensions : boolean;
 
     // line operations
     procedure parseLines(src : String);
@@ -447,6 +468,9 @@ type
     function parseEntityString(entity : String): String;
 
 
+    function isEndOfTable(line : TCMLine) : boolean;
+    procedure parseTableLine(t : TCMTableBlock; line : TCMLine);
+
     // status
     function inPara(blocks : TObjectList<TCMBlock>; canBeQuote : boolean) : boolean;
     function inList(blocks : TObjectList<TCMBlock>; ordered : boolean; marker : String; indent : integer; grace : integer; out list : TCMListBlock) : boolean;
@@ -462,6 +486,7 @@ type
     function parseQuoteBlock(blocks : TObjectList<TCMBlock>; line : TCMLine; processor : TCMBlockProcessor) : boolean;
     function parseUListBlock(blocks : TObjectList<TCMBlock>; line : TCMLine; processor : TCMBlockProcessor) : boolean;
     function parseOListBlock(blocks : TObjectList<TCMBlock>; line : TCMLine; processor : TCMBlockProcessor) : boolean;
+    function parseTableBlock(blocks : TObjectList<TCMBlock>; line : TCMLine; processor : TCMBlockProcessor) : boolean;
     procedure parse(block : TCMContainerBlock; processor : TCMBlockProcessor); overload;
 
     // link references
@@ -487,9 +512,13 @@ type
   public
     Constructor Create;
     Destructor Destroy; override;
-    // divided tinto 2 steps in case some consumer wants to process the syntax tree
-    class function parse(src : String) : TCommonMarkDocument; overload;
-    class function parseStyles(src : String) : TObjectList<TCMLine>; overload;
+    property GFMExtensions : boolean read FGFMExtensions write FGFMExtensions;
+
+    class function process(src : String; gfm : boolean) : String;
+
+    // divided into 2 steps in case some consumer wants to process the syntax tree
+    class function parse(src : String; gfm : boolean) : TCommonMarkDocument; overload;
+    class function parseStyles(src : String; gfm : boolean) : TObjectList<TCMLine>; overload;
     class function render(doc : TCommonMarkDocument) : String;
   end;
 
@@ -1274,7 +1303,7 @@ begin
   result := FParser;
 end;
 
-function TCMDocumentProcessor.processLine(line: TCMLine; root : boolean; context : TCMBlockProcessingContext; var isLazy : boolean): boolean;
+function TCMDocumentProcessor.processLine(line: TCMLine; root : boolean; context : TCMBlockProcessingContext; isGFM : boolean; var isLazy : boolean): boolean;
 begin
   result := false; // document is only ended by end of source
   isLazy := false;
@@ -1293,11 +1322,11 @@ begin
   result := true;
 end;
 
-function TCMQuoteProcessor.processLine(line: TCMLine; root : boolean; context : TCMBlockProcessingContext; var isLazy : boolean): boolean;
+function TCMQuoteProcessor.processLine(line: TCMLine; root : boolean; context : TCMBlockProcessingContext; isGFM : boolean; var isLazy : boolean): boolean;
 var
   len : integer;
 begin
-  result := FParent.processLine(line, false, context, isLazy);
+  result := FParent.processLine(line, false, context, isGFM, isLazy);
   if not result then
   begin
     if parser.startsWithWS(line.focus, '>', len) then
@@ -1350,11 +1379,11 @@ begin
   result := (FList.ordered = ordered) and (FList.marker = marker) and (indent < FList.lastIndent + 1);
 end;
 
-function TCMListProcessor.processLine(line: TCMLine; root: boolean; context : TCMBlockProcessingContext; var isLazy : boolean): boolean;
+function TCMListProcessor.processLine(line: TCMLine; root: boolean; context : TCMBlockProcessingContext; isGFM : boolean; var isLazy : boolean): boolean;
 var
   len : integer;
 begin
-  result := FParent.processLine(line, false, context, isLazy);
+  result := FParent.processLine(line, false, context, isGFM, isLazy);
   if not result then
   begin
     if parser.FCurrentLine = FItem.line then
@@ -1366,6 +1395,8 @@ begin
         len := FList.baseIndent;
       line.advance(len);
     end
+    else if isGFM and (line.countWS > 3) and (line.focus.Trim.StartsWith('-')) then
+      result := false
     else if not line.isWhitespace and parser.isBlock(FList, FItem.blocks, line.focus, FList.lastIndent+FList.grace) then
     begin
       result := true;
@@ -1643,7 +1674,7 @@ end;
 
 { TCommonMarkEngine }
 
-class function TCommonMarkEngine.parse(src: String): TCommonMarkDocument;
+class function TCommonMarkEngine.parse(src: String; gfm : boolean): TCommonMarkDocument;
 var
   this : TCommonMarkEngine;
   doc : TCMDocumentProcessor;
@@ -1652,6 +1683,7 @@ begin
   try
     this.FStyling := TEST_STYLING;
     this.parseLines(src.Replace(#13#10, #10).replace(#13, #10));
+    this.GFMExtensions := gfm;
     doc := TCMDocumentProcessor.Create(this);
     try
       result := TCommonMarkDocument.Create(1);
@@ -1667,7 +1699,7 @@ begin
   end;
 end;
 
-class function TCommonMarkEngine.parseStyles(src: String): TObjectList<TCMLine>;
+class function TCommonMarkEngine.parseStyles(src: String; gfm : boolean): TObjectList<TCMLine>;
 var
   this : TCommonMarkEngine;
   doc : TCMDocumentProcessor;
@@ -1677,6 +1709,7 @@ begin
   try
     this.FStyling := true;
     this.parseLines(src.Replace(#13#10, #10).replace(#13, #10));
+    this.GFMExtensions := gfm;
     doc := TCMDocumentProcessor.Create(this);
     try
       obj := TCommonMarkDocument.Create(1);
@@ -1713,6 +1746,7 @@ end;
 constructor TCommonMarkEngine.Create;
 begin
   inherited Create;
+  FGFMExtensions := true;
   FBuilder := TStringBuilder.Create;
   FStack := TObjectList<TCMDelimiter>.Create(true);
   FLines := TObjectList<TCMLine>.create(true);
@@ -1802,7 +1836,7 @@ begin
 end;
 
 const
-  STYLE_CODES : array [TCommonMarkStyle] of String = ('?', '.', '&', 'C', 'D', 'X', 'u');
+  STYLE_CODES : array [TCommonMarkStyle] of String = ('?', '.', '&', 'C', 'D', 'X', 'u', 't');
 
 procedure TCommonMarkEngine.checkLines;
 var
@@ -2057,6 +2091,16 @@ begin
   result := not p;
 end;
 
+
+function TCommonMarkEngine.isEndOfTable(line: TCMLine): boolean;
+var
+  s : String;
+begin
+  if line = nil then
+    exit(true);
+  s := line.FLine;
+  result := (s.Trim = '') or s.StartsWith('>') or line.FLine.StartsWith('   ') or s.StartsWith('#') or s.StartsWith('~');
+end;
 
 function TCommonMarkEngine.parseThematicBreak(blocks : TObjectList<TCMBlock>; line: TCMLine): boolean;
 var
@@ -2361,7 +2405,7 @@ begin
     else
     begin
       line := peekLine;
-      if (line = nil) or processor.processLine(line, true, bpCodeBlock, isLazy) then
+      if (line = nil) or processor.processLine(line, true, bpCodeBlock, FGFMExtensions, isLazy) then
         break;
       s := line.focus;
       if lengthWSCorrected(s) <= indent then
@@ -2371,7 +2415,7 @@ begin
       if more then
       begin
         line := grabLine;
-        processor.processLine(line, true, bpCodeBlock, isLazy);
+        processor.processLine(line, true, bpCodeBlock, FGFMExtensions, isLazy);
         line.advance(indent);
         s := line.focus;
       end;
@@ -2392,7 +2436,7 @@ var
     s : String;
   begin
     line := peekLine;
-    if (line = nil) or processor.processLine(line, true, bpFencedCodeBlock, isLazy) then
+    if (line = nil) or processor.processLine(line, true, bpFencedCodeBlock, FGFMExtensions, isLazy) then
     begin
       result := true;
       terminated := true;
@@ -2469,7 +2513,7 @@ begin
   while not done and not terminated and not isEnded do
   begin
     line := grabLine;
-    if (line = nil) or processor.processLine(line, true, bpFencedCodeBlock, isLazy) then
+    if (line = nil) or processor.processLine(line, true, bpFencedCodeBlock, FGFMExtensions, isLazy) then
       break;
     s := line.focus;
     if indent > 0 then
@@ -2493,10 +2537,10 @@ var
   p : TCMParagraphBlock;
   isLazy : boolean;
 begin
-  while not done do // must be at start of line here
+  while not done do
   begin
     line := grabLine;
-    if processor.processLine(line, true, bpGeneral, isLazy) then
+    if processor.processLine(line, true, bpGeneral, FGFMExtensions, isLazy) then
     begin
     // ok, we're done with this set of blocks, we'll try the line again one further up
       debug('redo: "'+line.focus+'"');
@@ -2513,6 +2557,7 @@ begin
     else if parseOListBlock(block.blocks, line, processor) then
     else if parseCodeBlock(block.blocks, line, processor) then
     else if parseFencedCodeBlock(block.blocks, line, processor) then
+    else if FGFMExtensions and parseTableBlock(block.blocks, line, processor) then
     else
     begin
       if inPara(block.blocks, true) then
@@ -3038,6 +3083,127 @@ begin
   end;
 end;
 
+function TCommonMarkEngine.parseTableBlock(blocks: TObjectList<TCMBlock>; line: TCMLine; processor: TCMBlockProcessor): boolean;
+  function cellCount(line : TCMLine) : Integer;
+  var
+    c : char;
+    esc : boolean;
+  begin
+    result := 0;
+    esc := false;
+    for c in line.FLine do
+    begin
+      if not esc and (c = '|') then
+        inc(result)
+      else if esc then
+        esc := false
+      else if c = '\' then
+        esc := true;
+    end;
+
+    if result > 0 then
+    begin
+      if not line.FLine.Trim.StartsWith('|') then
+        inc(result);
+      if not line.FLine.Trim.EndsWith('|') or line.FLine.Trim.EndsWith('\|') then
+        inc(result);
+    end;
+  end;
+var
+  c1, c2, i : integer;
+  s : String;
+  nl : TCMLine;
+  c : char;
+  t : TCMTableBlock;
+  a : TArray<String>;
+begin
+  result := false;
+  if line.isEmpty then
+    exit(false);
+  c1 := cellCount(line);
+  if c1 = 0 then
+    exit(false);
+  nl := peekLine;
+  if (nl = nil) then
+    exit(false);
+  for c in nl.FLine.Trim do
+    if not CharInSet(c, [' ', '|', '-', ':']) then
+      exit(false);
+  c2 := cellCount(nl);
+  if c1 <> c2 then
+    exit(false);
+  // ok, we have a table.....
+  result := true;
+  t := TCMTableBlock.Create(FCurrentLine);
+  blocks.Add(t);
+
+  parseTableLine(t, line);
+  grabLine; // nl
+  nl.markRemainder(cmTableMarker);
+  s := nl.FLine.Trim;
+  if s.StartsWith('|') then
+    s := s.Substring(1);
+  if s.EndsWith('|') then
+    s := s.Substring(0, s.Length-1);
+  a := s.Split(['|']);
+  SetLength(t.FColumns, length(a));
+  for i := 0 to length(a) - 1 do
+  begin
+    s := a[i].Trim;
+    if s.StartsWith(':') and s.EndsWith(':') then
+      t.FColumns[i] := taCenter
+    else if s.EndsWith(':') then
+      t.FColumns[i] := taRight
+    else
+      t.FColumns[i] := taLeft;
+  end;
+  while not isEndOfTable(peekLine) do
+    parseTableLine(t, grabLine);
+end;
+
+procedure TCommonMarkEngine.parseTableLine(t: TCMTableBlock; line: TCMLine);
+var
+  l, i : integer;
+  esc : boolean;
+  r : TCMTableRowBlock;
+  procedure addCell(b, e : integer);
+  var
+    s : String;
+  begin
+    s := copy(line.FLine, b, e-b);
+    s := s.Trim.replace('\|', '|');
+    r.blocks.Add(TCMTextBlock.Create(line.FIndex, s));
+  end;
+begin
+  r := TCMTableRowBlock.Create(line.FIndex);
+  t.blocks.Add(r);
+  line.markRemainder(cmText);
+  i := 1;
+  l := 1;
+  esc := false;
+  while i <= line.FLine.Length do
+  begin
+    if (i = 1) and (line.fLine[i] = '|') then
+    begin
+      line.updateStyle(l, i+1, cmTableMarker);
+      l := i+1;
+    end
+    else if esc then
+      esc := false
+    else if line.FLine[i] = '\' then
+      esc := true
+    else if line.FLine[i] = '|' then
+    begin
+      addCell(l, i);
+      line.updateStyle(l, i+1, cmTableMarker);
+      l := i+1;
+    end;
+    inc(i);
+  end;
+  if (l < i) then
+    addCell(l, i);
+end;
+
 procedure TCommonMarkEngine.parseText(lexer: TCMTextLexer; nodes: TCMTextNodes; wsMode : TCMWhitespaceMode);
 var
   seenNonWhitespace : boolean;
@@ -3111,6 +3277,18 @@ begin
   if block is TCMContainerBlock then
     for c in (block as TCMContainerBlock).blocks do
       processInlines(c, block.wsMode);
+end;
+
+class function TCommonMarkEngine.process(src: String; gfm : boolean): String;
+var
+  doc : TCommonMarkDocument;
+begin
+  doc := parse(src, gfm);
+  try
+    result := render(doc);
+  finally
+    doc.Free;
+  end;
 end;
 
 procedure TCommonMarkEngine.processEmphasis(nodes : TCMTextNodes; stopDel: TCMDelimiter);
@@ -3227,7 +3405,7 @@ function TCommonMarkProcessor.process(source: String): String;
 var
   doc : TCommonMarkDocument;
 begin
-  doc := TCommonMarkEngine.parse(source);
+  doc := TCommonMarkEngine.parse(source, true);
   try
     result := TCommonMarkEngine.render(doc);
   finally
@@ -3240,6 +3418,57 @@ procedure TCommonMarkProcessor.SetUnSafe(const value: boolean);
 begin
   if value then
     raise Exception.Create('The common mark processor cannot operate in unsafe mode+');
+end;
+
+{ TCMTableBlock }
+
+procedure TCMTableBlock.render(parent: TCMBlock; b: TStringBuilder);
+var
+  i : integer;
+begin
+  b.Append('<table>'#10);
+  b.Append('<thead>'#10);
+  blocks[0].render(self, b);
+  b.Append('</thead>'#10);
+  if blocks.Count > 1 then
+  begin
+    b.Append('<tbody>'#10);
+    for i := 1 to blocks.Count -1  do
+      blocks[i].render(self, b);
+    b.Append('</tbody>'#10);
+  end;
+  b.Append('</table>'#10);
+end;
+
+{ TCMTableRowBlock }
+
+procedure TCMTableRowBlock.render(parent: TCMBlock; b: TStringBuilder);
+var
+  first : boolean;
+  i : integer;
+  attr : String;
+begin
+  first := (parent as TCMContainerBlock).blocks.First = self;
+  b.Append('<tr>'#10);
+  for i := 0 to length((parent as TCMTableBlock).FColumns) - 1 do
+  begin
+    case (parent as TCMTableBlock).FColumns[i] of
+      taLeft : attr := '';
+      taCenter : attr := ' align="center"';
+      taRight : attr := ' align="right"';
+    end;
+    if first then
+      b.Append('<th'+attr+'>')
+    else
+      b.Append('<td'+attr+'>');
+    if i < blocks.Count then
+      blocks[i].render(self, b);
+    if first then
+      b.Append('</th>'#10)
+    else
+      b.Append('</td>'#10)
+  end;
+  b.Append('</tr>'#10);
 end;
 
 end.
