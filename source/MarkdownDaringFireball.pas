@@ -2911,23 +2911,17 @@ begin
               if (p + 1 < Length(value)) then
               begin
                 if (value[1 + p + 1]) = '}' then
-                begin
                   inc(p);
-                  break;
-                end;
               end;
               inc(p);
-              break;
             end;
           '}':
             begin
               found := true;
-              break;
             end;
         else
           begin
             inc(p);
-            break;
           end;
         end;
 

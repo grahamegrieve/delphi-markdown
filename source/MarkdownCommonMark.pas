@@ -113,7 +113,7 @@ type
     FOpener, FCloser : boolean;
     FActive: boolean;
     FPos : TLocation; // start offset in this text
-    Start : Integer;
+//    Start : Integer;
     function GetAttrs: TDictionary<String, String>;
 
     function renderAttrs : String;
