@@ -70,7 +70,7 @@ const
   TEST_STYLING = false; // set this true to check style tracking while doing unit tests (10% speed hit)
 
 type
-  TCommonMarkStyle = (cmUnknown, cmText, cmEntity, cmControlChar, cmDelimiter, cmCode, cmURL, cmTableMarker);
+  TCommonMarkStyle = (cmUnknown, cmText, cmEntity, cmControlChar, cmDelimiter, cmCode, cmURL, cmTableMarker, cmDel);
 
   {$IFDEF FPC}
 
@@ -410,6 +410,7 @@ type
     function grab(style : TCommonMarkStyle; length : integer) : String; overload;
     function has(s : string) : boolean;
     function runExistsAfter(s : String) : boolean;
+    function runExistsAfterBeforeChar(s : String; c : char) : boolean;
     procedure skipWS;
     function location : TLocation;
   end;
@@ -497,6 +498,7 @@ type
     procedure parseEntity(lexer : TCMTextLexer; nodes : TCMTextNodes; wsMode : TCMWhitespaceMode);
     function parseEntityInner(lexer : TCMTextLexer) : String;
     procedure parseBackTick(lexer : TCMTextLexer; nodes: TCMTextNodes; wsMode : TCMWhitespaceMode);
+    procedure parseTilde(lexer : TCMTextLexer; nodes: TCMTextNodes; wsMode : TCMWhitespaceMode);
     procedure parseAutoLink(lexer : TCMTextLexer; nodes : TCMTextNodes; wsMode : TCMWhitespaceMode);
     procedure parseDelimiter(lexer : TCMTextLexer; nodes : TCMTextNodes; wsMode : TCMWhitespaceMode; canRun : boolean);
     procedure parseCloseDelimiter(lexer : TCMTextLexer; nodes : TCMTextNodes; wsMode : TCMWhitespaceMode);
@@ -1471,6 +1473,23 @@ begin
   end;
 end;
 
+function TCMTextLexer.runExistsAfterBeforeChar(s: String; c : char): boolean;
+var
+  i, len : integer;
+begin
+  len := s.Length;
+  i := FCursor + len;
+  result := false;
+  while i+len <= FText.Length + 1 do
+  begin
+    if FText[i] = c then
+      exit(false);
+    if (copy(FText, i, len) = s) and (FText[i-1] <> s[1]) and ((i+len = FText.Length+1) or (FText[i+len] <> s[1])) then
+      exit(true);
+    inc(i);
+  end;
+end;
+
 procedure TCMTextLexer.skipWS;
 begin
   while isWhitespaceChar(peek) do
@@ -1836,7 +1855,7 @@ begin
 end;
 
 const
-  STYLE_CODES : array [TCommonMarkStyle] of String = ('?', '.', '&', 'C', 'D', 'X', 'u', 't');
+  STYLE_CODES : array [TCommonMarkStyle] of String = ('?', '.', '&', 'C', 'D', 'X', 'u', 't', '~');
 
 procedure TCommonMarkEngine.checkLines;
 var
@@ -2746,6 +2765,43 @@ begin
   FStack.Add(TCMDelimiter.Create(n, s, m));
 end;
 
+procedure TCommonMarkEngine.parseTilde(lexer: TCMTextLexer; nodes: TCMTextNodes; wsMode: TCMWhitespaceMode);
+var
+  s : String;
+  ws, first : boolean;
+  ch : char;
+begin
+  s := lexer.peekRun(false);
+  if FGFMExtensions and (length(s) = 2) and lexer.runExistsAfterBeforeChar(s, #10) then
+  begin
+    nodes.addOpener(lexer.location, 'del');
+    lexer.grab(cmControlChar, s.Length);
+    ws := false;
+    first := true;
+    while lexer.peekRun(true) <> s do
+    begin
+      ch := lexer.peek;
+      if CharInSet(ch, [' ', #10]) then
+      begin
+        ws := true;
+        lexer.grab(cmDel);
+      end
+      else
+      begin
+        if ws and not first then
+          nodes.addText(lexer.location, ' ');
+        first := false;
+        ws := false;
+        nodes.addText(lexer.location, htmlEscape(lexer.grab(cmDel)));
+      end;
+    end;
+    nodes.addCloser(lexer.location, 'del');
+    lexer.grab(cmControlChar, s.Length);
+  end
+  else
+    nodes.addText(lexer.location, lexer.grab(cmText, s.Length));
+end;
+
 procedure TCommonMarkEngine.parseBackTick(lexer: TCMTextLexer; nodes: TCMTextNodes; wsMode: TCMWhitespaceMode);
 var
   s : String;
@@ -3066,6 +3122,7 @@ begin
     '>', '"' : nodes.addText(lexer.location, htmlEscape(lexer.grab(cmText)));
     '&' : parseEntity(lexer, nodes, wsMode);
     '`' : parseBackTick(lexer, nodes, wsMode);
+    '~' : parseTilde(lexer, nodes, wsMode);
     '*' : parseDelimiter(lexer, nodes, wsMode, true);
     '_' : if isWhitespaceChar(lexer.peekLast) or isEscapable(lexer.peekLast) or (lexer.peekLast = #0) or
              isWhitespaceChar(lexer.peekEndRun) or isEscapable(lexer.peekEndRun) or (lexer.peekEndRun = #0) then
