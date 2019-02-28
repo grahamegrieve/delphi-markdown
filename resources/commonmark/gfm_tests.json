@@ -2648,6 +2648,7 @@
     "start_line": 5409,
     "end_line": 5426,
     "section": "Lists",
+    "mode" : "too-hard",
     "extensions": []
   },
   {
@@ -2684,6 +2685,7 @@
     "start_line": 5498,
     "end_line": 5516,
     "section": "Lists",
+    "mode" : "link  ref",
     "extensions": []
   },
   {
@@ -2863,6 +2865,7 @@
     "example": 311,
     "start_line": 5821,
     "end_line": 5825,
+    "mode" : "html",
     "section": "Backslash escapes",
     "extensions": []
   },
@@ -2879,6 +2882,7 @@
     "markdown": "[foo]\n\n[foo]: /bar\\* \"ti\\*tle\"\n",
     "html": "<p><a href=\"/bar*\" title=\"ti*tle\">foo</a></p>\n",
     "example": 313,
+    "mode" : "linkref",
     "start_line": 5838,
     "end_line": 5844,
     "section": "Backslash escapes",
@@ -2951,6 +2955,7 @@
     "markdown": "<a href=\"&ouml;&ouml;.html\">\n",
     "html": "<a href=\"&ouml;&ouml;.html\">\n",
     "example": 321,
+    "mode" : "html",
     "start_line": 5953,
     "end_line": 5957,
     "section": "Entity and numeric character references",
@@ -2969,6 +2974,7 @@
     "markdown": "[foo]\n\n[foo]: /f&ouml;&ouml; \"f&ouml;&ouml;\"\n",
     "html": "<p><a href=\"/f%C3%B6%C3%B6\" title=\"f\u00f6\u00f6\">foo</a></p>\n",
     "example": 323,
+    "mode" : "linkref",
     "start_line": 5967,
     "end_line": 5973,
     "section": "Entity and numeric character references",
@@ -3030,7 +3036,7 @@
   },
   {
     "markdown": "`  ``  `\n",
-    "html": "<p><code> `` </code></p>\n",
+    "html": "<p><code>``</code></p>\n",
     "example": 330,
     "start_line": 6053,
     "end_line": 6057,
@@ -3039,7 +3045,7 @@
   },
   {
     "markdown": "` a`\n",
-    "html": "<p><code> a</code></p>\n",
+    "html": "<p><code>a</code></p>\n",
     "example": 331,
     "start_line": 6062,
     "end_line": 6066,
@@ -3057,7 +3063,7 @@
   },
   {
     "markdown": "``\nfoo\nbar  \nbaz\n``\n",
-    "html": "<p><code>foo bar   baz</code></p>\n",
+    "html": "<p><code>foo bar baz</code></p>\n",
     "example": 333,
     "start_line": 6080,
     "end_line": 6088,
@@ -3066,7 +3072,7 @@
   },
   {
     "markdown": "``\nfoo \n``\n",
-    "html": "<p><code>foo </code></p>\n",
+    "html": "<p><code>foo</code></p>\n",
     "example": 334,
     "start_line": 6090,
     "end_line": 6096,
@@ -3075,7 +3081,7 @@
   },
   {
     "markdown": "`foo   bar \nbaz`\n",
-    "html": "<p><code>foo   bar  baz</code></p>\n",
+    "html": "<p><code>foo bar baz</code></p>\n",
     "example": 335,
     "start_line": 6101,
     "end_line": 6106,
@@ -3140,6 +3146,7 @@
     "markdown": "<a href=\"`\">`\n",
     "html": "<p><a href=\"`\">`</p>\n",
     "example": 342,
+    "mode" : "html",
     "start_line": 6175,
     "end_line": 6179,
     "section": "Code spans",
@@ -3221,6 +3228,7 @@
     "markdown": "*\u00a0a\u00a0*\n",
     "html": "<p>*\u00a0a\u00a0*</p>\n",
     "example": 351,
+    "mode" : "too-hard",
     "start_line": 6464,
     "end_line": 6468,
     "section": "Emphasis and strong emphasis",
@@ -4292,6 +4300,7 @@
     "markdown": "*<img src=\"foo\" title=\"*\"/>\n",
     "html": "<p>*<img src=\"foo\" title=\"*\"/></p>\n",
     "example": 470,
+    "mode" : "html",
     "start_line": 7502,
     "end_line": 7506,
     "section": "Emphasis and strong emphasis",
@@ -4300,6 +4309,7 @@
   {
     "markdown": "**<a href=\"**\">\n",
     "html": "<p>**<a href=\"**\"></p>\n",
+    "mode" : "html",
     "example": 471,
     "start_line": 7509,
     "end_line": 7513,
@@ -4309,6 +4319,7 @@
   {
     "markdown": "__<a href=\"__\">\n",
     "html": "<p>__<a href=\"__\"></p>\n",
+    "mode" : "html",
     "example": 472,
     "start_line": 7516,
     "end_line": 7520,
@@ -4438,7 +4449,7 @@
   },
   {
     "markdown": "[link](<foo\nbar>)\n",
-    "html": "<p>[link](<foo\nbar>)</p>\n",
+    "html": "<p>[link](&lt;foo\nbar&gt;)</p>\n",
     "example": 486,
     "start_line": 7710,
     "end_line": 7716,
@@ -4701,6 +4712,7 @@
     "markdown": "[foo <bar attr=\"](baz)\">\n",
     "html": "<p>[foo <bar attr=\"](baz)\"></p>\n",
     "example": 515,
+    "mode" : "too-hard",
     "start_line": 8000,
     "end_line": 8004,
     "section": "Links",
@@ -4728,6 +4740,7 @@
     "markdown": "[foo][bar]\n\n[bar]: /url \"title\"\n",
     "html": "<p><a href=\"/url\" title=\"title\">foo</a></p>\n",
     "example": 518,
+    "mode" : "linkref",
     "start_line": 8052,
     "end_line": 8058,
     "section": "Links",
@@ -4736,6 +4749,7 @@
   {
     "markdown": "[link [foo [bar]]][ref]\n\n[ref]: /uri\n",
     "html": "<p><a href=\"/uri\">link [foo [bar]]</a></p>\n",
+    "mode" : "linkref",
     "example": 519,
     "start_line": 8067,
     "end_line": 8073,
@@ -4745,6 +4759,7 @@
   {
     "markdown": "[link \\[bar][ref]\n\n[ref]: /uri\n",
     "html": "<p><a href=\"/uri\">link [bar</a></p>\n",
+    "mode" : "linkref",
     "example": 520,
     "start_line": 8076,
     "end_line": 8082,
@@ -4755,6 +4770,7 @@
     "markdown": "[link *foo **bar** `#`*][ref]\n\n[ref]: /uri\n",
     "html": "<p><a href=\"/uri\">link <em>foo <strong>bar</strong> <code>#</code></em></a></p>\n",
     "example": 521,
+    "mode" : "linkref",
     "start_line": 8087,
     "end_line": 8093,
     "section": "Links",
@@ -4764,6 +4780,7 @@
     "markdown": "[![moon](moon.jpg)][ref]\n\n[ref]: /uri\n",
     "html": "<p><a href=\"/uri\"><img src=\"moon.jpg\" alt=\"moon\" /></a></p>\n",
     "example": 522,
+    "mode" : "linkref",
     "start_line": 8096,
     "end_line": 8102,
     "section": "Links",
@@ -4773,6 +4790,7 @@
     "markdown": "[foo [bar](/uri)][ref]\n\n[ref]: /uri\n",
     "html": "<p>[foo <a href=\"/uri\">bar</a>]<a href=\"/uri\">ref</a></p>\n",
     "example": 523,
+    "mode" : "linkref",
     "start_line": 8107,
     "end_line": 8113,
     "section": "Links",
@@ -4782,6 +4800,7 @@
     "markdown": "[foo *bar [baz][ref]*][ref]\n\n[ref]: /uri\n",
     "html": "<p>[foo <em>bar <a href=\"/uri\">baz</a></em>]<a href=\"/uri\">ref</a></p>\n",
     "example": 524,
+    "mode" : "linkref",
     "start_line": 8116,
     "end_line": 8122,
     "section": "Links",
@@ -4791,6 +4810,7 @@
     "markdown": "*[foo*][ref]\n\n[ref]: /uri\n",
     "html": "<p>*<a href=\"/uri\">foo*</a></p>\n",
     "example": 525,
+    "mode" : "linkref",
     "start_line": 8131,
     "end_line": 8137,
     "section": "Links",
@@ -4800,6 +4820,7 @@
     "markdown": "[foo *bar][ref]\n\n[ref]: /uri\n",
     "html": "<p><a href=\"/uri\">foo *bar</a></p>\n",
     "example": 526,
+    "mode" : "linkref",
     "start_line": 8140,
     "end_line": 8146,
     "section": "Links",
@@ -4809,6 +4830,7 @@
     "markdown": "[foo <bar attr=\"][ref]\">\n\n[ref]: /uri\n",
     "html": "<p>[foo <bar attr=\"][ref]\"></p>\n",
     "example": 527,
+    "mode" : "linkref",
     "start_line": 8152,
     "end_line": 8158,
     "section": "Links",
@@ -4817,6 +4839,7 @@
   {
     "markdown": "[foo`][ref]`\n\n[ref]: /uri\n",
     "html": "<p>[foo<code>][ref]</code></p>\n",
+    "mode" : "linkref",
     "example": 528,
     "start_line": 8161,
     "end_line": 8167,
@@ -4827,6 +4850,7 @@
     "markdown": "[foo<http://example.com/?search=][ref]>\n\n[ref]: /uri\n",
     "html": "<p>[foo<a href=\"http://example.com/?search=%5D%5Bref%5D\">http://example.com/?search=][ref]</a></p>\n",
     "example": 529,
+    "mode" : "linkref",
     "start_line": 8170,
     "end_line": 8176,
     "section": "Links",
@@ -4836,6 +4860,7 @@
     "markdown": "[foo][BaR]\n\n[bar]: /url \"title\"\n",
     "html": "<p><a href=\"/url\" title=\"title\">foo</a></p>\n",
     "example": 530,
+    "mode" : "linkref",
     "start_line": 8181,
     "end_line": 8187,
     "section": "Links",
@@ -4845,6 +4870,7 @@
     "markdown": "[\u0422\u043e\u043b\u043f\u043e\u0439][\u0422\u043e\u043b\u043f\u043e\u0439] is a Russian word.\n\n[\u0422\u041e\u041b\u041f\u041e\u0419]: /url\n",
     "html": "<p><a href=\"/url\">\u0422\u043e\u043b\u043f\u043e\u0439</a> is a Russian word.</p>\n",
     "example": 531,
+    "mode" : "linkref",
     "start_line": 8192,
     "end_line": 8198,
     "section": "Links",
@@ -4854,6 +4880,7 @@
     "markdown": "[Foo\n  bar]: /url\n\n[Baz][Foo bar]\n",
     "html": "<p><a href=\"/url\">Baz</a></p>\n",
     "example": 532,
+    "mode" : "linkref",
     "start_line": 8204,
     "end_line": 8211,
     "section": "Links",
@@ -4862,6 +4889,7 @@
   {
     "markdown": "[foo] [bar]\n\n[bar]: /url \"title\"\n",
     "html": "<p>[foo] <a href=\"/url\" title=\"title\">bar</a></p>\n",
+    "mode" : "linkref",
     "example": 533,
     "start_line": 8217,
     "end_line": 8223,
@@ -4872,6 +4900,7 @@
     "markdown": "[foo]\n[bar]\n\n[bar]: /url \"title\"\n",
     "html": "<p>[foo]\n<a href=\"/url\" title=\"title\">bar</a></p>\n",
     "example": 534,
+    "mode" : "linkref",
     "start_line": 8226,
     "end_line": 8234,
     "section": "Links",
@@ -4880,6 +4909,7 @@
   {
     "markdown": "[foo]: /url1\n\n[foo]: /url2\n\n[bar][foo]\n",
     "html": "<p><a href=\"/url1\">bar</a></p>\n",
+    "mode" : "linkref",
     "example": 535,
     "start_line": 8267,
     "end_line": 8275,
@@ -4889,6 +4919,7 @@
   {
     "markdown": "[bar][foo\\!]\n\n[foo!]: /url\n",
     "html": "<p>[bar][foo!]</p>\n",
+    "mode" : "linkref",
     "example": 536,
     "start_line": 8282,
     "end_line": 8288,
@@ -4899,6 +4930,7 @@
     "markdown": "[foo][ref[]\n\n[ref[]: /uri\n",
     "html": "<p>[foo][ref[]</p>\n<p>[ref[]: /uri</p>\n",
     "example": 537,
+    "mode" : "linkref",
     "start_line": 8294,
     "end_line": 8301,
     "section": "Links",
@@ -4908,6 +4940,7 @@
     "markdown": "[foo][ref[bar]]\n\n[ref[bar]]: /uri\n",
     "html": "<p>[foo][ref[bar]]</p>\n<p>[ref[bar]]: /uri</p>\n",
     "example": 538,
+    "mode" : "linkref",
     "start_line": 8304,
     "end_line": 8311,
     "section": "Links",
@@ -4917,6 +4950,7 @@
     "markdown": "[[[foo]]]\n\n[[[foo]]]: /url\n",
     "html": "<p>[[[foo]]]</p>\n<p>[[[foo]]]: /url</p>\n",
     "example": 539,
+    "mode" : "linkref",
     "start_line": 8314,
     "end_line": 8321,
     "section": "Links",
@@ -4926,6 +4960,7 @@
     "markdown": "[foo][ref\\[]\n\n[ref\\[]: /uri\n",
     "html": "<p><a href=\"/uri\">foo</a></p>\n",
     "example": 540,
+    "mode" : "linkref",
     "start_line": 8324,
     "end_line": 8330,
     "section": "Links",
@@ -4937,6 +4972,7 @@
     "example": 541,
     "start_line": 8335,
     "end_line": 8341,
+    "mode" : "linkref",
     "section": "Links",
     "extensions": []
   },
@@ -4944,6 +4980,7 @@
     "markdown": "[]\n\n[]: /uri\n",
     "html": "<p>[]</p>\n<p>[]: /uri</p>\n",
     "example": 542,
+    "mode" : "linkref",
     "start_line": 8346,
     "end_line": 8353,
     "section": "Links",
@@ -4953,6 +4990,7 @@
     "markdown": "[\n ]\n\n[\n ]: /uri\n",
     "html": "<p>[\n]</p>\n<p>[\n]: /uri</p>\n",
     "example": 543,
+    "mode" : "linkref",
     "start_line": 8356,
     "end_line": 8367,
     "section": "Links",
@@ -4962,6 +5000,7 @@
     "markdown": "[foo][]\n\n[foo]: /url \"title\"\n",
     "html": "<p><a href=\"/url\" title=\"title\">foo</a></p>\n",
     "example": 544,
+    "mode" : "linkref",
     "start_line": 8379,
     "end_line": 8385,
     "section": "Links",
@@ -4970,6 +5009,7 @@
   {
     "markdown": "[*foo* bar][]\n\n[*foo* bar]: /url \"title\"\n",
     "html": "<p><a href=\"/url\" title=\"title\"><em>foo</em> bar</a></p>\n",
+    "mode" : "linkref",
     "example": 545,
     "start_line": 8388,
     "end_line": 8394,
@@ -4979,6 +5019,7 @@
   {
     "markdown": "[Foo][]\n\n[foo]: /url \"title\"\n",
     "html": "<p><a href=\"/url\" title=\"title\">Foo</a></p>\n",
+    "mode" : "linkref",
     "example": 546,
     "start_line": 8399,
     "end_line": 8405,
@@ -4988,6 +5029,7 @@
   {
     "markdown": "[foo] \n[]\n\n[foo]: /url \"title\"\n",
     "html": "<p><a href=\"/url\" title=\"title\">foo</a>\n[]</p>\n",
+    "mode" : "linkref",
     "example": 547,
     "start_line": 8412,
     "end_line": 8420,
@@ -4997,6 +5039,7 @@
   {
     "markdown": "[foo]\n\n[foo]: /url \"title\"\n",
     "html": "<p><a href=\"/url\" title=\"title\">foo</a></p>\n",
+    "mode" : "linkref",
     "example": 548,
     "start_line": 8432,
     "end_line": 8438,
@@ -5006,6 +5049,7 @@
   {
     "markdown": "[*foo* bar]\n\n[*foo* bar]: /url \"title\"\n",
     "html": "<p><a href=\"/url\" title=\"title\"><em>foo</em> bar</a></p>\n",
+    "mode" : "linkref",
     "example": 549,
     "start_line": 8441,
     "end_line": 8447,
@@ -5015,6 +5059,7 @@
   {
     "markdown": "[[*foo* bar]]\n\n[*foo* bar]: /url \"title\"\n",
     "html": "<p>[<a href=\"/url\" title=\"title\"><em>foo</em> bar</a>]</p>\n",
+    "mode" : "linkref",
     "example": 550,
     "start_line": 8450,
     "end_line": 8456,
@@ -5024,6 +5069,7 @@
   {
     "markdown": "[[bar [foo]\n\n[foo]: /url\n",
     "html": "<p>[[bar <a href=\"/url\">foo</a></p>\n",
+    "mode" : "linkref",
     "example": 551,
     "start_line": 8459,
     "end_line": 8465,
@@ -5032,6 +5078,7 @@
   },
   {
     "markdown": "[Foo]\n\n[foo]: /url \"title\"\n",
+    "mode" : "linkref",
     "html": "<p><a href=\"/url\" title=\"title\">Foo</a></p>\n",
     "example": 552,
     "start_line": 8470,
@@ -5041,6 +5088,7 @@
   },
   {
     "markdown": "[foo] bar\n\n[foo]: /url\n",
+    "mode" : "linkref",
     "html": "<p><a href=\"/url\">foo</a> bar</p>\n",
     "example": 553,
     "start_line": 8481,
@@ -5051,6 +5099,7 @@
   {
     "markdown": "\\[foo]\n\n[foo]: /url \"title\"\n",
     "html": "<p>[foo]</p>\n",
+    "mode" : "linkref",
     "example": 554,
     "start_line": 8493,
     "end_line": 8499,
@@ -5060,6 +5109,7 @@
   {
     "markdown": "[foo*]: /url\n\n*[foo*]\n",
     "html": "<p>*<a href=\"/url\">foo*</a></p>\n",
+    "mode" : "linkref",
     "example": 555,
     "start_line": 8505,
     "end_line": 8511,
@@ -5070,6 +5120,7 @@
     "markdown": "[foo][bar]\n\n[foo]: /url1\n[bar]: /url2\n",
     "html": "<p><a href=\"/url2\">foo</a></p>\n",
     "example": 556,
+    "mode" : "linkref",
     "start_line": 8517,
     "end_line": 8524,
     "section": "Links",
@@ -5078,6 +5129,7 @@
   {
     "markdown": "[foo][]\n\n[foo]: /url1\n",
     "html": "<p><a href=\"/url1\">foo</a></p>\n",
+    "mode" : "linkref",
     "example": 557,
     "start_line": 8526,
     "end_line": 8532,
@@ -5087,6 +5139,7 @@
   {
     "markdown": "[foo]()\n\n[foo]: /url1\n",
     "html": "<p><a href=\"\">foo</a></p>\n",
+    "mode" : "linkref",
     "example": 558,
     "start_line": 8536,
     "end_line": 8542,
@@ -5096,6 +5149,7 @@
   {
     "markdown": "[foo](not a link)\n\n[foo]: /url1\n",
     "html": "<p><a href=\"/url1\">foo</a>(not a link)</p>\n",
+    "mode" : "linkref",
     "example": 559,
     "start_line": 8544,
     "end_line": 8550,
@@ -5106,6 +5160,7 @@
     "markdown": "[foo][bar][baz]\n\n[baz]: /url\n",
     "html": "<p>[foo]<a href=\"/url\">bar</a></p>\n",
     "example": 560,
+    "mode" : "linkref",
     "start_line": 8555,
     "end_line": 8561,
     "section": "Links",
@@ -5114,6 +5169,7 @@
   {
     "markdown": "[foo][bar][baz]\n\n[baz]: /url1\n[bar]: /url2\n",
     "html": "<p><a href=\"/url2\">foo</a><a href=\"/url1\">baz</a></p>\n",
+    "mode" : "linkref",
     "example": 561,
     "start_line": 8567,
     "end_line": 8574,
@@ -5124,6 +5180,7 @@
     "markdown": "[foo][bar][baz]\n\n[baz]: /url1\n[foo]: /url2\n",
     "html": "<p>[foo]<a href=\"/url1\">bar</a></p>\n",
     "example": 562,
+    "mode" : "linkref",
     "start_line": 8580,
     "end_line": 8587,
     "section": "Links",
@@ -5142,6 +5199,7 @@
     "markdown": "![foo *bar*]\n\n[foo *bar*]: train.jpg \"train & tracks\"\n",
     "html": "<p><img src=\"train.jpg\" alt=\"foo bar\" title=\"train &amp; tracks\" /></p>\n",
     "example": 564,
+    "mode" : "linkref",
     "start_line": 8610,
     "end_line": 8616,
     "section": "Images",
@@ -5169,6 +5227,7 @@
     "markdown": "![foo *bar*][]\n\n[foo *bar*]: train.jpg \"train & tracks\"\n",
     "html": "<p><img src=\"train.jpg\" alt=\"foo bar\" title=\"train &amp; tracks\" /></p>\n",
     "example": 567,
+    "mode" : "linkref",
     "start_line": 8640,
     "end_line": 8646,
     "section": "Images",
@@ -5179,6 +5238,7 @@
     "html": "<p><img src=\"train.jpg\" alt=\"foo bar\" title=\"train &amp; tracks\" /></p>\n",
     "example": 568,
     "start_line": 8649,
+    "mode" : "linkref",
     "end_line": 8655,
     "section": "Images",
     "extensions": []
@@ -5222,6 +5282,7 @@
   {
     "markdown": "![foo][bar]\n\n[bar]: /url\n",
     "html": "<p><img src=\"/url\" alt=\"foo\" /></p>\n",
+    "mode" : "linkref",
     "example": 573,
     "start_line": 8688,
     "end_line": 8694,
@@ -5232,6 +5293,7 @@
     "markdown": "![foo][bar]\n\n[BAR]: /url\n",
     "html": "<p><img src=\"/url\" alt=\"foo\" /></p>\n",
     "example": 574,
+    "mode" : "linkref",
     "start_line": 8697,
     "end_line": 8703,
     "section": "Images",
@@ -5241,6 +5303,7 @@
     "markdown": "![foo][]\n\n[foo]: /url \"title\"\n",
     "html": "<p><img src=\"/url\" alt=\"foo\" title=\"title\" /></p>\n",
     "example": 575,
+    "mode" : "linkref",
     "start_line": 8708,
     "end_line": 8714,
     "section": "Images",
@@ -5251,6 +5314,7 @@
     "html": "<p><img src=\"/url\" alt=\"foo bar\" title=\"title\" /></p>\n",
     "example": 576,
     "start_line": 8717,
+    "mode" : "linkref",
     "end_line": 8723,
     "section": "Images",
     "extensions": []
@@ -5258,6 +5322,7 @@
   {
     "markdown": "![Foo][]\n\n[foo]: /url \"title\"\n",
     "html": "<p><img src=\"/url\" alt=\"Foo\" title=\"title\" /></p>\n",
+    "mode" : "linkref",
     "example": 577,
     "start_line": 8728,
     "end_line": 8734,
@@ -5268,6 +5333,7 @@
     "markdown": "![foo] \n[]\n\n[foo]: /url \"title\"\n",
     "html": "<p><img src=\"/url\" alt=\"foo\" title=\"title\" />\n[]</p>\n",
     "example": 578,
+    "mode" : "linkref",
     "start_line": 8740,
     "end_line": 8748,
     "section": "Images",
@@ -5277,6 +5343,7 @@
     "markdown": "![foo]\n\n[foo]: /url \"title\"\n",
     "html": "<p><img src=\"/url\" alt=\"foo\" title=\"title\" /></p>\n",
     "example": 579,
+    "mode" : "linkref",
     "start_line": 8753,
     "end_line": 8759,
     "section": "Images",
@@ -5285,6 +5352,7 @@
   {
     "markdown": "![*foo* bar]\n\n[*foo* bar]: /url \"title\"\n",
     "html": "<p><img src=\"/url\" alt=\"foo bar\" title=\"title\" /></p>\n",
+    "mode" : "linkref",
     "example": 580,
     "start_line": 8762,
     "end_line": 8768,
@@ -5296,6 +5364,7 @@
     "html": "<p>![[foo]]</p>\n<p>[[foo]]: /url &quot;title&quot;</p>\n",
     "example": 581,
     "start_line": 8773,
+    "mode" : "linkref",
     "end_line": 8780,
     "section": "Images",
     "extensions": []
@@ -5304,6 +5373,7 @@
     "markdown": "![Foo]\n\n[foo]: /url \"title\"\n",
     "html": "<p><img src=\"/url\" alt=\"Foo\" title=\"title\" /></p>\n",
     "example": 582,
+    "mode" : "linkref",
     "start_line": 8785,
     "end_line": 8791,
     "section": "Images",
@@ -5313,6 +5383,7 @@
     "markdown": "!\\[foo]\n\n[foo]: /url \"title\"\n",
     "html": "<p>![foo]</p>\n",
     "example": 583,
+    "mode" : "linkref",
     "start_line": 8797,
     "end_line": 8803,
     "section": "Images",
@@ -5322,6 +5393,7 @@
     "markdown": "\\![foo]\n\n[foo]: /url \"title\"\n",
     "html": "<p>!<a href=\"/url\" title=\"title\">foo</a></p>\n",
     "example": 584,
+    "mode" : "linkref",
     "start_line": 8809,
     "end_line": 8815,
     "section": "Images",
@@ -5401,7 +5473,7 @@
   },
   {
     "markdown": "<http://foo.bar/baz bim>\n",
-    "html": "<p>&lt;http://foo.bar/baz bim&gt;</p>\n",
+    "html": "<p>&lt;<a href=\"http://foo.bar/baz\">http://foo.bar/baz</a> bim&gt;</p>\n",
     "example": 593,
     "start_line": 8907,
     "end_line": 8911,
@@ -5455,7 +5527,7 @@
   },
   {
     "markdown": "< http://foo.bar >\n",
-    "html": "<p>&lt; http://foo.bar &gt;</p>\n",
+    "html": "<p>&lt; <a href=\"http://foo.bar\">http://foo.bar</a> &gt;</p>\n",
     "example": 599,
     "start_line": 8970,
     "end_line": 8974,
@@ -5482,7 +5554,7 @@
   },
   {
     "markdown": "http://example.com\n",
-    "html": "<p>http://example.com</p>\n",
+    "html": "<p><a href=\"http://example.com\">http://example.com</a></p>\n",
     "example": 602,
     "start_line": 8991,
     "end_line": 8995,
@@ -5491,8 +5563,8 @@
   },
   {
     "markdown": "foo@bar.example.com\n",
-    "html": "<p>foo@bar.example.com</p>\n",
     "example": 603,
+    "html": "<p><a href=\"mailto:foo@bar.example.com\">foo@bar.example.com</a></p>\n",
     "start_line": 8998,
     "end_line": 9002,
     "section": "Autolinks",
@@ -5623,6 +5695,7 @@
     "markdown": "<a><bab><c2c>\n",
     "html": "<p><a><bab><c2c></p>\n",
     "example": 615,
+    "mode" : "html",
     "start_line": 9241,
     "end_line": 9245,
     "section": "Raw HTML",
@@ -5632,6 +5705,7 @@
     "markdown": "<a/><b2/>\n",
     "html": "<p><a/><b2/></p>\n",
     "example": 616,
+    "mode" : "html",
     "start_line": 9250,
     "end_line": 9254,
     "section": "Raw HTML",
@@ -5642,6 +5716,7 @@
     "html": "<p><a  /><b2\ndata=\"foo\" ></p>\n",
     "example": 617,
     "start_line": 9259,
+    "mode" : "html",
     "end_line": 9265,
     "section": "Raw HTML",
     "extensions": []
@@ -5652,6 +5727,7 @@
     "example": 618,
     "start_line": 9270,
     "end_line": 9276,
+    "mode" : "html",
     "section": "Raw HTML",
     "extensions": []
   },
@@ -5661,6 +5737,7 @@
     "example": 619,
     "start_line": 9281,
     "end_line": 9285,
+    "mode" : "html",
     "section": "Raw HTML",
     "extensions": []
   },
@@ -5670,6 +5747,7 @@
     "example": 620,
     "start_line": 9290,
     "end_line": 9294,
+    "mode" : "html",
     "section": "Raw HTML",
     "extensions": []
   },
@@ -5679,6 +5757,7 @@
     "example": 621,
     "start_line": 9299,
     "end_line": 9303,
+    "mode" : "html",
     "section": "Raw HTML",
     "extensions": []
   },
@@ -5688,6 +5767,7 @@
     "example": 622,
     "start_line": 9308,
     "end_line": 9312,
+    "mode" : "html",
     "section": "Raw HTML",
     "extensions": []
   },
@@ -5697,6 +5777,7 @@
     "example": 623,
     "start_line": 9317,
     "end_line": 9327,
+    "mode" : "html",
     "section": "Raw HTML",
     "extensions": []
   },
@@ -5706,6 +5787,7 @@
     "example": 624,
     "start_line": 9332,
     "end_line": 9336,
+    "mode" : "html",
     "section": "Raw HTML",
     "extensions": []
   },
@@ -5715,6 +5797,7 @@
     "example": 625,
     "start_line": 9341,
     "end_line": 9345,
+    "mode" : "html",
     "section": "Raw HTML",
     "extensions": []
   },
@@ -5724,6 +5807,7 @@
     "example": 626,
     "start_line": 9350,
     "end_line": 9354,
+    "mode" : "html",
     "section": "Raw HTML",
     "extensions": []
   },
@@ -5733,6 +5817,7 @@
     "example": 627,
     "start_line": 9359,
     "end_line": 9365,
+    "mode" : "html",
     "section": "Raw HTML",
     "extensions": []
   },
@@ -5742,6 +5827,7 @@
     "example": 628,
     "start_line": 9368,
     "end_line": 9372,
+    "mode" : "html",
     "section": "Raw HTML",
     "extensions": []
   },
@@ -5751,6 +5837,7 @@
     "example": 629,
     "start_line": 9377,
     "end_line": 9384,
+    "mode" : "html",
     "section": "Raw HTML",
     "extensions": []
   },
@@ -5760,6 +5847,7 @@
     "example": 630,
     "start_line": 9389,
     "end_line": 9393,
+    "mode" : "html",
     "section": "Raw HTML",
     "extensions": []
   },
@@ -5769,6 +5857,7 @@
     "example": 631,
     "start_line": 9398,
     "end_line": 9402,
+    "mode" : "html",
     "section": "Raw HTML",
     "extensions": []
   },
@@ -5778,6 +5867,7 @@
     "example": 632,
     "start_line": 9407,
     "end_line": 9411,
+    "mode" : "html",
     "section": "Raw HTML",
     "extensions": []
   },
@@ -5787,6 +5877,7 @@
     "example": 633,
     "start_line": 9417,
     "end_line": 9421,
+    "mode" : "html",
     "section": "Raw HTML",
     "extensions": []
   },
@@ -5796,6 +5887,7 @@
     "example": 634,
     "start_line": 9426,
     "end_line": 9430,
+    "mode" : "html",
     "section": "Raw HTML",
     "extensions": []
   },
@@ -5805,6 +5897,7 @@
     "example": 635,
     "start_line": 9433,
     "end_line": 9437,
+    "mode" : "html",
     "section": "Raw HTML",
     "extensions": []
   },
@@ -5813,6 +5906,7 @@
     "html": "<p><strong> &lt;title> &lt;style> <em></p>\n<blockquote>\n  &lt;xmp> is disallowed.  &lt;XMP> is also disallowed.\n</blockquote>\n",
     "example": 636,
     "start_line": 9464,
+    "mode" : "html",
     "end_line": 9475,
     "section": "Disallowed Raw HTML (extension)",
     "extensions": [
@@ -5884,7 +5978,7 @@
   },
   {
     "markdown": "`code \nspan`\n",
-    "html": "<p><code>code  span</code></p>\n",
+    "html": "<p><code>code span</code></p>\n",
     "example": 644,
     "start_line": 9561,
     "end_line": 9566,
@@ -5906,6 +6000,7 @@
     "example": 646,
     "start_line": 9579,
     "end_line": 9585,
+    "mode" : "html",
     "section": "Hard line breaks",
     "extensions": []
   },
@@ -5913,6 +6008,7 @@
     "markdown": "<a href=\"foo\\\nbar\">\n",
     "html": "<p><a href=\"foo\\\nbar\"></p>\n",
     "example": 647,
+    "mode" : "html",
     "start_line": 9588,
     "end_line": 9594,
     "section": "Hard line breaks",

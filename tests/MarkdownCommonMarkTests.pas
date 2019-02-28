@@ -170,12 +170,13 @@ procedure TMarkdownCommonMarkTestBase.Test(name : String);
 var
   test : TJSONObject;
   doc : TCommonMarkDocument;
-  html, exp : String;
+  src, html, exp : String;
 begin
   test := findTest(name);
 
   writeln(name);
-  doc := TCommonMarkEngine.parse((test.values['markdown'] as TJsonString).value.replace('\n', #10), self is TMarkdownGFMTest);
+  src := (test.values['markdown'] as TJsonString).value.replace('\n', #10);
+  doc := TCommonMarkEngine.parse(src, self is TMarkdownGFMTest);
   try
     html := TCommonMarkEngine.render(doc);
   finally

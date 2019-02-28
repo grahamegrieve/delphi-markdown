@@ -34,8 +34,7 @@ How to use this - see MarkdownProcessor; this unit is not intended to be used di
 
 Still to do:
 - link references
-- GFM tables
-- follow up on a few failing tests that I don't understand
+- follow up on a few failing tests that I don't understand - see mode : too-hard
 - test under FPC
 
 not planned to be supported
@@ -43,8 +42,10 @@ not planned to be supported
 
 note: tests related to link references and HTML blocks run (to check that the processing doesn't blow up), but output comparison is never checked
 
-
-note about GFM: the GFM tests and the CommonMark tests disagree about proper processing of lists indented more than 3 spaces....
+note about GFM:
+  the GFM tests and the CommonMark tests disagree about proper
+  processing of lists indented more than 3 spaces. This is probably
+  just poor quality in the GFM tests, which do have a number of inconsistencies
 }
 
 interface
@@ -75,7 +76,6 @@ type
   {$IFDEF FPC}
 
   { TStringBuilder }
-
   TStringBuilder = class
   private
     FBuild : String;
@@ -88,7 +88,6 @@ type
   end;
 
   { TRegEx }
-
   TRegEx = class
   public
     class function isMatch(cnt, regex : String) : boolean;
@@ -209,7 +208,7 @@ type
     FLastIndent: integer;
     FBaseIndent: integer;
     FHasSeenEmptyLine : boolean; // parser state
-   function grace : integer;
+    function grace : integer;
   protected
     procedure render(parent : TCMBlock; b : TStringBuilder); override;
   public
@@ -405,6 +404,7 @@ type
     function peekRun(checkBefore : boolean): String;
     function peekLen(length : integer) : String;
     function peekUntil(chs : TSysCharSet) : String;
+    function peekWhile(chs : TSysCharSet) : String;
     function grab(style : TCommonMarkStyle) : char; overload;
     function grabRun(style : TCommonMarkStyle) : String; overload;
     function grab(style : TCommonMarkStyle; length : integer) : String; overload;
@@ -494,12 +494,15 @@ type
     procedure parseLinkReferences;
 
     // inlines
+    function hasEmailAddress(lexer: TCMTextLexer; var len : integer) : boolean;
     procedure parseTextEscape(lexer : TCMTextLexer; nodes: TCMTextNodes; wsMode : TCMWhitespaceMode);
     procedure parseEntity(lexer : TCMTextLexer; nodes : TCMTextNodes; wsMode : TCMWhitespaceMode);
     function parseEntityInner(lexer : TCMTextLexer) : String;
     procedure parseBackTick(lexer : TCMTextLexer; nodes: TCMTextNodes; wsMode : TCMWhitespaceMode);
     procedure parseTilde(lexer : TCMTextLexer; nodes: TCMTextNodes; wsMode : TCMWhitespaceMode);
     procedure parseAutoLink(lexer : TCMTextLexer; nodes : TCMTextNodes; wsMode : TCMWhitespaceMode);
+    procedure parseExtendedAutoLinkWeb(lexer : TCMTextLexer; nodes : TCMTextNodes; wsMode : TCMWhitespaceMode; start, linkStart : String);
+    procedure parseExtendedAutoLinkEmail(lexer : TCMTextLexer; nodes : TCMTextNodes; len : integer);
     procedure parseDelimiter(lexer : TCMTextLexer; nodes : TCMTextNodes; wsMode : TCMWhitespaceMode; canRun : boolean);
     procedure parseCloseDelimiter(lexer : TCMTextLexer; nodes : TCMTextNodes; wsMode : TCMWhitespaceMode);
     function processInlineLink(lexer : TCMTextLexer; nodes : TCMTextNodes; del : TCMDelimiter) : boolean;
@@ -1384,20 +1387,23 @@ end;
 function TCMListProcessor.processLine(line: TCMLine; root: boolean; context : TCMBlockProcessingContext; isGFM : boolean; var isLazy : boolean): boolean;
 var
   len : integer;
+  cws, linc : integer;
 begin
   result := FParent.processLine(line, false, context, isGFM, isLazy);
   if not result then
   begin
-    if parser.FCurrentLine = FItem.line then
+    cws := line.countWS;
+    linc := parser.FCurrentLine;
+    if linc = FItem.line then
       line.advance(FList.lastIndent)
-    else if line.countWS >= FList.LastIndent then
+    else if cws >= FList.LastIndent then
     begin
-      len := line.countWS;
+      len := cws;
       if len > FList.lastIndent+1 then
         len := FList.baseIndent;
       line.advance(len);
     end
-    else if isGFM and (line.countWS > 3) and (line.focus.Trim.StartsWith('-')) then
+    else if isGFM and (cws > 3) and (line.focus.Trim.StartsWith('-')) then
       result := false
     else if not line.isWhitespace and parser.isBlock(FList, FItem.blocks, line.focus, FList.lastIndent+FList.grace) then
     begin
@@ -1418,11 +1424,11 @@ begin
         if not FHasContent then
         begin
           if FEmptyLine = -1 then
-            FEmptyLine := parser.FCurrentLine
+            FEmptyLine := linc
           else if FEmptyLine <> parser.FCurrentLine then
             result := true;
         end;
-        if (context = bpGeneral) and (parser.FCurrentLine <> FItem.line) then
+        if (context = bpGeneral) and (linc <> FItem.line) then
           FList.FHasSeenEmptyLine := true;
       end;
     end;
@@ -1650,6 +1656,20 @@ begin
     result := ''
   else
     result := FBuilder.ToString;
+end;
+
+function TCMTextLexer.peekWhile(chs: TSysCharSet): String;
+var
+  i : integer;
+begin
+  FBuilder.clear;
+  i := FCursor;
+  while (i <= FText.Length) and CharInSet(FText[i], chs) do
+  begin
+    FBuilder.Append(FText[i]);
+    inc(i);
+  end;
+  result := FBuilder.ToString;
 end;
 
 function TCMTextLexer.peekLen(length: integer): String;
@@ -2832,6 +2852,7 @@ begin
         nodes.addText(lexer.location, htmlEscape(lexer.grab(cmCode)));
       end;
     end;
+
     nodes.addCloser(lexer.location, 'code');
     lexer.grab(cmControlChar, s.Length);
   end
@@ -2886,7 +2907,15 @@ begin
          b.Append(lexer.grab(cmURL));
         end
         else if isWhitespaceChar(lexer.peek) then
-          exit
+        begin
+          if GFMExtensions and (lexer.peek = ' ') then
+          begin
+            b.Append('%20');
+            lexer.grab(cmURL);
+          end
+          else
+            exit
+        end
         else if lexer.peek = '&' then
           b.Append(parseEntityInner(lexer))
         else
@@ -3069,6 +3098,87 @@ begin
     exit('');
 end;
 
+function checkForEntity(s : String) : integer;
+var
+  c : char;
+begin
+  if s.Contains('&') then
+  begin
+    s := s.Substring(s.lastIndexOf('&')+1);
+    s := s.subString(0, s.Length-1);
+    for c in s do
+      if not CharInSet(c, ['a'..'z', 'A'..'Z', '0'..'9']) then
+        exit(0);
+    exit(s.Length+2);
+  end
+  else
+    result := 0;
+end;
+
+procedure TCommonMarkEngine.parseExtendedAutoLinkEmail(lexer: TCMTextLexer; nodes: TCMTextNodes; len : integer);
+var
+  s : String;
+  a : TCMTextNode;
+begin
+  s := lexer.grab(cmUrl, len);
+
+  a := nodes.addOpener(lexer.location, 'a');
+  a.attrs.Add('href', 'mailto:'+htmlEscape(s));
+  nodes.addText(lexer.location, htmlEscape(s));
+  nodes.addCloser(lexer.location, 'a');
+end;
+
+procedure TCommonMarkEngine.parseExtendedAutoLinkWeb(lexer: TCMTextLexer; nodes: TCMTextNodes; wsMode: TCMWhitespaceMode; start, linkStart : String);
+var
+  ok : boolean;
+  tail : Integer;
+  s : string;
+  a : TCMTextNode;
+begin
+  lexer.mark;
+  ok := false;
+  try
+    lexer.grab(cmURL, start.Length);
+    s := '';
+    while CharInSet(lexer.peek, ['a'..'z', 'A'..'Z', '0'..'9', '_', '-', '.']) do
+      s := s + lexer.grab(cmUrl);
+    if not s.Contains('.') then
+      exit;
+    ok := true;
+    while not lexer.done and not CharInSet(lexer.peek, [' ', #10, '<']) do
+      s := s + lexer.grab(cmUrl);
+    // is that last char part of the link?
+    case s[s.Length] of
+      '?', '!', '.', ',', ':', '*', '_', '~': tail := 1;
+      ')': if s.CountChar('(') < s.CountChar(')') then tail := 1 else tail := 0;
+      ';': tail := checkForEntity(s);
+    else
+      tail := 0;
+    end;
+    if tail = 0 then
+    begin
+      a := nodes.addOpener(lexer.location, 'a');
+      a.attrs.Add('href', linkStart+start+htmlEscape(s));
+      nodes.addText(lexer.location, start+htmlEscape(s));
+      nodes.addCloser(lexer.location, 'a');
+    end
+    else
+    begin
+      a := nodes.addOpener(lexer.location, 'a');
+      a.attrs.Add('href', linkStart+start+htmlEscape(s.Substring(0, s.Length-tail)));
+      nodes.addText(lexer.location, start+htmlEscape(s.Substring(0, s.Length-tail)));
+      nodes.addCloser(lexer.location, 'a');
+      nodes.addText(lexer.location, htmlEscape(s.Substring(s.length-tail)));
+    end;
+  finally
+    if not ok then
+    begin
+      lexer.rewind;
+      nodes.addText(lexer.location, lexer.grab(cmText));
+    end;
+  end;
+end;
+
 procedure TCommonMarkEngine.parseEntity(lexer: TCMTextLexer; nodes: TCMTextNodes; wsMode: TCMWhitespaceMode);
 begin
   if wsMode = wsLeave then // code block
@@ -3111,7 +3221,44 @@ begin
     exit('&');
 end;
 
+function TCommonMarkEngine.hasEmailAddress(lexer: TCMTextLexer; var len : integer) : boolean;
+var
+  s : String;
+  state : integer;
+  c : char;
+begin
+  s := lexer.peekWhile(['a'..'z', 'A'..'Z', '0'..'9', '+', '-', '_', '@', '.']);
+  if s.CountChar('@') <> 1 then
+    exit(false);
+  if CharInSet(s[s.Length], ['_', '-']) then
+    exit(false);
+  if s[s.Length] = '.' then
+    s := s.Substring(0, s.Length-1);
+
+  len := s.Length;
+  state := 0;
+  for c in s do
+    if state = 0 then
+    begin
+      if c = '@' then exit(false) else state := 1;
+    end
+    else if state = 1 then
+    begin
+      if c = '@' then state := 2
+    end
+    else
+    begin
+      if c = '.' then
+        state := 3
+      else if c = '+' then
+        exit(false);
+    end;
+  exit(state = 3);
+end;
+
 procedure TCommonMarkEngine.parseTextCore(lexer: TCMTextLexer; nodes: TCMTextNodes; wsMode: TCMWhitespaceMode);
+var
+  len : integer;
 begin
   if wsMode = wsLeave then // code block
     nodes.addText(lexer.location, htmlEscape(lexer.grab(cmCode)))
@@ -3136,7 +3283,18 @@ begin
             nodes.addText(lexer.location, lexer.grab(cmText));
     ']' : parseCloseDelimiter(lexer, nodes, wsMode);
   else
-    nodes.addText(lexer.location, lexer.grab(cmText));
+    if GFMExtensions and lexer.has('www.') then
+      parseExtendedAutoLinkWeb(lexer, nodes, wsMode, 'www.', 'http://')
+    else if GFMExtensions and lexer.has('http://') then
+      parseExtendedAutoLinkWeb(lexer, nodes, wsMode, 'http://', '')
+    else if GFMExtensions and lexer.has('https://') then
+      parseExtendedAutoLinkWeb(lexer, nodes, wsMode, 'https://', '')
+    else if GFMExtensions and lexer.has('ftp://') then
+      parseExtendedAutoLinkWeb(lexer, nodes, wsMode, 'ftp://', '')
+    else if GFMExtensions and hasEmailAddress(lexer, len) then
+      parseExtendedAutoLinkEmail(lexer, nodes, len)
+    else
+      nodes.addText(lexer.location, lexer.grab(cmText));
   end;
 end;
 
