@@ -1,52 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectSession>
-    <Version Value="10"/>
+    <Version Value="12"/>
     <BuildModes Active="Default"/>
-    <Units Count="18">
+    <Units Count="20">
       <Unit0>
         <Filename Value="MarkdownTestProgram.lpr"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="4"/>
-        <CursorPos X="68" Y="6"/>
-        <UsageCount Value="26"/>
+        <CursorPos X="55" Y="6"/>
+        <UsageCount Value="49"/>
         <Loaded Value="True"/>
       </Unit0>
       <Unit1>
         <Filename Value="testcase1.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="TestCase1"/>
+        <EditorIndex Value="-1"/>
         <TopLine Value="5"/>
         <CursorPos X="50" Y="8"/>
-        <UsageCount Value="26"/>
-        <Loaded Value="True"/>
+        <UsageCount Value="49"/>
       </Unit1>
       <Unit2>
         <Filename Value="../source/MarkdownDaringFireball.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="7"/>
+        <EditorIndex Value="-1"/>
         <TopLine Value="16"/>
         <CursorPos X="88" Y="20"/>
-        <UsageCount Value="26"/>
-        <Loaded Value="True"/>
+        <UsageCount Value="49"/>
       </Unit2>
       <Unit3>
         <Filename Value="dunitfpc.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="DUnitFpc"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="10"/>
-        <CursorPos X="3" Y="14"/>
-        <UsageCount Value="23"/>
-        <Loaded Value="True"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="21" Y="7"/>
+        <UsageCount Value="46"/>
       </Unit3>
       <Unit4>
         <Filename Value="../source/MarkdownCommonMark.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="9"/>
-        <TopLine Value="537"/>
-        <CursorPos Y="565"/>
-        <UsageCount Value="22"/>
+        <EditorIndex Value="4"/>
+        <TopLine Value="413"/>
+        <CursorPos X="34" Y="429"/>
+        <UsageCount Value="45"/>
         <Loaded Value="True"/>
       </Unit4>
       <Unit5>
@@ -54,228 +50,155 @@
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <CursorPos Y="37"/>
-        <UsageCount Value="22"/>
+        <UsageCount Value="45"/>
       </Unit5>
       <Unit6>
         <Filename Value="../tests/MarkdownDaringFireballTests.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="5"/>
-        <CursorPos X="57" Y="2"/>
-        <UsageCount Value="22"/>
+        <EditorIndex Value="1"/>
+        <CursorPos X="51" Y="34"/>
+        <UsageCount Value="45"/>
         <Loaded Value="True"/>
       </Unit6>
       <Unit7>
         <Filename Value="../tests/MarkdownCommonMarkTests.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="6"/>
-        <CursorPos X="104" Y="18"/>
-        <UsageCount Value="22"/>
+        <EditorIndex Value="2"/>
+        <TopLine Value="19"/>
+        <CursorPos X="46" Y="34"/>
+        <UsageCount Value="45"/>
         <Loaded Value="True"/>
       </Unit7>
       <Unit8>
+        <Filename Value="../../../TIE/v2/lazarus/unit1.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="Unit1"/>
+        <EditorIndex Value="-1"/>
+        <UsageCount Value="43"/>
+      </Unit8>
+      <Unit9>
         <Filename Value="../source/MarkdownDaringFireballTests.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="149"/>
         <CursorPos X="81" Y="9"/>
-        <UsageCount Value="21"/>
-      </Unit8>
-      <Unit9>
+        <UsageCount Value="19"/>
+      </Unit9>
+      <Unit10>
         <Filename Value="../source/RegExpr.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="506"/>
         <CursorPos X="3" Y="531"/>
-        <UsageCount Value="12"/>
-      </Unit9>
-      <Unit10>
-        <Filename Value="../source/MarkdownProcessor.pas"/>
-        <EditorIndex Value="8"/>
-        <TopLine Value="40"/>
-        <CursorPos X="21" Y="62"/>
-        <UsageCount Value="12"/>
-        <Loaded Value="True"/>
+        <UsageCount Value="10"/>
       </Unit10>
       <Unit11>
-        <Filename Value="../../../tools/lazarus/fpc/3.0.4/source/packages/fcl-fpcunit/src/testutils.pp"/>
-        <EditorIndex Value="3"/>
-        <CursorPos X="26" Y="27"/>
-        <UsageCount Value="11"/>
-        <Loaded Value="True"/>
+        <Filename Value="../source/MarkdownProcessor.pas"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="40"/>
+        <CursorPos X="21" Y="62"/>
+        <UsageCount Value="10"/>
       </Unit11>
       <Unit12>
-        <Filename Value="../../../tools/lazarus/fpc/3.0.4/source/packages/fcl-fpcunit/src/testregistry.pp"/>
-        <EditorIndex Value="1"/>
-        <UsageCount Value="11"/>
-        <Loaded Value="True"/>
+        <Filename Value="../../../tools/lazarus/fpc/3.0.4/source/packages/fcl-fpcunit/src/testutils.pp"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="26" Y="27"/>
+        <UsageCount Value="9"/>
       </Unit12>
       <Unit13>
-        <Filename Value="../../../tools/lazarus/fpc/3.0.4/source/packages/fcl-fpcunit/src/fpcunit.pp"/>
-        <EditorIndex Value="2"/>
-        <TopLine Value="106"/>
-        <CursorPos X="39" Y="233"/>
-        <UsageCount Value="11"/>
-        <Loaded Value="True"/>
+        <Filename Value="../../../tools/lazarus/fpc/3.0.4/source/packages/fcl-fpcunit/src/testregistry.pp"/>
+        <EditorIndex Value="-1"/>
+        <UsageCount Value="9"/>
       </Unit13>
       <Unit14>
+        <Filename Value="../../../tools/lazarus/fpc/3.0.4/source/packages/fcl-fpcunit/src/fpcunit.pp"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="106"/>
+        <CursorPos X="39" Y="233"/>
+        <UsageCount Value="9"/>
+      </Unit14>
+      <Unit15>
         <Filename Value="../../fhirserver/freepascal/generics.collections.pas"/>
         <UnitName Value="Generics.Collections"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="37" Y="6"/>
-        <UsageCount Value="10"/>
-      </Unit14>
-      <Unit15>
-        <Filename Value="generics.collections.pas"/>
-        <UnitName Value="Generics.Collections"/>
-        <EditorIndex Value="11"/>
-        <CursorPos Y="30"/>
-        <UsageCount Value="11"/>
-        <Loaded Value="True"/>
+        <UsageCount Value="8"/>
       </Unit15>
       <Unit16>
-        <Filename Value="inc/generics.dictionariesh.inc"/>
-        <EditorIndex Value="12"/>
-        <TopLine Value="610"/>
-        <CursorPos X="3" Y="648"/>
-        <UsageCount Value="11"/>
-        <Loaded Value="True"/>
+        <Filename Value="generics.collections.pas"/>
+        <UnitName Value="Generics.Collections"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos Y="30"/>
+        <UsageCount Value="9"/>
       </Unit16>
       <Unit17>
+        <Filename Value="inc/generics.dictionariesh.inc"/>
+        <EditorIndex Value="5"/>
+        <TopLine Value="515"/>
+        <CursorPos X="17" Y="532"/>
+        <UsageCount Value="22"/>
+        <Loaded Value="True"/>
+      </Unit17>
+      <Unit18>
         <Filename Value="../source/MarkdownCommonMarkTests.pas"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="139"/>
-        <UsageCount Value="10"/>
-      </Unit17>
+        <UsageCount Value="8"/>
+      </Unit18>
+      <Unit19>
+        <Filename Value="../../../fpcupdeluxe/fpcsrc/packages/fcl-fpcunit/src/fpcunit.pp"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="3"/>
+        <UsageCount Value="21"/>
+        <Loaded Value="True"/>
+      </Unit19>
     </Units>
-    <JumpHistory Count="30" HistoryIndex="29">
+    <JumpHistory Count="8" HistoryIndex="7">
       <Position1>
-        <Filename Value="../source/MarkdownCommonMark.pas"/>
-        <Caret Line="109" Column="15" TopLine="83"/>
+        <Filename Value="inc/generics.dictionariesh.inc"/>
+        <Caret Line="532" Column="17" TopLine="515"/>
       </Position1>
       <Position2>
-        <Filename Value="../source/MarkdownCommonMark.pas"/>
-        <Caret Line="68" Column="22" TopLine="28"/>
+        <Filename Value="MarkdownTestProgram.lpr"/>
+        <Caret Line="6" Column="56"/>
       </Position2>
       <Position3>
-        <Filename Value="../source/MarkdownCommonMark.pas"/>
-        <Caret Line="491" Column="16" TopLine="481"/>
+        <Filename Value="../tests/MarkdownCommonMarkTests.pas"/>
+        <Caret Line="33" Column="3" TopLine="18"/>
       </Position3>
       <Position4>
-        <Filename Value="../source/MarkdownCommonMark.pas"/>
-        <Caret Line="97" Column="15" TopLine="59"/>
+        <Filename Value="../tests/MarkdownDaringFireballTests.pas"/>
+        <Caret Line="34" Column="51"/>
       </Position4>
       <Position5>
-        <Filename Value="../source/MarkdownCommonMark.pas"/>
-        <Caret Line="557" Column="3" TopLine="555"/>
+        <Filename Value="MarkdownTestProgram.lpr"/>
+        <Caret Line="6" Column="55"/>
       </Position5>
       <Position6>
-        <Filename Value="../source/MarkdownCommonMark.pas"/>
-        <Caret Line="99" Column="14" TopLine="70"/>
+        <Filename Value="../tests/MarkdownCommonMarkTests.pas"/>
+        <Caret Line="34" Column="66" TopLine="18"/>
       </Position6>
       <Position7>
-        <Filename Value="../source/MarkdownCommonMark.pas"/>
-        <Caret Line="626" TopLine="619"/>
+        <Filename Value="../tests/MarkdownCommonMarkTests.pas"/>
+        <Caret Line="42" Column="59" TopLine="25"/>
       </Position7>
       <Position8>
         <Filename Value="../source/MarkdownCommonMark.pas"/>
-        <Caret Line="70" Column="15" TopLine="56"/>
+        <Caret Line="429" Column="34" TopLine="413"/>
       </Position8>
-      <Position9>
-        <Filename Value="../source/MarkdownCommonMark.pas"/>
-        <Caret Line="515" Column="38" TopLine="513"/>
-      </Position9>
-      <Position10>
-        <Filename Value="../source/MarkdownCommonMark.pas"/>
-        <Caret Line="499" Column="23" TopLine="472"/>
-      </Position10>
-      <Position11>
-        <Filename Value="../source/MarkdownCommonMark.pas"/>
-        <Caret Line="77" Column="20" TopLine="48"/>
-      </Position11>
-      <Position12>
-        <Filename Value="../source/MarkdownCommonMark.pas"/>
-        <Caret Line="493" Column="27" TopLine="491"/>
-      </Position12>
-      <Position13>
-        <Filename Value="../source/MarkdownCommonMark.pas"/>
-        <Caret Line="505" Column="50" TopLine="461"/>
-      </Position13>
-      <Position14>
-        <Filename Value="../source/MarkdownDaringFireball.pas"/>
-        <Caret Line="20" Column="88" TopLine="16"/>
-      </Position14>
-      <Position15>
-        <Filename Value="../source/MarkdownCommonMark.pas"/>
-        <Caret Line="55" Column="48" TopLine="40"/>
-      </Position15>
-      <Position16>
-        <Filename Value="../source/MarkdownCommonMark.pas"/>
-        <Caret Line="77" Column="42" TopLine="75"/>
-      </Position16>
-      <Position17>
-        <Filename Value="MarkdownTestProgram.lpr"/>
-        <Caret Line="6" Column="60"/>
-      </Position17>
-      <Position18>
-        <Filename Value="../tests/MarkdownDaringFireballTests.pas"/>
-      </Position18>
-      <Position19>
-        <Filename Value="../tests/MarkdownCommonMarkTests.pas"/>
-        <Caret Line="34" Column="91"/>
-      </Position19>
-      <Position20>
-        <Filename Value="../tests/MarkdownDaringFireballTests.pas"/>
-        <Caret Line="2" Column="57"/>
-      </Position20>
-      <Position21>
-        <Filename Value="../source/MarkdownCommonMark.pas"/>
-        <Caret Line="2" Column="21"/>
-      </Position21>
-      <Position22>
-        <Filename Value="../source/MarkdownCommonMark.pas"/>
-        <Caret Line="88" Column="20" TopLine="67"/>
-      </Position22>
-      <Position23>
-        <Filename Value="../source/MarkdownCommonMark.pas"/>
-        <Caret Line="532" TopLine="507"/>
-      </Position23>
-      <Position24>
-        <Filename Value="../tests/MarkdownDaringFireballTests.pas"/>
-        <Caret Line="2" Column="57"/>
-      </Position24>
-      <Position25>
-        <Filename Value="../source/MarkdownCommonMark.pas"/>
-        <Caret Line="530" Column="19" TopLine="511"/>
-      </Position25>
-      <Position26>
-        <Filename Value="../source/MarkdownCommonMark.pas"/>
-        <Caret Line="529" Column="9" TopLine="508"/>
-      </Position26>
-      <Position27>
-        <Filename Value="../source/MarkdownCommonMark.pas"/>
-        <Caret Line="546" Column="16" TopLine="515"/>
-      </Position27>
-      <Position28>
-        <Filename Value="../source/MarkdownCommonMark.pas"/>
-        <Caret Line="59" Column="15" TopLine="37"/>
-      </Position28>
-      <Position29>
-        <Filename Value="../source/MarkdownCommonMark.pas"/>
-        <Caret Line="565" TopLine="537"/>
-      </Position29>
-      <Position30>
-        <Filename Value="../tests/MarkdownCommonMarkTests.pas"/>
-        <Caret Line="18" Column="104"/>
-      </Position30>
     </JumpHistory>
+    <RunParams>
+      <FormatVersion Value="2"/>
+      <Modes ActiveMode="default"/>
+    </RunParams>
   </ProjectSession>
   <Debugging>
-    <BreakPoints Count="1">
-      <Item1>
+    <BreakPoints>
+      <Item>
         <Kind Value="bpkSource"/>
         <WatchScope Value="wpsLocal"/>
         <WatchKind Value="wpkWrite"/>
         <Source Value="../source/MarkdownCommonMark.pas"/>
         <Line Value="56"/>
-      </Item1>
+      </Item>
     </BreakPoints>
   </Debugging>
 </CONFIG>

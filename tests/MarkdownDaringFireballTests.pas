@@ -31,7 +31,7 @@ POSSIBILITY OF SUCH DAMAGE.
 interface
 
 uses
-  Windows, SysUtils, Classes, {$IFDEF FPC} DUnitFpc {$ELSE}DUnitX.TestFramework {$ENDIF}, Character, ShellApi,
+  Windows, SysUtils, Classes, {$IFDEF FPC} FPCUnit {$ELSE}DUnitX.TestFramework {$ENDIF}, Character, ShellApi,
   MarkdownDaringFireball;
 
 const

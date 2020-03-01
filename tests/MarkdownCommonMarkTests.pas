@@ -31,8 +31,8 @@ POSSIBILITY OF SUCH DAMAGE.
 interface
 
 uses
-  Windows, SysUtils, Classes, {$IFDEF FPC} DUnitFpc {$ELSE}DUnitX.TestFramework {$ENDIF}, Character, ShellApi, Generics.Collections,
-  Json, MarkdownCommonMark;
+  Windows, SysUtils, Classes, {$IFDEF FPC} FPCUnit {$ELSE} Json, DUnitX.TestFramework {$ENDIF}, Character, ShellApi, Generics.Collections,
+  MarkdownCommonMark;
 
 var
   TestFileCM: String = 'C:\work\markdown\resources\commonmark\spec.json';
