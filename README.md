@@ -8,7 +8,8 @@ This is a Pascal (Delphi) library that processes to markdown to HTML.
 At present the following dialects of markdown are supported:
 
 * The Daring Fireball dialect (see https://daringfireball.net/projects/markdown/) (translated from https://github.com/rjeschke/txtmark)
-* The CommonMark Specification (see https://spec.commonmark.org/0.28) (not quite complete. Stil to do: GFM tables + link references)
+* The CommonMark Specification (see https://spec.commonmark.org/0.28) (not quite complete. Stil to do: link references)
+* Github Flavored Markdown
 
 All you need to use the library is any unicode version of Delphi, or FPC (lazarus). To run the 
 tests, you also need FastMemoryManager, the Jedi Code Library and DUnitX.
