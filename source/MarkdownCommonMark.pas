@@ -3332,7 +3332,6 @@ var
   t : TCMTableBlock;
   a : TArray<String>;
 begin
-  result := false;
   if line.isEmpty then
     exit(false);
   c1 := cellCount(line);
