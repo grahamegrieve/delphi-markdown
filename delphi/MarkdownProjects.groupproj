@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{28986D8B-6008-4CA9-AF46-4856620E1EA1}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="MarkDownTests.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="MarkdownUITester.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="MarkDownTests">
+        <MSBuild Projects="MarkDownTests.dproj"/>
+    </Target>
+    <Target Name="MarkDownTests:Clean">
+        <MSBuild Projects="MarkDownTests.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="MarkDownTests:Make">
+        <MSBuild Projects="MarkDownTests.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="MarkdownUITester">
+        <MSBuild Projects="MarkdownUITester.dproj"/>
+    </Target>
+    <Target Name="MarkdownUITester:Clean">
+        <MSBuild Projects="MarkdownUITester.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="MarkdownUITester:Make">
+        <MSBuild Projects="MarkdownUITester.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="MarkDownTests;MarkdownUITester"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="MarkDownTests:Clean;MarkdownUITester:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="MarkDownTests:Make;MarkdownUITester:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>
