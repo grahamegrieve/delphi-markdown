@@ -1,6 +1,6 @@
 program MarkdownTestProgram;
 
-{$mode objfpc}{$H+}
+{$IFDEF FPC}{$MODE DELPHI}{$ENDIF}
 
 uses
   Interfaces, Forms, GuiTestRunner, MarkdownHTMLEntities, MarkdownCommonMark,

@@ -1,3 +1,5 @@
+Unit MarkdownDaringFireball;
+
 {
   This code was translated from TxtMark (https://github.com/rjeschke/txtmark)
 
@@ -17,7 +19,7 @@
   limitations under the License.
 }
 
-Unit MarkdownDaringFireball;
+{$IFDEF FPC}{$MODE DELPHI}{$ENDIF}
 
 interface
 

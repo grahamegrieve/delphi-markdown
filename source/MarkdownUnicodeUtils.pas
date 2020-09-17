@@ -1,4 +1,4 @@
-unit CommonTestBase;
+unit MarkdownUnicodeUtils;
 
 {
 Copyright (c) 2011+, Health Intersections Pty Ltd (http://www.healthintersections.com.au)
@@ -33,75 +33,58 @@ POSSIBILITY OF SUCH DAMAGE.
 interface
 
 uses
-  Windows, SysUtils, Classes, {$IFDEF FPC} FPCUnit {$ELSE}DUnitX.TestFramework {$ENDIF};
+  SysUtils;
 
+{$IFNDEF FPC}
 type
+  UnicodeChar = char;
+{$ENDIF}
 
-  { TCommonTestCase }
-
-  TCommonTestCase = class {$IFDEF FPC} (TTestCase) {$ENDIF}
-  protected
-    {$IFDEF FPC}
-    FName : String;
-    function GetTestName: string; override;
-    {$ENDIF}
-    procedure assertEqual(left, right : String; message : String);
-    procedure assertFail(message : String);
-  public
-    {$IFDEF FPC}
-    constructor Create(name : String);
-    {$ENDIF}
-    procedure TestCase(name : String); virtual;
-  published
-    {$IFDEF FPC}
-    procedure Test;
-    {$ENDIF}
-  end;
+function unicodeChars(s : String) : TArray<UnicodeChar>;
 
 implementation
 
-{ TCommonTestCase }
-
-procedure TCommonTestCase.TestCase(name: String);
-begin
-  // nothing - override this
-end;
-
-procedure TCommonTestCase.assertEqual(left, right: String; message: String);
-begin
-  {$IFDEF FPC}
-  TAssert.AssertEquals(message, left, right);
-  {$ELSE}
-  Assert.AreEqual(left, right, message);
-  {$ENDIF}
-end;
-
-procedure TCommonTestCase.assertFail(message: String);
-begin
-  {$IFDEF FPC}
-  TAssert.Fail(message);
-  {$ELSE}
-  Assert.Fail(message);
-  {$ENDIF}
-end;
+{$IFDEF FPC}
+uses
+  LazUTF8;
+{$ENDIF}
 
 {$IFDEF FPC}
 
-constructor TCommonTestCase.Create(name : String);
+function unicodeChars(s : String) : TArray<UnicodeChar>;
+var
+  i, c, l, cl : integer;
+  ch : UnicodeChar;
+  p: PChar;
 begin
-  inherited CreateWith('Test', name);
-  FName := name;
+  l := length(s);
+  SetLength(result, l); // maximum possible length
+  i := 0;
+  c := 1;
+  p := @s[1];
+  while l > 0 do
+  begin
+    ch := UnicodeChar(UTF8CodepointToUnicode(p, cl));
+    result[i] := ch;
+    inc(i);
+    dec(l, cl);
+    inc(p, cl);
+  end;
+  SetLength(result, i);
 end;
 
-function TCommonTestCase.GetTestName: string;
-begin
-  Result := FName;
-end;
+{$ELSE}
 
-procedure TCommonTestCase.Test;
+function unicodeChars(s : String) : TArray<UnicodeChar>;
+var
+  i : Integer;
 begin
-  TestCase(FName);
+  SetLength(result, length(s));
+  for i := 1 to length(s) do
+    result[i-1] := s[i];
 end;
 
 {$ENDIF}
+
 end.
+

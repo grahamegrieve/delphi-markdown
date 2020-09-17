@@ -119,8 +119,9 @@
         <DCCReference Include="..\tests\MarkdownCommonMarkTests.pas"/>
         <DCCReference Include="..\source\MarkdownProcessor.pas"/>
         <DCCReference Include="..\..\fhirserver\dependencies\FMM\FastMM4Messages.pas"/>
-        <DCCReference Include="..\source\MarkdownHTMLEntities.pas"/>
         <DCCReference Include="..\tests\CommonTestBase.pas"/>
+        <DCCReference Include="..\source\MarkdownHTMLEntities.pas"/>
+        <DCCReference Include="..\source\MarkdownUnicodeUtils.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

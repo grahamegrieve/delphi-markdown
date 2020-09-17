@@ -291,7 +291,7 @@ begin
       doc.Free;
     end;
     exp := jsonStr(test, 'html').replace('\n', #10);
-    assertEqual(exp, html, 'output does not match expected');
+    assertEqual(exp, html, 'output does not match expected for input "'+src+'"');
   end;
 end;
 

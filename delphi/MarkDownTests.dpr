@@ -56,8 +56,9 @@ uses
   MarkdownCommonMarkTests in '..\tests\MarkdownCommonMarkTests.pas',
   MarkdownProcessor in '..\source\MarkdownProcessor.pas',
   FastMM4Messages in '..\..\fhirserver\dependencies\FMM\FastMM4Messages.pas',
+  CommonTestBase in '..\tests\CommonTestBase.pas',
   MarkdownHTMLEntities in '..\source\MarkdownHTMLEntities.pas',
-  CommonTestBase in '..\tests\CommonTestBase.pas';
+  MarkdownUnicodeUtils in '..\source\MarkdownUnicodeUtils.pas';
 
 var
   runner : ITestRunner;

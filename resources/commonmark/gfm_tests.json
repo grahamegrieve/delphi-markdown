@@ -2898,7 +2898,7 @@
   },
   {
     "markdown": "&nbsp; &amp; &copy; &AElig; &Dcaron;\n&frac34; &HilbertSpace; &DifferentialD;\n&ClockwiseContourIntegral; &ngE;\n",
-    "html": "<p>\u00a0 &amp; \u00a9 \u00c6 \u010e\n\u00be \u210b \u2146\n\u2232 \u2267\u0338</p>\n",
+    "html": "<p>\u00a0 &amp; \u00a9 \u00c6 \u010e\n\u00be \u210b \u2146\n\u2232 ≧̸</p>\n",
     "example": 315,
     "start_line": 5874,
     "end_line": 5882,
