@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="12"/>
+    <Version Value="11"/>
     <General>
-      <Flags>
-        <CompatibilityMode Value="True"/>
-      </Flags>
       <SessionStorage Value="InProjectDir"/>
+      <MainUnit Value="0"/>
       <Title Value="MarkdownTestProgram"/>
       <ResourceType Value="res"/>
       <UseXPManifest Value="True"/>
@@ -96,7 +94,7 @@
     </Linking>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="4">
+    <Exceptions Count="5">
       <Item1>
         <Name Value="EAbort"/>
       </Item1>
@@ -109,6 +107,9 @@
       <Item4>
         <Name Value="EAssertionFailedError"/>
       </Item4>
+      <Item5>
+        <Name Value="EConvertError"/>
+      </Item5>
     </Exceptions>
   </Debugging>
 </CONFIG>

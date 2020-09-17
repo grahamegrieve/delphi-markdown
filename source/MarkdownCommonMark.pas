@@ -607,11 +607,16 @@ class function TRegEx.isMatch(cnt, regex: String): boolean;
 var
   r : TRegExpr;
 begin
-  r := TRegExpr.create(regex);
-  try
-     result := r.exec(cnt);
-  finally
-    r.free;
+  if cnt = '' then
+    result := false
+  else
+  begin
+    r := TRegExpr.create(regex);
+    try
+       result := r.exec(cnt);
+    finally
+      r.free;
+    end;
   end;
 end;
 
