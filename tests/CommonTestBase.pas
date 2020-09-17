@@ -44,6 +44,7 @@ type
     function GetTestName: string; override;
     {$ENDIF}
     procedure assertEqual(left, right : String; message : String);
+    procedure assertFail(message : String);
   public
     {$IFDEF FPC}
     constructor Create(name : String);
@@ -70,6 +71,15 @@ begin
   TAssert.AssertEquals(message, left, right);
   {$ELSE}
   Assert.AreEqual(left, right, message);
+  {$ENDIF}
+end;
+
+procedure TCommonTestCase.assertFail(message: String);
+begin
+  {$IFDEF FPC}
+  TAssert.Fail(message);
+  {$ELSE}
+  Assert.Fail(message);
   {$ENDIF}
 end;
 

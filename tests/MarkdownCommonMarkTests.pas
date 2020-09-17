@@ -47,17 +47,12 @@ type
   {$IFDEF FPC}
   TJSONValue = TJSONEnum;
 
-  TMarkdownCommonTests = class (TTestSuite)
-  protected
-    procedure registerTests(tests : TJSONArray);
-  end;
-
-  TMarkdownCommonMarkTests = class (TMarkdownCommonTests)
+  TMarkdownCommonMarkTests = class (TTestSuite)
   public
     constructor Create; override;
   end;
 
-  TMarkdownGFMTests = class (TMarkdownCommonTests)
+  TMarkdownGFMTests = class (TTestSuite)
   public
     constructor Create; override;
   end;
@@ -174,13 +169,16 @@ end;
 
 {$IFDEF FPC}
 
-{ TMarkdownCommonTests }
+{ TMarkdownCommonMarkTests }
 
-procedure TMarkdownCommonTests.registerTests(tests : TJSONArray);
+constructor TMarkdownCommonMarkTests.create;
 var
   i, c : integer;
   t : TJSONObject;
+  tests : TJSONArray;
 begin
+  inherited Create;
+  tests := getTestsBase;
   for i := 0 to tests.Count - 1 do
   begin
     t := tests.Items[i] as TJSONObject;
@@ -189,20 +187,22 @@ begin
   end;
 end;
 
-{ TMarkdownCommonMarkTests }
-
-constructor TMarkdownCommonMarkTests.create;
-begin
-  inherited Create;
-  registerTests(getTestsBase);
-end;
-
 { TMarkdownGFMTests }
 
 constructor TMarkdownGFMTests.create;
+var
+  i, c : integer;
+  t : TJSONObject;
+  tests : TJSONArray;
 begin
   inherited Create;
-  registerTests(getTestsGFM);
+  tests := getTestsGFM;
+  for i := 0 to tests.Count - 1 do
+  begin
+    t := tests.Items[i] as TJSONObject;
+    if (t.Find('mode') = nil) then
+      AddTest(TMarkdownGFMTest.Create(leftPad(t.Strings['example'], '0', 4)));
+  end;
 end;
 
 {$ELSE}
@@ -277,15 +277,22 @@ var
   src, html, exp : String;
 begin
   test := findTest(tests, name);
-  src := jsonStr(test, 'markdown').replace('\n', #10);
-  doc := TCommonMarkEngine.parse(src, self is TMarkdownGFMTest);
-  try
-    html := TCommonMarkEngine.render(doc);
-  finally
-    doc.Free;
+  if (test = nil) then
+  begin
+    assertFail('Test '+name+' not found');
+  end
+  else
+  begin
+    src := jsonStr(test, 'markdown').replace('\n', #10);
+    doc := TCommonMarkEngine.parse(src, self is TMarkdownGFMTest);
+    try
+      html := TCommonMarkEngine.render(doc);
+    finally
+      doc.Free;
+    end;
+    exp := jsonStr(test, 'html').replace('\n', #10);
+    assertEqual(exp, html, 'output does not match expected');
   end;
-  exp := jsonStr(test, 'html').replace('\n', #10);
-  assertEqual(html, exp, 'output does not match expected');
 end;
 
 initialization
