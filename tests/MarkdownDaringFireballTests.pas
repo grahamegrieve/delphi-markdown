@@ -31,8 +31,10 @@ POSSIBILITY OF SUCH DAMAGE.
 interface
 
 uses
-  Windows, SysUtils, Classes, {$IFDEF FPC} FPCUnit {$ELSE}DUnitX.TestFramework {$ENDIF}, Character, ShellApi,
-  MarkdownDaringFireball;
+  Windows, SysUtils, Classes,
+  {$IFDEF FPC} FPCUnit, TestRegistry {$ELSE} DUnitX.TestFramework {$ENDIF},
+  Character, ShellApi,
+  CommonTestBase, MarkdownDaringFireball;
 
 const
   TEST_NAMEs: array[0..26] of String = (
@@ -46,28 +48,39 @@ const
 var
   TestFolder : String = 'C:\work\markdown\resources\df';
 
+
 type
+  {$IFDEF FPC}
+  TMarkdownDaringFireballTests = class(TTestSuite)
+  private
+  public
+    constructor Create; override;
+  end;
+  {$ELSE}
   MarkDownParserTestCaseAttribute = class (CustomTestCaseSourceAttribute)
   protected
     function GetCaseInfoArray : TestCaseInfoArray; override;
   end;
 
   [TextFixture]
-  TMarkdownDaringFireballTests = class
+  {$ENDIF}
+  TMarkdownDaringFireballTest = class (TCommonTestCase)
   private
     function openFile(name: String): String;
     function tidy(cnt: String): String;
     procedure saveFile(name, content: String);
   public
+    {$IFNDEF FPC}
     [MarkDownParserTestCase]
-    procedure TestCase(name : String);
+    {$ENDIF}
+    procedure TestCase(name : String); override;
   end;
 
 implementation
 
-{ TMarkdownDaringFireballTests }
+{ TMarkdownDaringFireballTest }
 
-function TMarkdownDaringFireballTests.openFile(name: String): String;
+function TMarkdownDaringFireballTest.openFile(name: String): String;
 var
   filename: String;
   LFileStream: TFilestream;
@@ -90,7 +103,7 @@ begin
     raise Exception.Create('File "' + filename + '" not found');
 end;
 
-procedure TMarkdownDaringFireballTests.saveFile(name, content: String);
+procedure TMarkdownDaringFireballTest.saveFile(name, content: String);
 var
   filename: String;
   LFileStream: TFilestream;
@@ -119,7 +132,7 @@ begin
     for i := 0 to str.length - 1 do
     begin
       ch := str[1 + i];
-      if (ch.isWhitespace) then
+      if (isWhitespace(ch)) then
       begin
         if (not wasWs) then
         begin
@@ -145,15 +158,12 @@ begin
   result := StringReplace(str, ' <' , '<', [rfReplaceAll]);
 end;
 
-function TMarkdownDaringFireballTests.tidy(cnt: String): String;
+function TMarkdownDaringFireballTest.tidy(cnt: String): String;
 begin
   result := replaceHacks(collapseWhitespace(cnt));
 end;
 
-
-{ TMarkdownDaringFireballTests }
-
-procedure TMarkdownDaringFireballTests.TestCase(name: String);
+procedure TMarkdownDaringFireballTest.TestCase(name: String);
 var
   processor: TMarkdownDaringFireball;
   text, compare, processed, tCompare, tProcessed: String;
@@ -168,11 +178,27 @@ begin
 
     if (tCompare <> tProcessed) then
       saveFile(name+'.html.out', processed);
-    Assert.AreEqual(tCompare, tProcessed, 'Outputs differ');
+    assertEqual(tCompare, tProcessed, 'Outputs differ');
   finally
     processor.Free;
   end;
 end;
+
+
+{$IFDEF FPC}
+
+{ TMarkdownDaringFireballTests }
+
+constructor TMarkdownDaringFireballTests.Create;
+var
+  i : integer;
+begin
+  inherited Create;
+  for i := 0 to Length(TEST_NAMEs)- 1 do
+    AddTest(TMarkdownDaringFireballTest.Create(TEST_NAMEs[i]));
+end;
+
+{$ELSE}
 
 { MarkDownParserTestCaseAttribute }
 
@@ -189,6 +215,12 @@ begin
   end;
 end;
 
+{$ENDIF}
+
 initialization
-  TDUnitX.RegisterTestFixture(TMarkdownDaringFireballTests);
+{$IFNDEF FPC}
+  TDUnitX.RegisterTestFixture(TMarkdownDaringFireballTest);
+{$ELSE}
+  RegisterTest('Daring Fireball', TMarkdownDaringFireballTests.create);
+{$ENDIF}
 end.

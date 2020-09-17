@@ -99,7 +99,6 @@
         <DCC_NO_RETVAL>error</DCC_NO_RETVAL>
         <DCC_UNIT_NAME_MISMATCH>error</DCC_UNIT_NAME_MISMATCH>
         <DCC_ImportedDataReferences>false</DCC_ImportedDataReferences>
-        <DCC_DebugDCUs>false</DCC_DebugDCUs>
         <DCC_IntegerOverflowCheck>true</DCC_IntegerOverflowCheck>
         <DCC_RangeChecking>true</DCC_RangeChecking>
     </PropertyGroup>
@@ -121,6 +120,7 @@
         <DCCReference Include="..\source\MarkdownProcessor.pas"/>
         <DCCReference Include="..\..\fhirserver\dependencies\FMM\FastMM4Messages.pas"/>
         <DCCReference Include="..\source\MarkdownHTMLEntities.pas"/>
+        <DCCReference Include="..\tests\CommonTestBase.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

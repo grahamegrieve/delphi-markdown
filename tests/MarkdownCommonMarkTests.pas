@@ -28,17 +28,42 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 }
 
+{$IFDEF FPC}{$MODE DELPHI}{$ENDIF}
+
 interface
 
 uses
-  Windows, SysUtils, Classes, {$IFDEF FPC} FPCUnit {$ELSE} Json, DUnitX.TestFramework {$ENDIF}, Character, ShellApi, Generics.Collections,
-  MarkdownCommonMark;
+  Windows, SysUtils, Classes,
+  {$IFDEF FPC} FPCUnit, TestRegistry, {$ELSE} DUnitX.TestFramework, {$ENDIF}
+  Character, ShellApi, Generics.Collections,
+  {$IFDEF FPC} FPJson, JsonParser, {$ELSE} Json, {$ENDIF}
+  CommonTestBase, MarkdownCommonMark;
 
 var
   TestFileCM: String = 'C:\work\markdown\resources\commonmark\spec.json';
   TestFileGFM: String = 'C:\work\markdown\resources\commonmark\gfm_tests.json';
 
 type
+  {$IFDEF FPC}
+  TJSONValue = TJSONEnum;
+
+  TMarkdownCommonTests = class (TTestSuite)
+  protected
+    procedure registerTests(tests : TJSONArray);
+  end;
+
+  TMarkdownCommonMarkTests = class (TMarkdownCommonTests)
+  public
+    constructor Create; override;
+  end;
+
+  TMarkdownGFMTests = class (TMarkdownCommonTests)
+  public
+    constructor Create; override;
+  end;
+
+  {$ELSE}
+
   CommonMarkDownParserTestCaseAttributeBase = class abstract (CustomTestCaseSourceAttribute)
   protected
     function GetCaseInfoArray : TestCaseInfoArray; override;
@@ -46,30 +71,27 @@ type
 
   CommonMarkDownParserTestCaseAttribute = class (CommonMarkDownParserTestCaseAttributeBase);
   GFMParserTestCaseAttribute = class (CommonMarkDownParserTestCaseAttributeBase);
+  {$ENDIF}
 
-  TMarkdownCommonMarkTestBase = class abstract
+  TMarkdownCommonMarkTestBase = class abstract (TCommonTestCase)
+  private
+    function findTest(tests : TJSONArray; name : String) : TJSONObject;
   protected
-    function findTest(name : String) : TJSONObject;
-    function tests : TJSONArray; virtual; abstract;
-    procedure Test(Name : String);
+    procedure DoTest(tests : TJSONArray; Name : String);
   end;
 
-  [TextFixture]
+  {$IFNDEF FPC}[TextFixture]{$ENDIF}
   TMarkdownCommonMarkTest = class (TMarkdownCommonMarkTestBase)
-  protected
-    function tests : TJSONArray; override;
   public
-    [CommonMarkDownParserTestCase]
-    procedure TestCase(Name : String);
+    {$IFNDEF FPC}[CommonMarkDownParserTestCase]{$ENDIF}
+    procedure TestCase(Name : String); override;
   end;
 
-  [TextFixture]
+  {$IFNDEF FPC}[TextFixture]{$ENDIF}
   TMarkdownGFMTest = class (TMarkdownCommonMarkTestBase)
-  protected
-    function tests : TJSONArray; override;
   public
-    [GFMParserTestCase]
-    procedure TestCase(Name : String);
+    {$IFNDEF FPC}[GFMParserTestCase]{$ENDIF}
+    procedure TestCase(Name : String); override;
   end;
 
 implementation
@@ -77,6 +99,8 @@ implementation
 var
   gTestsBase : TJSONArray = nil;
   gTestsGFM : TJSONArray = nil;
+
+// ** Utilities ****************************************************************
 
 procedure FreeTests;
 begin
@@ -91,49 +115,113 @@ begin
     insert(c, result, 1);
 end;
 
-{ CommonMarkDownParserTestCaseAttributeBase }
-
-function CommonMarkDownParserTestCaseAttributeBase.GetCaseInfoArray: TestCaseInfoArray;
+function loadJson(filename : String) : TJsonArray;
 var
   f : TFileStream;
   b : TBytes;
   s : String;
+  {$IFDEF FPC}
+  json : TJSONParser;
+  {$ENDIF}
+begin
+  f := TFileStream.Create(filename, fmOpenRead + fmShareDenyWrite);
+  try
+    SetLength(b, f.Size);
+    f.Read(b[0], f.Size);
+  finally
+    f.Free;
+  end;
+  s := TEncoding.UTF8.GetString(b);
+  {$IFDEF FPC}
+  json := TJSONParser.create(s);
+  try
+    result := json.Parse as TJsonArray;
+  finally
+    json.free;
+  end;
+  {$ELSE}
+  result :=  TJSONObject.ParseJSONValue(s) as TJSONArray;
+  {$ENDIF}
+end;
+
+function jsonStr(obj : TJsonObject; name : String; isNumber : boolean = false) : String;
+begin
+ {$IFDEF FPC}
+ result := obj.Strings[name];
+ {$ELSE}
+ if isNumber then
+   result := (obj.values[name] as TJsonString).Value
+ else
+   result := (obj.values[name] as TJsonString).Value;
+ {$ENDIF}
+end;
+
+function getTestsBase : TJSONArray;
+begin
+  if gTestsBase = nil then
+    gTestsBase := loadJson(TestFileCM);
+  result := gTestsBase;
+end;
+
+function getTestsGFM : TJSONArray;
+begin
+  if gTestsGFM = nil then
+    gTestsGFM := loadJson(TestFileGFM);
+  result := gTestsGFM;
+end;
+
+// ** Test Set up **************************************************************
+
+{$IFDEF FPC}
+
+{ TMarkdownCommonTests }
+
+procedure TMarkdownCommonTests.registerTests(tests : TJSONArray);
+var
+  i, c : integer;
+  t : TJSONObject;
+begin
+  for i := 0 to tests.Count - 1 do
+  begin
+    t := tests.Items[i] as TJSONObject;
+    if (t.Find('mode') = nil) then
+      AddTest(TMarkdownCommonMarkTest.Create(leftPad(t.Strings['example'], '0', 4)));
+  end;
+end;
+
+{ TMarkdownCommonMarkTests }
+
+constructor TMarkdownCommonMarkTests.create;
+begin
+  inherited Create;
+  registerTests(getTestsBase);
+end;
+
+{ TMarkdownGFMTests }
+
+constructor TMarkdownGFMTests.create;
+begin
+  inherited Create;
+  registerTests(getTestsGFM);
+end;
+
+{$ELSE}
+
+{ CommonMarkDownParserTestCaseAttributeBase }
+
+function CommonMarkDownParserTestCaseAttributeBase.GetCaseInfoArray: TestCaseInfoArray;
+var
   i, c : integer;
   t : TJSONObject;
   tests : TJSONArray;
 begin
   if self is CommonMarkDownParserTestCaseAttribute then
-  begin
-    if gTestsBase = nil then
-    begin
-      f := TFileStream.Create(TestFileCM, fmOpenRead + fmShareDenyWrite);
-      try
-        SetLength(b, f.Size);
-        f.Read(b[0], f.Size);
-      finally
-        f.Free;
-      end;
-      s := TEncoding.UTF8.GetString(b);
-      gTestsBase :=  TJSONObject.ParseJSONValue(s) as TJSONArray;
-    end;
-    tests := gTestsBase;
-  end
+    tests := getTestsBase
+  else if self is GFMParserTestCaseAttribute then
+    tests := getTestsGFM
   else
-  begin
-    if gTestsGFM = nil then
-    begin
-      f := TFileStream.Create(TestFileGFM, fmOpenRead + fmShareDenyWrite);
-      try
-        SetLength(b, f.Size);
-        f.Read(b[0], f.Size);
-      finally
-        f.Free;
-      end;
-      s := TEncoding.UTF8.GetString(b);
-      gTestsGFM :=  TJSONObject.ParseJSONValue(s) as TJSONArray;
-    end;
-    tests := gTestsGFM;
-  end;
+    raise Exception.Create('self is '+ClassName);
+
   SetLength(result, tests.Count);
   c := 0;
   for i := 0 to tests.Count - 1 do
@@ -150,9 +238,25 @@ begin
   SetLength(result, c);
 end;
 
+{$ENDIF}
+
+{ TMarkdownCommonMarkTest }
+
+procedure TMarkdownCommonMarkTest.TestCase(Name: String);
+begin
+  DoTest(getTestsBase, name);
+end;
+
+{ TMarkdownGFMTest }
+
+procedure TMarkdownGFMTest.TestCase(Name: String);
+begin
+  DoTest(getTestsGFM, name);
+end;
+
 { TMarkdownCommonMarkTestBase }
 
-function TMarkdownCommonMarkTestBase.findTest(name: String): TJSONObject;
+function TMarkdownCommonMarkTestBase.findTest(tests : TJSONArray; name : String) : TJSONObject;
 var
   v : TJSONValue;
   o : TJSONObject;
@@ -160,61 +264,38 @@ begin
   result := nil;
   for v in tests do
   begin
-    o := v as TJSONObject;
-    if leftPad((o.Values['example'] as TJSONNumber).value, '0', 4) = name then
+    o := v{$IFDEF FPC}.value{$ENDIF} as TJSONObject;
+    if leftPad(jsonStr(o, 'example', true), '0', 4) = name then
       exit(o);
   end;
 end;
 
-procedure TMarkdownCommonMarkTestBase.Test(name : String);
+procedure TMarkdownCommonMarkTestBase.DoTest(tests : TJSONArray; Name : String);
 var
   test : TJSONObject;
   doc : TCommonMarkDocument;
   src, html, exp : String;
 begin
-  test := findTest(name);
-
-  writeln(name);
-  src := (test.values['markdown'] as TJsonString).value.replace('\n', #10);
+  test := findTest(tests, name);
+  src := jsonStr(test, 'markdown').replace('\n', #10);
   doc := TCommonMarkEngine.parse(src, self is TMarkdownGFMTest);
   try
     html := TCommonMarkEngine.render(doc);
   finally
     doc.Free;
   end;
-  exp := (test.values['html'] as TJsonString).value.replace('\n', #10);
-//  if (test.Values['mode'] = nil) then
-    Assert.isTrue(html = exp);
-end;
-
-
-{ TMarkdownCommonMarkTest }
-
-procedure TMarkdownCommonMarkTest.TestCase(Name: String);
-begin
-  test(name);
-end;
-
-function TMarkdownCommonMarkTest.tests: TJSONArray;
-begin
-  result := gTestsBase;
-end;
-
-{ TMarkdownGFMTest }
-
-procedure TMarkdownGFMTest.TestCase(Name: String);
-begin
-  test(name);
-end;
-
-function TMarkdownGFMTest.tests: TJSONArray;
-begin
-  result := gTestsGFM;
+  exp := jsonStr(test, 'html').replace('\n', #10);
+  assertEqual(html, exp, 'output does not match expected');
 end;
 
 initialization
+  {$IFDEF FPC}
+  RegisterTest('CommonMark', TMarkdownCommonMarkTests.create);
+  RegisterTest('GFM', TMarkdownGFMTests.create);
+  {$ELSE}
   TDUnitX.RegisterTestFixture(TMarkdownCommonMarkTest);
   TDUnitX.RegisterTestFixture(TMarkdownGFMTest);
+  {$ENDIF}
 finalization
   freeTests;
 end.

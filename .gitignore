@@ -133,3 +133,5 @@ fpc/MarkdownTestProgram\.app/Contents/MacOS/
 /source/backup
 /fpc/backup
 /tests/backup
+/fpc/lib/i386-win32
+/fpc/MarkdownTestProgram.fpcunit.ini

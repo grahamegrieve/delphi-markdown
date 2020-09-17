@@ -3,12 +3,12 @@
   <ProjectSession>
     <Version Value="12"/>
     <BuildModes Active="Default"/>
-    <Units Count="20">
+    <Units Count="32">
       <Unit0>
         <Filename Value="MarkdownTestProgram.lpr"/>
         <IsPartOfProject Value="True"/>
-        <CursorPos X="55" Y="6"/>
-        <UsageCount Value="49"/>
+        <CursorPos X="37" Y="6"/>
+        <UsageCount Value="73"/>
         <Loaded Value="True"/>
       </Unit0>
       <Unit1>
@@ -16,17 +16,15 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="TestCase1"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="5"/>
-        <CursorPos X="50" Y="8"/>
-        <UsageCount Value="49"/>
+        <CursorPos X="47" Y="8"/>
+        <UsageCount Value="73"/>
       </Unit1>
       <Unit2>
         <Filename Value="../source/MarkdownDaringFireball.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="16"/>
-        <CursorPos X="88" Y="20"/>
-        <UsageCount Value="49"/>
+        <EditorIndex Value="6"/>
+        <UsageCount Value="73"/>
+        <Loaded Value="True"/>
       </Unit2>
       <Unit3>
         <Filename Value="dunitfpc.pas"/>
@@ -34,39 +32,39 @@
         <UnitName Value="DUnitFpc"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="21" Y="7"/>
-        <UsageCount Value="46"/>
+        <UsageCount Value="70"/>
       </Unit3>
       <Unit4>
         <Filename Value="../source/MarkdownCommonMark.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="4"/>
+        <EditorIndex Value="-1"/>
         <TopLine Value="413"/>
         <CursorPos X="34" Y="429"/>
-        <UsageCount Value="45"/>
-        <Loaded Value="True"/>
+        <UsageCount Value="69"/>
       </Unit4>
       <Unit5>
         <Filename Value="../source/HTMLEntities.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <CursorPos Y="37"/>
-        <UsageCount Value="45"/>
+        <UsageCount Value="69"/>
       </Unit5>
       <Unit6>
         <Filename Value="../tests/MarkdownDaringFireballTests.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="1"/>
-        <CursorPos X="51" Y="34"/>
-        <UsageCount Value="45"/>
+        <EditorIndex Value="5"/>
+        <CursorPos X="37" Y="35"/>
+        <UsageCount Value="69"/>
         <Loaded Value="True"/>
       </Unit6>
       <Unit7>
         <Filename Value="../tests/MarkdownCommonMarkTests.pas"/>
         <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="2"/>
-        <TopLine Value="19"/>
-        <CursorPos X="46" Y="34"/>
-        <UsageCount Value="45"/>
+        <TopLine Value="173"/>
+        <CursorPos X="62" Y="203"/>
+        <UsageCount Value="69"/>
         <Loaded Value="True"/>
       </Unit7>
       <Unit8>
@@ -74,116 +72,298 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="Unit1"/>
         <EditorIndex Value="-1"/>
-        <UsageCount Value="43"/>
+        <UsageCount Value="67"/>
       </Unit8>
       <Unit9>
         <Filename Value="../source/MarkdownDaringFireballTests.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="149"/>
         <CursorPos X="81" Y="9"/>
-        <UsageCount Value="19"/>
+        <UsageCount Value="17"/>
       </Unit9>
       <Unit10>
         <Filename Value="../source/RegExpr.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="506"/>
         <CursorPos X="3" Y="531"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="8"/>
       </Unit10>
       <Unit11>
         <Filename Value="../source/MarkdownProcessor.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="40"/>
         <CursorPos X="21" Y="62"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="8"/>
       </Unit11>
       <Unit12>
         <Filename Value="../../../tools/lazarus/fpc/3.0.4/source/packages/fcl-fpcunit/src/testutils.pp"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="26" Y="27"/>
-        <UsageCount Value="9"/>
+        <UsageCount Value="7"/>
       </Unit12>
       <Unit13>
         <Filename Value="../../../tools/lazarus/fpc/3.0.4/source/packages/fcl-fpcunit/src/testregistry.pp"/>
         <EditorIndex Value="-1"/>
-        <UsageCount Value="9"/>
+        <UsageCount Value="7"/>
       </Unit13>
       <Unit14>
         <Filename Value="../../../tools/lazarus/fpc/3.0.4/source/packages/fcl-fpcunit/src/fpcunit.pp"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="106"/>
         <CursorPos X="39" Y="233"/>
-        <UsageCount Value="9"/>
+        <UsageCount Value="7"/>
       </Unit14>
       <Unit15>
         <Filename Value="../../fhirserver/freepascal/generics.collections.pas"/>
         <UnitName Value="Generics.Collections"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="37" Y="6"/>
-        <UsageCount Value="8"/>
+        <UsageCount Value="6"/>
       </Unit15>
       <Unit16>
         <Filename Value="generics.collections.pas"/>
         <UnitName Value="Generics.Collections"/>
         <EditorIndex Value="-1"/>
         <CursorPos Y="30"/>
-        <UsageCount Value="9"/>
+        <UsageCount Value="7"/>
       </Unit16>
       <Unit17>
         <Filename Value="inc/generics.dictionariesh.inc"/>
-        <EditorIndex Value="5"/>
+        <EditorIndex Value="-1"/>
         <TopLine Value="515"/>
         <CursorPos X="17" Y="532"/>
-        <UsageCount Value="22"/>
-        <Loaded Value="True"/>
+        <UsageCount Value="20"/>
       </Unit17>
       <Unit18>
         <Filename Value="../source/MarkdownCommonMarkTests.pas"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="139"/>
-        <UsageCount Value="8"/>
+        <UsageCount Value="6"/>
       </Unit18>
       <Unit19>
         <Filename Value="../../../fpcupdeluxe/fpcsrc/packages/fcl-fpcunit/src/fpcunit.pp"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="3"/>
+        <EditorIndex Value="-1"/>
+        <UsageCount Value="19"/>
+      </Unit19>
+      <Unit20>
+        <Filename Value="../../../tools/lazarus/fpc/3.2.0/source/packages/fcl-fpcunit/src/fpcunit.pp"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="86"/>
+        <CursorPos Y="88"/>
+        <UsageCount Value="8"/>
+      </Unit20>
+      <Unit21>
+        <Filename Value="../../../tools/lazarus/fpcsrc/packages/fcl-fpcunit/src/fpcunit.pp"/>
+        <EditorIndex Value="9"/>
+        <TopLine Value="80"/>
+        <CursorPos X="28" Y="224"/>
         <UsageCount Value="21"/>
         <Loaded Value="True"/>
-      </Unit19>
+      </Unit21>
+      <Unit22>
+        <Filename Value="../../Components/fptest/src/timemanager.pas"/>
+        <UnitName Value="TimeManager"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="3" Y="12"/>
+        <UsageCount Value="8"/>
+      </Unit22>
+      <Unit23>
+        <Filename Value="../../Components/dunitx/Source/DUnitX.inc"/>
+        <EditorIndex Value="10"/>
+        <TopLine Value="10"/>
+        <CursorPos Y="47"/>
+        <UsageCount Value="21"/>
+        <Loaded Value="True"/>
+      </Unit23>
+      <Unit24>
+        <Filename Value="../../Components/dunitx/Source/DUnitX.TestFramework.pas"/>
+        <EditorIndex Value="12"/>
+        <TopLine Value="29"/>
+        <CursorPos X="11" Y="54"/>
+        <UsageCount Value="21"/>
+        <Loaded Value="True"/>
+      </Unit24>
+      <Unit25>
+        <Filename Value="../../Components/dunitx/Source/DUnitX.Assert.pas"/>
+        <EditorIndex Value="13"/>
+        <CursorPos X="117" Y="39"/>
+        <UsageCount Value="21"/>
+        <Loaded Value="True"/>
+      </Unit25>
+      <Unit26>
+        <Filename Value="../../Components/dunitx/Source/DUnitX.Utils.pas"/>
+        <EditorIndex Value="11"/>
+        <TopLine Value="3480"/>
+        <CursorPos Y="3525"/>
+        <UsageCount Value="21"/>
+        <Loaded Value="True"/>
+      </Unit26>
+      <Unit27>
+        <Filename Value="../../../tools/lazarus/lazarus/components/fpcunit/guitestrunner.pas"/>
+        <ComponentName Value="GUITestRunner"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="GuiTestRunner"/>
+        <EditorIndex Value="1"/>
+        <TopLine Value="675"/>
+        <CursorPos Y="684"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit27>
+      <Unit28>
+        <Filename Value="../../../tools/lazarus/fpcsrc/packages/fcl-fpcunit/src/testregistry.pp"/>
+        <EditorIndex Value="8"/>
+        <TopLine Value="9"/>
+        <CursorPos X="17" Y="34"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit28>
+      <Unit29>
+        <Filename Value="../tests/CommonTestBase.pas"/>
+        <EditorIndex Value="7"/>
+        <TopLine Value="46"/>
+        <CursorPos X="43" Y="55"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit29>
+      <Unit30>
+        <Filename Value="../../../tools/lazarus/fpcsrc/packages/fcl-json/src/jsonparser.pp"/>
+        <EditorIndex Value="4"/>
+        <TopLine Value="31"/>
+        <CursorPos X="14" Y="28"/>
+        <UsageCount Value="12"/>
+        <Loaded Value="True"/>
+      </Unit30>
+      <Unit31>
+        <Filename Value="../../../tools/lazarus/fpcsrc/packages/fcl-json/src/fpjson.pp"/>
+        <EditorIndex Value="3"/>
+        <TopLine Value="664"/>
+        <CursorPos X="67" Y="678"/>
+        <UsageCount Value="11"/>
+        <Loaded Value="True"/>
+      </Unit31>
     </Units>
-    <JumpHistory Count="8" HistoryIndex="7">
+    <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="inc/generics.dictionariesh.inc"/>
-        <Caret Line="532" Column="17" TopLine="515"/>
+        <Filename Value="../tests/MarkdownCommonMarkTests.pas"/>
+        <Caret Line="150" TopLine="111"/>
       </Position1>
       <Position2>
-        <Filename Value="MarkdownTestProgram.lpr"/>
-        <Caret Line="6" Column="56"/>
+        <Filename Value="../tests/MarkdownCommonMarkTests.pas"/>
+        <Caret Line="280" Column="66" TopLine="234"/>
       </Position2>
       <Position3>
         <Filename Value="../tests/MarkdownCommonMarkTests.pas"/>
-        <Caret Line="33" Column="3" TopLine="18"/>
+        <Caret Line="288" TopLine="234"/>
       </Position3>
       <Position4>
-        <Filename Value="../tests/MarkdownDaringFireballTests.pas"/>
-        <Caret Line="34" Column="51"/>
+        <Filename Value="../tests/MarkdownCommonMarkTests.pas"/>
+        <Caret Line="293" Column="4" TopLine="236"/>
       </Position4>
       <Position5>
-        <Filename Value="MarkdownTestProgram.lpr"/>
-        <Caret Line="6" Column="55"/>
+        <Filename Value="../tests/MarkdownDaringFireballTests.pas"/>
+        <Caret Line="176" TopLine="157"/>
       </Position5>
       <Position6>
         <Filename Value="../tests/MarkdownCommonMarkTests.pas"/>
-        <Caret Line="34" Column="66" TopLine="18"/>
+        <Caret Line="40" TopLine="32"/>
       </Position6>
       <Position7>
         <Filename Value="../tests/MarkdownCommonMarkTests.pas"/>
-        <Caret Line="42" Column="59" TopLine="25"/>
+        <Caret Line="194" Column="37" TopLine="184"/>
       </Position7>
       <Position8>
-        <Filename Value="../source/MarkdownCommonMark.pas"/>
-        <Caret Line="429" Column="34" TopLine="413"/>
+        <Filename Value="../tests/MarkdownCommonMarkTests.pas"/>
+        <Caret Line="294" Column="20" TopLine="239"/>
       </Position8>
+      <Position9>
+        <Filename Value="../tests/MarkdownCommonMarkTests.pas"/>
+        <Caret Line="60" Column="20" TopLine="13"/>
+      </Position9>
+      <Position10>
+        <Filename Value="../tests/MarkdownCommonMarkTests.pas"/>
+        <Caret Line="295" TopLine="239"/>
+      </Position10>
+      <Position11>
+        <Filename Value="../tests/MarkdownCommonMarkTests.pas"/>
+        <Caret Line="293" Column="3" TopLine="239"/>
+      </Position11>
+      <Position12>
+        <Filename Value="../tests/MarkdownDaringFireballTests.pas"/>
+        <Caret Line="225" TopLine="164"/>
+      </Position12>
+      <Position13>
+        <Filename Value="../tests/MarkdownCommonMarkTests.pas"/>
+        <Caret Line="37" Column="38"/>
+      </Position13>
+      <Position14>
+        <Filename Value="../tests/MarkdownCommonMarkTests.pas"/>
+        <Caret Line="134" Column="4" TopLine="107"/>
+      </Position14>
+      <Position15>
+        <Filename Value="../tests/MarkdownCommonMarkTests.pas"/>
+        <Caret Line="171" Column="57" TopLine="152"/>
+      </Position15>
+      <Position16>
+        <Filename Value="../tests/MarkdownCommonMarkTests.pas"/>
+        <Caret Line="197" Column="31" TopLine="164"/>
+      </Position16>
+      <Position17>
+        <Filename Value="../tests/MarkdownCommonMarkTests.pas"/>
+        <Caret Line="120" Column="85" TopLine="107"/>
+      </Position17>
+      <Position18>
+        <Filename Value="../tests/MarkdownCommonMarkTests.pas"/>
+        <Caret Line="198" Column="53" TopLine="166"/>
+      </Position18>
+      <Position19>
+        <Filename Value="../tests/MarkdownCommonMarkTests.pas"/>
+        <Caret Line="183" Column="36" TopLine="166"/>
+      </Position19>
+      <Position20>
+        <Filename Value="../../../tools/lazarus/fpcsrc/packages/fcl-json/src/fpjson.pp"/>
+        <Caret Line="604" Column="3" TopLine="702"/>
+      </Position20>
+      <Position21>
+        <Filename Value="../../../tools/lazarus/fpcsrc/packages/fcl-json/src/fpjson.pp"/>
+        <Caret Line="626" Column="14" TopLine="595"/>
+      </Position21>
+      <Position22>
+        <Filename Value="../../../tools/lazarus/fpcsrc/packages/fcl-json/src/fpjson.pp"/>
+        <Caret Line="3092" Column="3" TopLine="3086"/>
+      </Position22>
+      <Position23>
+        <Filename Value="../../../tools/lazarus/fpcsrc/packages/fcl-json/src/fpjson.pp"/>
+        <Caret Line="694" Column="18" TopLine="684"/>
+      </Position23>
+      <Position24>
+        <Filename Value="../../../tools/lazarus/fpcsrc/packages/fcl-json/src/fpjson.pp"/>
+        <Caret Line="4032" Column="3" TopLine="4017"/>
+      </Position24>
+      <Position25>
+        <Filename Value="../tests/MarkdownCommonMarkTests.pas"/>
+        <Caret Line="187" Column="23" TopLine="166"/>
+      </Position25>
+      <Position26>
+        <Filename Value="../../../tools/lazarus/fpcsrc/packages/fcl-json/src/fpjson.pp"/>
+        <Caret Line="678" Column="67" TopLine="664"/>
+      </Position26>
+      <Position27>
+        <Filename Value="../tests/MarkdownCommonMarkTests.pas"/>
+        <Caret Line="197" TopLine="166"/>
+      </Position27>
+      <Position28>
+        <Filename Value="../tests/MarkdownCommonMarkTests.pas"/>
+        <Caret Line="200" Column="22" TopLine="166"/>
+      </Position28>
+      <Position29>
+        <Filename Value="../tests/MarkdownCommonMarkTests.pas"/>
+        <Caret Line="119" Column="62" TopLine="107"/>
+      </Position29>
+      <Position30>
+        <Filename Value="../tests/MarkdownCommonMarkTests.pas"/>
+        <Caret Line="202" Column="26" TopLine="174"/>
+      </Position30>
     </JumpHistory>
     <RunParams>
       <FormatVersion Value="2"/>
@@ -196,8 +376,15 @@
         <Kind Value="bpkSource"/>
         <WatchScope Value="wpsLocal"/>
         <WatchKind Value="wpkWrite"/>
-        <Source Value="../source/MarkdownCommonMark.pas"/>
-        <Line Value="56"/>
+        <Source Value="../../../tools/lazarus/fpcsrc/packages/fcl-fpcunit/src/fpcunit.pp"/>
+        <Line Value="1107"/>
+      </Item>
+      <Item>
+        <Kind Value="bpkSource"/>
+        <WatchScope Value="wpsLocal"/>
+        <WatchKind Value="wpkWrite"/>
+        <Source Value="../../../tools/lazarus/fpcsrc/packages/fcl-fpcunit/src/fpcunit.pp"/>
+        <Line Value="1005"/>
       </Item>
     </BreakPoints>
   </Debugging>
