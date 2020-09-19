@@ -28,6 +28,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 }
 
+{$IFDEF FPC}{$MODE DELPHI}{$ENDIF}
 
 {
 How to use this - see MarkdownProcessor; this unit is not intended to be used directly
@@ -49,8 +50,6 @@ note about GFM:
 }
 
 interface
-
-{$IFDEF FPC}{$MODE DELPHI}{$ENDIF}
 
 uses
   SysUtils, Classes, Math, Generics.Collections, Character,
@@ -2052,13 +2051,12 @@ end;
 function TCommonMarkEngine.urlEscape(s: String; ignoreExisting : boolean = false): String;
 var
   ch : UnicodeChar;
-  i : integer;
   cs : String;
 begin
   FBuilder.Clear;
   for ch in unicodeChars(s) do
   begin
-    if ignoreExisting and (ch = '%') and (StrToIntDef('X'+copy(s, i+1, 2),  -1) <> -1) then
+    if ignoreExisting {and (ch = '%') and (StrToIntDef('X'+copy(s, i+1, 2),  -1) <> -1)} then
     begin
       cs := ch;
       FBuilder.Append(cs);
