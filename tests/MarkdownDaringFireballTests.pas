@@ -134,7 +134,11 @@ begin
     for i := 0 to str.length - 1 do
     begin
       ch := str[1 + i];
+      {$IFDEF FPC}
+      if isWhitespace(ch) then
+      {$ELSE}
       if (ch.isWhitespace) then
+      {$ENDIF}
       begin
         if (not wasWs) then
         begin
