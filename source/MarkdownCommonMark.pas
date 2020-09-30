@@ -1611,7 +1611,7 @@ begin
       if FStyling and (FCol - 1 >= line.FBlockPreSpaces) then
       begin
         if FCol - 1 + line.FBlockOffset - line.FBlockPreSpaces >= length(line.FStyles) then
-          writeln('problem');
+          raise Exception.create('problem');
         line.FStyles[FCol - 1 + line.FBlockOffset - line.FBlockPreSpaces] := style;
       end;
     end;
