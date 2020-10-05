@@ -38,10 +38,6 @@ uses
   {$IFDEF FPC} FPJson, JsonParser, {$ELSE} Json, {$ENDIF}
   CommonTestBase, MarkdownCommonMark;
 
-var
-  TestFileCM: String = 'C:\work\markdown\resources\commonmark\spec.json';
-  TestFileGFM: String = 'C:\work\markdown\resources\commonmark\gfm_tests.json';
-
 type
   {$IFDEF FPC}
   TJSONValue = TJSONEnum;
@@ -93,6 +89,17 @@ implementation
 var
   gTestsBase : TJSONArray = nil;
   gTestsGFM : TJSONArray = nil;
+
+
+function TestFileCM : String;
+begin
+  result := IncludeTrailingPathDelimiter(GetCurrentDir) + 'resources/commonmark/spec.json';
+end;
+
+function TestFileGFM : String;
+begin
+  result := IncludeTrailingPathDelimiter(GetCurrentDir) + 'resources/commonmark/gfm_tests.json';
+end;
 
 // ** Utilities ****************************************************************
 
