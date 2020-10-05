@@ -33,7 +33,7 @@ POSSIBILITY OF SUCH DAMAGE.
 interface
 
 uses
-  Character, {$IFDEF WINDOWS} ShellApi, {$ENDIF} Generics.Collections,
+  SysUtils, Classes, Character, {$IFDEF WINDOWS} ShellApi, {$ENDIF} Generics.Collections,
   {$IFDEF FPC} FPCUnit, TestRegistry, {$ELSE} DUnitX.TestFramework, {$ENDIF}
   {$IFDEF FPC} FPJson, JsonParser, {$ELSE} Json, {$ENDIF}
   CommonTestBase, MarkdownCommonMark;
