@@ -33,7 +33,7 @@ POSSIBILITY OF SUCH DAMAGE.
 interface
 
 uses
-  Windows, SysUtils, Classes, {$IFDEF FPC} FPCUnit {$ELSE}DUnitX.TestFramework {$ENDIF};
+  {$IFDEF FPC} FPCUnit {$ELSE}DUnitX.TestFramework {$ENDIF};
 
 type
 
