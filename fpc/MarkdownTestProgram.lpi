@@ -19,9 +19,16 @@
       <Version Value="2"/>
     </PublishOptions>
     <RunParams>
+      <local>
+        <WorkingDirectory Value="/home/gg/markdown"/>
+      </local>
       <FormatVersion Value="2"/>
       <Modes Count="1">
-        <Mode0 Name="default"/>
+        <Mode0 Name="default">
+          <local>
+            <WorkingDirectory Value="/home/gg/markdown"/>
+          </local>
+        </Mode0>
       </Modes>
     </RunParams>
     <RequiredPackages Count="3">
@@ -105,7 +112,7 @@
     </Linking>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="5">
+    <Exceptions Count="6">
       <Item1>
         <Name Value="EAbort"/>
       </Item1>
@@ -121,6 +128,9 @@
       <Item5>
         <Name Value="EConvertError"/>
       </Item5>
+      <Item6>
+        <Name Value="Exception"/>
+      </Item6>
     </Exceptions>
   </Debugging>
 </CONFIG>
