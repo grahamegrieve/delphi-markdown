@@ -33,9 +33,8 @@ POSSIBILITY OF SUCH DAMAGE.
 interface
 
 uses
-  Windows, SysUtils, Classes,
+  SysUtils, Classes, Character,
   {$IFDEF FPC} FPCUnit, TestRegistry {$ELSE} DUnitX.TestFramework {$ENDIF},
-  Character, ShellApi,
   CommonTestBase, MarkdownDaringFireball;
 
 const
