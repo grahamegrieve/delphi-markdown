@@ -137,3 +137,7 @@ fpc/MarkdownTestProgram\.app/Contents/MacOS/
 /fpc/MarkdownTestProgram.fpcunit.ini
 /fpc/MarkdownTestProgram.lps
 /fpc/lib/x86_64-linux
+
+MarkdownTestProgram.fpcunit.ini
+
+fpc/MarkdownTestProgram
