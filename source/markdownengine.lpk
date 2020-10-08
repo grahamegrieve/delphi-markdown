@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <Package Version="4">
+    <PathDelim Value="\"/>
+    <Name Value="MarkdownEngine"/>
+    <Type Value="RunAndDesignTime"/>
+    <CompilerOptions>
+      <Version Value="11"/>
+      <PathDelim Value="\"/>
+      <SearchPaths>
+        <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+      </SearchPaths>
+      <Parsing>
+        <SyntaxOptions>
+          <SyntaxMode Value="Delphi"/>
+        </SyntaxOptions>
+      </Parsing>
+    </CompilerOptions>
+    <Files Count="6">
+      <Item1>
+        <Filename Value="MarkdownUnicodeUtils.pas"/>
+        <UnitName Value="MarkdownUnicodeUtils"/>
+      </Item1>
+      <Item2>
+        <Filename Value="MarkdownHTMLEntities.pas"/>
+        <UnitName Value="MarkdownHTMLEntities"/>
+      </Item2>
+      <Item3>
+        <Filename Value="MarkdownCommonMark.pas"/>
+        <UnitName Value="MarkdownCommonMark"/>
+      </Item3>
+      <Item4>
+        <Filename Value="MarkdownDaringFireball.pas"/>
+        <UnitName Value="MarkdownDaringFireball"/>
+      </Item4>
+      <Item5>
+        <Filename Value="MarkdownProcessor.pas"/>
+        <UnitName Value="MarkdownProcessor"/>
+      </Item5>
+      <Item6>
+        <Filename Value="markdownengine.pas"/>
+        <UnitName Value="MarkdownEngine"/>
+      </Item6>
+    </Files>
+    <RequiredPkgs Count="2">
+      <Item1>
+        <PackageName Value="LazUtils"/>
+      </Item1>
+      <Item2>
+        <PackageName Value="FCL"/>
+      </Item2>
+    </RequiredPkgs>
+    <UsageOptions>
+      <UnitPath Value="$(PkgOutDir)"/>
+    </UsageOptions>
+    <PublishOptions>
+      <Version Value="2"/>
+      <UseFileFilters Value="True"/>
+    </PublishOptions>
+  </Package>
+</CONFIG>
