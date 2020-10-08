@@ -47,7 +47,7 @@ const
     'GitHub Issue 1', 'GitHub Issue 2', 'GitHub Issue 3', 'GitHub Issue 3a', 'GitHub Issue 4');
 
 var
-  TestFolder : String = 'C:\work\markdown\resources\df';
+  TestFolder : String = 'resources/df';
 
 
 type
@@ -87,7 +87,7 @@ var
   LFileStream: TFilestream;
   bytes: TBytes;
 begin
-  filename := IncludeTrailingPathDelimiter(TestFolder) + name;
+  filename := IncludeTrailingPathDelimiter(GetCurrentDir)+IncludeTrailingPathDelimiter(TestFolder) + name;
   if FileExists(filename) then
   begin
     LFileStream := TFilestream.Create(filename, fmOpenRead + fmShareDenyWrite);
