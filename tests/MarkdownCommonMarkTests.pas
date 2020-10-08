@@ -63,7 +63,7 @@ type
   GFMParserTestCaseAttribute = class (CommonMarkDownParserTestCaseAttributeBase);
   {$ENDIF}
 
-  TMarkdownCommonMarkTestBase = class abstract (TCommonTestCase)
+  TMarkdownCommonMarkTestBase = class abstract (TCommonTestSuiteCase)
   private
     function findTest(tests : TJSONArray; name : String) : TJSONObject;
   protected

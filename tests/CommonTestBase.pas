@@ -39,14 +39,20 @@ type
 
   { TCommonTestCase }
 
-  TCommonTestCase = class {$IFDEF FPC} (TTestCase) {$ENDIF}
+  TCommonTestBaseCase = class {$IFDEF FPC} (TTestCase) {$ENDIF}
+  protected
+    procedure assertEqual(left, right : String; message : String);
+    procedure assertFail(message : String);
+  end;
+
+  { TCommonTestCase }
+
+  TCommonTestSuiteCase = class (TCommonTestBaseCase)
   protected
     {$IFDEF FPC}
     FName : String;
     function GetTestName: string; override;
     {$ENDIF}
-    procedure assertEqual(left, right : String; message : String);
-    procedure assertFail(message : String);
   public
     {$IFDEF FPC}
     constructor Create(name : String);
@@ -60,14 +66,9 @@ type
 
 implementation
 
-{ TCommonTestCase }
+{ TCommonTestBaseCase }
 
-procedure TCommonTestCase.TestCase(name: String);
-begin
-  // nothing - override this
-end;
-
-procedure TCommonTestCase.assertEqual(left, right: String; message: String);
+procedure TCommonTestBaseCase.assertEqual(left, right: String; message: String);
 begin
   {$IFDEF FPC}
   TAssert.AssertEquals(message, left, right);
@@ -76,7 +77,7 @@ begin
   {$ENDIF}
 end;
 
-procedure TCommonTestCase.assertFail(message: String);
+procedure TCommonTestBaseCase.assertFail(message: String);
 begin
   {$IFDEF FPC}
   TAssert.Fail(message);
@@ -85,23 +86,31 @@ begin
   {$ENDIF}
 end;
 
+{ TCommonTestSuiteCase }
+
+procedure TCommonTestSuiteCase.TestCase(name: String);
+begin
+  // nothing - override this
+end;
+
 {$IFDEF FPC}
 
-constructor TCommonTestCase.Create(name : String);
+constructor TCommonTestSuiteCase.Create(name : String);
 begin
   inherited CreateWith('Test', name);
   FName := name;
 end;
 
-function TCommonTestCase.GetTestName: string;
+function TCommonTestSuiteCase.GetTestName: string;
 begin
   Result := FName;
 end;
 
-procedure TCommonTestCase.Test;
+procedure TCommonTestSuiteCase.Test;
 begin
   TestCase(FName);
 end;
 
 {$ENDIF}
+
 end.

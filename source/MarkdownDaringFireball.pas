@@ -2436,7 +2436,7 @@ begin
   for i := start to e - 1 do
   begin
     c := s[1 + i];
-    if CharInSet(c, ['&', '<', '>', '"', '''', '@']) then
+    if CharInSet(c, ['&', '<', '>', '"', '''']) then
       appendHexEntity(out_, c)
     else
       out_.append(c);

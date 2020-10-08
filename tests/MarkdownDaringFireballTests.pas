@@ -65,7 +65,7 @@ type
 
   [TextFixture]
   {$ENDIF}
-  TMarkdownDaringFireballTest = class (TCommonTestCase)
+  TMarkdownDaringFireballTest = class (TCommonTestSuiteCase)
   private
     function openFile(name: String): String;
     function tidy(cnt: String): String;
@@ -75,6 +75,17 @@ type
     [MarkDownParserTestCase]
     {$ENDIF}
     procedure TestCase(name : String); override;
+  end;
+
+  {$IFNDEF FPC}
+  [TextFixture]
+  {$ENDIF}
+  TMarkdownDaringFireballTest2 = class (TCommonTestBaseCase)
+  published
+    {$IFNDEF FPC}
+    [TestCase]
+    {$ENDIF}
+    procedure TestIssue10;
   end;
 
 implementation
@@ -189,7 +200,6 @@ begin
   end;
 end;
 
-
 {$IFDEF FPC}
 
 { TMarkdownDaringFireballTests }
@@ -222,10 +232,28 @@ end;
 
 {$ENDIF}
 
+{ TMarkdownDaringFireballTest2 }
+
+procedure TMarkdownDaringFireballTest2.TestIssue10;
+var
+  processor: TMarkdownDaringFireball;
+  processed : String;
+begin
+  processor := TMarkdownDaringFireball.Create;
+  try
+    processed := processor.process('Please send comments to <email@example.com> ASAP');
+    assertEqual('<p>Please send comments to <a href="mailto:email@example.com">email@example.com</a> ASAP</p>'+#10, processed, 'Outputs differ');
+  finally
+    processor.Free;
+  end;
+end;
+
 initialization
 {$IFNDEF FPC}
   TDUnitX.RegisterTestFixture(TMarkdownDaringFireballTest);
+  TDUnitX.RegisterTestFixture(TMarkdownDaringFireballTest2);
 {$ELSE}
   RegisterTest('Daring Fireball', TMarkdownDaringFireballTests.create);
+  RegisterTest('Daring Fireball', TMarkdownDaringFireballTest2);
 {$ENDIF}
 end.
