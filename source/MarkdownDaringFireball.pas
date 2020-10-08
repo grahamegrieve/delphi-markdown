@@ -2994,7 +2994,7 @@ begin
       line := self;
       while (line <> nil) do
       begin
-        while (position < Length(line.value)) and (line.value[1 + position] <> '<') do
+        while (position < Length(line.value)) and ((line.value[1 + position] <> '<') or (position = Length(line.value)-1)) do
           inc(FPosition);
         if (position >= Length(line.value)) then
         begin
