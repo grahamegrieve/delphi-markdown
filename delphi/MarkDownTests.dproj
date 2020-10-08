@@ -71,7 +71,7 @@
         <DCC_RemoteDebug>true</DCC_RemoteDebug>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
-        <DCC_UnitSearchPath>C:\Program Files (x86)\Embarcadero\Studio\19.0\source\DunitX;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>C:\Program Files (x86)\Embarcadero\Studio\19.0\source\DunitX;C:\work\fhirserver\dependencies\FMM;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <Manifest_File>None</Manifest_File>
         <DCC_MapFile>3</DCC_MapFile>
@@ -113,7 +113,7 @@
         <DelphiCompile Include="$(MainSource)">
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
-        <DCCReference Include="..\..\fhirserver\dependencies\FMM\FastMM4.pas"/>
+        <DCCReference Include="FastMM4.pas"/>
         <DCCReference Include="..\source\MarkdownDaringFireball.pas"/>
         <DCCReference Include="..\tests\MarkdownDaringFireballTests.pas"/>
         <DCCReference Include="..\source\MarkdownCommonMark.pas"/>

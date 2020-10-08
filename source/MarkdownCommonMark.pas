@@ -2694,7 +2694,7 @@ begin
     end else if TRegEx.IsMatch(s, EMAIL_REGEX) then
     begin
       a := nodes.addOpener(lexer.location, 'a');
-      a.attrs.Add('href', 'mailto:'+htmlEscape(s));
+      a.attrs.Add('href', 'mailto:'+urlEscape(s));
       nodes.addText(lexer.location, htmlEscape(s));
       nodes.addCloser(lexer.location, 'a');
       lexer.grab(cmURL, s.Length);
@@ -3001,7 +3001,7 @@ begin
     if del.delimiter = '![' then
     begin
       del.Node.name := 'img';
-      del.Node.attrs.Add('src', url);
+      del.Node.attrs.Add('src', urlEscape(url));
       del.node.opener := true;
       del.node.closer := true;
       if title <> '' then
@@ -3013,7 +3013,7 @@ begin
     begin
       del.Node.name := 'a'; // clears the text
       del.Node.opener := true;
-      del.Node.attrs.Add('href', url);
+      del.Node.attrs.Add('href', urlEscape(url));
       if title <> '' then
         del.node.attrs.Add('title', title);
       nodes.addCloser(lexer.location, 'a');
@@ -3127,7 +3127,7 @@ begin
   s := lexer.grab(cmUrl, len);
 
   a := nodes.addOpener(lexer.location, 'a');
-  a.attrs.Add('href', 'mailto:'+htmlEscape(s));
+  a.attrs.Add('href', 'mailto:'+urlEscape(s));
   nodes.addText(lexer.location, htmlEscape(s));
   nodes.addCloser(lexer.location, 'a');
 end;
@@ -3162,14 +3162,14 @@ begin
     if tail = 0 then
     begin
       a := nodes.addOpener(lexer.location, 'a');
-      a.attrs.Add('href', linkStart+start+htmlEscape(s));
+      a.attrs.Add('href', linkStart+start+urlEscape(s));
       nodes.addText(lexer.location, start+htmlEscape(s));
       nodes.addCloser(lexer.location, 'a');
     end
     else
     begin
       a := nodes.addOpener(lexer.location, 'a');
-      a.attrs.Add('href', linkStart+start+htmlEscape(s.Substring(0, s.Length-tail)));
+      a.attrs.Add('href', linkStart+start+urlEscape(s.Substring(0, s.Length-tail)));
       nodes.addText(lexer.location, start+htmlEscape(s.Substring(0, s.Length-tail)));
       nodes.addCloser(lexer.location, 'a');
       nodes.addText(lexer.location, htmlEscape(s.Substring(s.length-tail)));

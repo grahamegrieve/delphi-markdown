@@ -42,7 +42,7 @@ program MarkDownTests;
 {$R *.res}
 
 uses
-  FastMM4 in '..\..\fhirserver\dependencies\FMM\FastMM4.pas',
+  FastMM4 in 'FastMM4.pas',
   DUnitX.TestFramework,
   {$IFDEF TESTINSIGHT}
   TestInsight.DUnitX,

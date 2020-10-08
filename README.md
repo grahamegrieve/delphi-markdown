@@ -4,15 +4,14 @@ Markdown Processor for Pascal (Delphi/FPC)
 
 ## Basic Information
 
-This is a Pascal (Delphi) library that processes to markdown to HTML.
+This is a Pascal library that processes to markdown to HTML.
 At present the following dialects of markdown are supported:
 
 * The Daring Fireball dialect (see https://daringfireball.net/projects/markdown/) (translated from https://github.com/rjeschke/txtmark)
 * The CommonMark Specification (see https://spec.commonmark.org/0.28) (not quite complete. Stil to do: link references)
 * Github Flavored Markdown
 
-All you need to use the library is any unicode version of Delphi, or FPC (lazarus). To run the 
-tests, you also need FastMemoryManager, the Jedi Code Library and DUnitX.
+All you need to use the library is any unicode version of Delphi, or FPC (lazarus). 
 
 ## Using the Library
 
@@ -20,7 +19,8 @@ Create a TMarkdownProcessor (MarkdownProcessor.pas) of the dialect you want:
 
      var
        md : TMarkdownProcessor;
-  
+       html : string;
+     begin
        md := TMarkdownProcessor.createDialect(mdDaringFireball)
   
 Decide whether you want to allow active content (not supported for CommonMark)
@@ -35,8 +35,28 @@ Generate HTML from the Markdown content:
   
 Note that the HTML returned is an HTML fragment, not a full HTML page.
 
+## Testing
+
 Internally, the library includes a comprehensive set of unit tests. For CommonMark,
 the tests are those provided as part of the CommonMark spec.
+
+## Delphi 
+
+To use the code:
+
+* clone the repository, and use the units in \source 
+
+To run the tests:
+* you also need FastMM4, and DUnitX (and update the search paths)
+* you'll have to update the run parameters to set the current directory to the root directory for your clones of the reop
+* if you don't have TestInsight installed (you very much should!) you'll have to remove the TESTINSIGHT define in the project options
+
+## FPC
+
+To use the code:
+
+* clone the repository, and compile the MarkdownEngine package in source
+* alternatively, you can use the units in \source directly
 
 ## License
 
