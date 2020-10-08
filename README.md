@@ -57,7 +57,9 @@ To run the tests:
 ## FPC
 
 Versions Supported:
-* tested with FPC 3.2.0+
+
+* tested with FPC 3.2.0+ (but no particular reason it shouldn't work with earlier versions)
+* tested with win32, win64, linux64 (but no reason it shouldn't work on other platforms)
 
 To use the code:
 
