@@ -6,7 +6,8 @@ uses
   MarkdownCommonMark in '..\source\MarkdownCommonMark.pas',
   MarkdownDaringFireball in '..\source\MarkdownDaringFireball.pas',
   MarkdownHTMLEntities in '..\source\MarkdownHTMLEntities.pas',
-  MarkdownProcessor in '..\source\MarkdownProcessor.pas';
+  MarkdownProcessor in '..\source\MarkdownProcessor.pas',
+  MarkdownUnicodeUtils in '..\source\MarkdownUnicodeUtils.pas';
 
 {$R *.res}
 
