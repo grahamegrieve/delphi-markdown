@@ -11,7 +11,8 @@ object MarkDownUITest: TMarkDownUITest
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
-  PixelsPerInch = 96
+  Scaled = False
+  PixelsPerInch = 120
   TextHeight = 13
   object Memo1: TMemo
     Left = 32
@@ -128,10 +129,10 @@ object MarkDownUITest: TMarkDownUITest
     Left = 520
     Top = 40
     Width = 385
-    Height = 561
+    Height = 225
     Lines.Strings = (
       'Memo2')
-    ScrollBars = ssBoth
+    ScrollBars = ssVertical
     TabOrder = 1
   end
   object Button1: TButton
@@ -151,5 +152,18 @@ object MarkDownUITest: TMarkDownUITest
     Caption = 'DaringFireball >'
     TabOrder = 3
     OnClick = Button2Click
+  end
+  object WebBrowser1: TWebBrowser
+    Left = 520
+    Top = 296
+    Width = 385
+    Height = 305
+    TabOrder = 4
+    ControlData = {
+      4C000000D51F0000381900000000000000000000000000000000000000000000
+      000000004C000000000000000000000001000000E0D057007335CF11AE690800
+      2B2E126208000000000000004C0000000114020000000000C000000000000046
+      8000000000000000000000000000000000000000000000000000000000000000
+      00000000000000000100000000000000000000000000000000000000}
   end
 end
