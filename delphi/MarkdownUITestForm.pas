@@ -6,7 +6,8 @@ interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, SHDocVw, ActiveX, MSHTML, Vcl.OleCtrls;
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, SHDocVw, ActiveX, MSHTML, Vcl.OleCtrls,
+  Vcl.ExtCtrls;
 
 type
   TMarkDownUITest = class(TForm)
@@ -15,6 +16,12 @@ type
     Button1: TButton;
     Button2: TButton;
     WebBrowser1: TWebBrowser;
+    Panel1: TPanel;
+    Splitter1: TSplitter;
+    Panel2: TPanel;
+    Panel3: TPanel;
+    Splitter2: TSplitter;
+    Panel4: TPanel;
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
   private
