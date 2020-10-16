@@ -36,6 +36,9 @@ uses
   SysUtils,
   {$IFDEF FPC} FPCUnit {$ELSE}DUnitX.TestFramework {$ENDIF};
 
+var
+  MDTestRoot : String;
+
 type
 
   { TCommonTestCase }

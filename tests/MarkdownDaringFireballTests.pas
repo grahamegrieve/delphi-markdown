@@ -87,6 +87,8 @@ type
     procedure TestIssue10;
   end;
 
+procedure RegisterTests;
+
 implementation
 
 function GetWorkingFilename(name : String) : String;
@@ -106,7 +108,7 @@ var
   LFileStream: TFilestream;
   bytes: TBytes;
 begin
-  filename := GetWorkingFilename(name);
+  filename := IncludeTrailingPathDelimiter(MDTestRoot)+IncludeTrailingPathDelimiter(TestFolder) + name;
   if FileExists(filename) then
   begin
     LFileStream := TFilestream.Create(filename, fmOpenRead + fmShareDenyWrite);
@@ -256,7 +258,9 @@ begin
   end;
 end;
 
-initialization
+procedure RegisterTests;
+// don't use initialization - give other code time to set up directories etc
+begin
 {$IFNDEF FPC}
   TDUnitX.RegisterTestFixture(TMarkdownDaringFireballTest);
   TDUnitX.RegisterTestFixture(TMarkdownDaringFireballTest2);
@@ -264,4 +268,6 @@ initialization
   RegisterTest('Daring Fireball', TMarkdownDaringFireballTests.create);
   RegisterTest('Daring Fireball 2', TMarkdownDaringFireballTest2);
 {$ENDIF}
+end;
+
 end.

@@ -60,12 +60,20 @@ uses
   MarkdownHTMLEntities in '..\source\MarkdownHTMLEntities.pas',
   MarkdownUnicodeUtils in '..\source\MarkdownUnicodeUtils.pas';
 
+procedure RegisterTests;
+begin
+  MDTestRoot := getCurrentDir;
+  MarkdownDaringFireballTests.RegisterTests;
+  MarkdownCommonMarkTests.RegisterTests;
+end;
+
 var
   runner : ITestRunner;
   results : IRunResults;
   logger : ITestLogger;
   nunitLogger : ITestLogger;
 begin
+  RegisterTests;
 {$IFDEF TESTINSIGHT}
   TestInsight.DUnitX.RunRegisteredTests;
   exit;

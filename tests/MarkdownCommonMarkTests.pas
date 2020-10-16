@@ -84,6 +84,8 @@ type
     procedure TestCase(Name : String); override;
   end;
 
+procedure RegisterTests;
+
 implementation
 
 var
@@ -94,18 +96,14 @@ function TestFileCM : String;
 var
   s : String;
 begin
-  if not getCommandLineParam('mdroot', s) then
-    s := GetCurrentDir;
-  result := IncludeTrailingPathDelimiter(s) + 'resources/commonmark/spec.json';
+  result := IncludeTrailingPathDelimiter(MDTestRoot) + 'resources/commonmark/spec.json';
 end;
 
 function TestFileGFM : String;
 var
   s : String;
 begin
-  if not getCommandLineParam('mdroot', s) then
-    s := GetCurrentDir;
-  result := IncludeTrailingPathDelimiter(s) + 'resources/commonmark/gfm_tests.json';
+  result := IncludeTrailingPathDelimiter(MDTestRoot) + 'resources/commonmark/gfm_tests.json';
 end;
 
 // ** Utilities ****************************************************************
@@ -308,7 +306,9 @@ begin
   end;
 end;
 
-initialization
+procedure RegisterTests;
+// don't use initialization - give other code time to set up directories etc
+begin
   {$IFDEF FPC}
   RegisterTest('CommonMark', TMarkdownCommonMarkTests.create);
   RegisterTest('GFM', TMarkdownGFMTests.create);
@@ -316,6 +316,9 @@ initialization
   TDUnitX.RegisterTestFixture(TMarkdownCommonMarkTest);
   TDUnitX.RegisterTestFixture(TMarkdownGFMTest);
   {$ENDIF}
+end;
+
+initialization
 finalization
   freeTests;
 end.

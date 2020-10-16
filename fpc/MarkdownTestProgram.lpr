@@ -3,14 +3,23 @@ program MarkdownTestProgram;
 {$IFDEF FPC}{$MODE DELPHI}{$ENDIF}
 
 uses
-  Interfaces, Forms, GuiTestRunner, MarkdownHTMLEntities, MarkdownCommonMark,
-  MarkdownCommonMarkTests, MarkdownDaringFireballTests, consoletestrunner;
+  Interfaces, SysUtils, Forms, GuiTestRunner, consoletestrunner,
+  MarkdownHTMLEntities, MarkdownCommonMark, MarkdownDaringFireball,
+  CommonTestBase, MarkdownCommonMarkTests, MarkdownDaringFireballTests;
 
 {$R *.res}
+
+procedure RegisterTests;
+begin
+  MDTestRoot := getCurrentDir;
+  MarkdownDaringFireballTests.RegisterTests;
+  MarkdownCommonMarkTests.RegisterTests;
+end;
 
 var
   testApp : TTestRunner;
 begin
+  RegisterTests;
   if (ParamStr(1) = '-ci') then
   begin
     testApp := TTestRunner.Create(nil);
