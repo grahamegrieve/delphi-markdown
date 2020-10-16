@@ -49,7 +49,6 @@ const
 var
   TestFolder : String = 'resources/df';
 
-
 type
   {$IFDEF FPC}
   TMarkdownDaringFireballTests = class(TTestSuite)
@@ -90,6 +89,15 @@ type
 
 implementation
 
+function GetWorkingFilename(name : String) : String;
+var
+  s : String;
+begin
+  if not getCommandLineParam('mdroot', s) then
+    s := GetCurrentDir;
+  result := IncludeTrailingPathDelimiter(s)+IncludeTrailingPathDelimiter(TestFolder) + name;
+end;
+
 { TMarkdownDaringFireballTest }
 
 function TMarkdownDaringFireballTest.openFile(name: String): String;
@@ -98,7 +106,7 @@ var
   LFileStream: TFilestream;
   bytes: TBytes;
 begin
-  filename := IncludeTrailingPathDelimiter(GetCurrentDir)+IncludeTrailingPathDelimiter(TestFolder) + name;
+  filename := GetWorkingFilename(name);
   if FileExists(filename) then
   begin
     LFileStream := TFilestream.Create(filename, fmOpenRead + fmShareDenyWrite);
@@ -121,7 +129,7 @@ var
   LFileStream: TFilestream;
   bytes: TBytes;
 begin
-  filename := IncludeTrailingPathDelimiter(TestFolder) + name;
+  filename := GetWorkingFilename(name);
   bytes := TEncoding.UTF8.GetBytes(content);
   LFileStream := TFilestream.Create(filename, fmCreate);
   try
@@ -254,6 +262,6 @@ initialization
   TDUnitX.RegisterTestFixture(TMarkdownDaringFireballTest2);
 {$ELSE}
   RegisterTest('Daring Fireball', TMarkdownDaringFireballTests.create);
-  RegisterTest('Daring Fireball', TMarkdownDaringFireballTest2);
+  RegisterTest('Daring Fireball 2', TMarkdownDaringFireballTest2);
 {$ENDIF}
 end.

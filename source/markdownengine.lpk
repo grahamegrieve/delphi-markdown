@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
-  <Package Version="4">
+  <Package Version="5">
     <PathDelim Value="\"/>
     <Name Value="MarkdownEngine"/>
     <Type Value="RunAndDesignTime"/>
@@ -42,6 +42,7 @@
         <UnitName Value="MarkdownEngine"/>
       </Item6>
     </Files>
+    <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="2">
       <Item1>
         <PackageName Value="LazUtils"/>

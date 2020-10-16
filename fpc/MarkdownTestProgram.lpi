@@ -149,7 +149,7 @@
         <PackageName Value="FCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="9">
+    <Units Count="6">
       <Unit0>
         <Filename Value="MarkdownTestProgram.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -164,31 +164,17 @@
         <IsPartOfProject Value="True"/>
       </Unit2>
       <Unit3>
-        <Filename Value="dunitfpc.pas"/>
+        <Filename Value="../source/MarkdownCommonMark.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="DUnitFpc"/>
       </Unit3>
       <Unit4>
-        <Filename Value="../source/MarkdownCommonMark.pas"/>
+        <Filename Value="../tests/MarkdownDaringFireballTests.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit4>
       <Unit5>
-        <Filename Value="../source/HTMLEntities.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit5>
-      <Unit6>
-        <Filename Value="../tests/MarkdownDaringFireballTests.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit6>
-      <Unit7>
         <Filename Value="../tests/MarkdownCommonMarkTests.pas"/>
         <IsPartOfProject Value="True"/>
-      </Unit7>
-      <Unit8>
-        <Filename Value="../../../TIE/v2/lazarus/unit1.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="Unit1"/>
-      </Unit8>
+      </Unit5>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

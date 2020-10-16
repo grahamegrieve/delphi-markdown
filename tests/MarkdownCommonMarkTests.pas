@@ -90,15 +90,22 @@ var
   gTestsBase : TJSONArray = nil;
   gTestsGFM : TJSONArray = nil;
 
-
 function TestFileCM : String;
+var
+  s : String;
 begin
-  result := IncludeTrailingPathDelimiter(GetCurrentDir) + 'resources/commonmark/spec.json';
+  if not getCommandLineParam('mdroot', s) then
+    s := GetCurrentDir;
+  result := IncludeTrailingPathDelimiter(s) + 'resources/commonmark/spec.json';
 end;
 
 function TestFileGFM : String;
+var
+  s : String;
 begin
-  result := IncludeTrailingPathDelimiter(GetCurrentDir) + 'resources/commonmark/gfm_tests.json';
+  if not getCommandLineParam('mdroot', s) then
+    s := GetCurrentDir;
+  result := IncludeTrailingPathDelimiter(s) + 'resources/commonmark/gfm_tests.json';
 end;
 
 // ** Utilities ****************************************************************

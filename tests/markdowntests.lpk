@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <Package Version="5">
+    <PathDelim Value="\"/>
+    <Name Value="MarkdownTests"/>
+    <Type Value="RunAndDesignTime"/>
+    <CompilerOptions>
+      <Version Value="11"/>
+      <PathDelim Value="\"/>
+      <SearchPaths>
+        <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+      </SearchPaths>
+    </CompilerOptions>
+    <Files>
+      <Item>
+        <Filename Value="CommonTestBase.pas"/>
+        <UnitName Value="CommonTestBase"/>
+      </Item>
+      <Item>
+        <Filename Value="MarkdownCommonMarkTests.pas"/>
+        <UnitName Value="MarkdownCommonMarkTests"/>
+      </Item>
+      <Item>
+        <Filename Value="MarkdownDaringFireballTests.pas"/>
+        <UnitName Value="MarkdownDaringFireballTests"/>
+      </Item>
+    </Files>
+    <RequiredPkgs>
+      <Item>
+        <PackageName Value="fpcunitconsolerunner"/>
+      </Item>
+      <Item>
+        <PackageName Value="MarkdownEngine"/>
+      </Item>
+      <Item>
+        <PackageName Value="FCL"/>
+      </Item>
+    </RequiredPkgs>
+    <UsageOptions>
+      <UnitPath Value="$(PkgOutDir)"/>
+    </UsageOptions>
+    <PublishOptions>
+      <Version Value="2"/>
+      <UseFileFilters Value="True"/>
+    </PublishOptions>
+  </Package>
+</CONFIG>
