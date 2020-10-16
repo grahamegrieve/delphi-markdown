@@ -147,3 +147,5 @@ fpc/MarkdownTestProgram
 /tests/lib/x86_64-win64
 
 fpc/MarkdownTestProgram.lpi
+
+tests/lib/x86_64-linux/
