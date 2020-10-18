@@ -11,7 +11,8 @@ uses
 
 procedure RegisterTests;
 begin
-  MDTestRoot := getCurrentDir;
+  if not getCommandLineParam('mdRoot', MDTestRoot) then
+    MDTestRoot := getCurrentDir;
   MarkdownDaringFireballTests.RegisterTests;
   MarkdownCommonMarkTests.RegisterTests;
 end;
