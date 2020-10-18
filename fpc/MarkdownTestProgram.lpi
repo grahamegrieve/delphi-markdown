@@ -130,13 +130,15 @@
     </PublishOptions>
     <RunParams>
       <local>
-        <WorkingDirectory Value="/home/gg/markdown"/>
+        <CommandLineParams Value="-mdRoot C:/work/markdown"/>
+        <WorkingDirectory Value="C:/work/markdown"/>
       </local>
       <FormatVersion Value="2"/>
       <Modes Count="1">
         <Mode0 Name="default">
           <local>
-            <WorkingDirectory Value="/home/gg/markdown"/>
+            <CommandLineParams Value="-mdRoot C:/work/markdown"/>
+            <WorkingDirectory Value="C:/work/markdown"/>
           </local>
         </Mode0>
       </Modes>
