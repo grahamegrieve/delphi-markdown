@@ -9,7 +9,7 @@ interface
 
 uses
   CommonTestBase, MarkdownCommonMarkTests, MarkdownDaringFireballTests, 
-  LazarusPackageIntf;
+  XGuiTestRunner, LazarusPackageIntf;
 
 implementation
 

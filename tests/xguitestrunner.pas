@@ -25,7 +25,7 @@
 
 {
 This is an exact copy of the normal GUI Test Runner, but it allows you to specify the location for the ini file (for OSX)
-t h
+Also, add a stop button
 }
 unit XGuiTestRunner;
 
@@ -56,6 +56,7 @@ type
     ActCopyErrorMsg: TAction;
     ActCheckCurrentSuite: TAction;
     ActCheckAll: TAction;
+    ActStop: TAction;
     ActSaveResults: TAction;
     ActCopyTextToClipboard: TAction;
     ActRunHighlightedTest: TAction;
@@ -76,6 +77,7 @@ type
     MenuItem18: TMenuItem;
     MenuItem19: TMenuItem;
     MenuItem2: TMenuItem;
+    MenuItem24: TMenuItem;
     MenuItemEdit: TMenuItem;
     MenuItem3: TMenuItem;
     MenuItemTestTree: TMenuItem;
@@ -111,6 +113,7 @@ type
     ToolBar1: TToolBar;
     ToolButton1: TToolButton;
     ToolButton2: TToolButton;
+    btnStop: TToolButton;
     tsTestTree: TTabSheet;
     tsResultsXML: TTabSheet;
     XMLSynEdit: TSynEdit;
@@ -127,6 +130,7 @@ type
     procedure ActCopyTextToClipboardUpdate(Sender: TObject);
     procedure ActSaveResultsExecute(Sender: TObject);
     procedure ActRunHighlightedTestExecute(Sender: TObject);
+    procedure ActStopExecute(Sender: TObject);
     procedure ActUncheckAllExecute(Sender: TObject);
     procedure ActRunHighLightedTestUpdate(Sender: TObject);
     procedure ActUncheckCurrentSuiteExecute(Sender: TObject);
@@ -156,6 +160,7 @@ type
     testSuite: TTest;
     FFirstFailure: TTreeNode; // reference to first failed test
     FConfStore: TIniFile;
+    FWantStop : boolean;
     procedure BuildTree(rootNode: TTreeNode; aSuite: TTestSuite);
     procedure ClearDetails;
     function  FindNode(aTest: TTest): TTreeNode;
@@ -458,6 +463,11 @@ begin
   end;
   RunTest(testSuite);
   TestTree.MakeSelectionVisible;
+end;
+
+procedure TGUIXTestRunner.ActStopExecute(Sender: TObject);
+begin
+  FWantStop := true;
 end;
 
 procedure TGUIXTestRunner.ActUncheckAllExecute(Sender: TObject);
@@ -868,6 +878,7 @@ procedure TGUIXTestRunner.EnableRunActions(AValue: boolean);
 begin
   ActRunHighlightedTest.Enabled := AValue;
   RunAction.Enabled := AValue;
+  actStop.enabled := not AValue;
 end;
 
 procedure TGUIXTestRunner.AddFailure(ATest: TTest; AFailure: TTestFailure);
@@ -998,6 +1009,8 @@ begin
   pbbar.Refresh;
   Application.ProcessMessages;
   TestTree.EndUpdate;
+  if FWantStop then
+    Abort;
 end;
 
 procedure TGUIXTestRunner.RunTest(ATest: TTest);
@@ -1035,6 +1048,7 @@ begin
   errorCounter := 0;
   testsCounter := 0;
   skipsCounter := 0;
+  FWantStop := false;
   EnableRunActions(false);
   TestResult := TTestResult.Create;
   try

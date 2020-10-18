@@ -24,8 +24,18 @@
         <Filename Value="MarkdownDaringFireballTests.pas"/>
         <UnitName Value="MarkdownDaringFireballTests"/>
       </Item>
+      <Item>
+        <Filename Value="xguitestrunner.pas"/>
+        <UnitName Value="XGuiTestRunner"/>
+      </Item>
     </Files>
     <RequiredPkgs>
+      <Item>
+        <PackageName Value="SynEdit"/>
+      </Item>
+      <Item>
+        <PackageName Value="LCLBase"/>
+      </Item>
       <Item>
         <PackageName Value="fpcunitconsolerunner"/>
       </Item>
