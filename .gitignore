@@ -145,3 +145,13 @@ fpc/MarkdownTestProgram
 /source/lib/x86_64-linux
 /source/lib/x86_64-win64
 /tests/lib/x86_64-win64
+
+fpc/lib/x86_64-darwin/
+
+fpc/MarkdownTestProgram.app/
+
+fpc/lib/
+
+fpc/.DS_Store
+
+.DS_Store
