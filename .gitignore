@@ -152,4 +152,5 @@ fpc/lib/
 
 fpc/MarkdownTestProgram.app/
 /tests.íni
-/tests/lib/i386-win32
+
+tests/lib/
