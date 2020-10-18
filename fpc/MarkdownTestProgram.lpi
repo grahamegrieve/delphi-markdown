@@ -133,17 +133,35 @@
     </PublishOptions>
     <RunParams>
       <local>
-        <CommandLineParams Value="-mdRoot /Users/grahamegrieve/Work/markdown"/>
-        <WorkingDirectory Value="/Users/grahamegrieve/Work/markdown"/>
+        <CommandLineParams Value="-mdRoot /home/gg/markdown"/>
+        <WorkingDirectory Value="/home/gg/markdown"/>
       </local>
       <FormatVersion Value="2"/>
-      <Modes Count="1">
+      <Modes Count="4">
         <Mode0 Name="default">
           <local>
             <CommandLineParams Value="-mdRoot /Users/grahamegrieve/Work/markdown"/>
             <WorkingDirectory Value="/Users/grahamegrieve/Work/markdown"/>
           </local>
         </Mode0>
+        <Mode1 Name="linux">
+          <local>
+            <CommandLineParams Value="-mdRoot /home/gg/markdown"/>
+            <WorkingDirectory Value="/home/gg/markdown"/>
+          </local>
+        </Mode1>
+        <Mode2 Name="osx">
+          <local>
+            <CommandLineParams Value="-mdRoot /Users/grahamegrieve/Work/markdown"/>
+            <WorkingDirectory Value="/Users/grahamegrieve/Work/markdown"/>
+          </local>
+        </Mode2>
+        <Mode3 Name="windows">
+          <local>
+            <CommandLineParams Value="-mdRoot /Users/grahamegrieve/Work/markdown"/>
+            <WorkingDirectory Value="/Users/grahamegrieve/Work/markdown"/>
+          </local>
+        </Mode3>
       </Modes>
     </RunParams>
     <RequiredPackages Count="3">
