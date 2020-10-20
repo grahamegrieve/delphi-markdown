@@ -154,3 +154,5 @@ fpc/MarkdownTestProgram.app/
 /tests.íni
 
 tests/lib/
+
+source/lib/
