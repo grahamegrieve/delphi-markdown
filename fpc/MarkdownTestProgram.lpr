@@ -3,7 +3,7 @@ program MarkdownTestProgram;
 {$IFDEF FPC}{$MODE DELPHI}{$ENDIF}
 
 uses
-  Interfaces, SysUtils, Forms, XGuiTestRunner, consoletestrunner,
+  Interfaces, SysUtils, Forms, consoletestrunner, XGuiTestRunner,
   MarkdownHTMLEntities, MarkdownCommonMark, MarkdownDaringFireball,
   CommonTestBase, MarkdownCommonMarkTests, MarkdownDaringFireballTests;
 
