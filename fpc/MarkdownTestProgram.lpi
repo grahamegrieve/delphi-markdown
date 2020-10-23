@@ -42,6 +42,9 @@
             <TargetOS Value="win64"/>
           </CodeGeneration>
           <Linking>
+            <Debugging>
+              <DebugInfoType Value="dsDwarf2Set"/>
+            </Debugging>
             <Options>
               <Win32>
                 <GraphicApplication Value="True"/>
@@ -133,8 +136,8 @@
     </PublishOptions>
     <RunParams>
       <local>
-        <CommandLineParams Value="-mdRoot c:/work/markdown"/>
-        <WorkingDirectory Value="c:/work/markdown"/>
+        <CommandLineParams Value="-mdRoot C:/work/markdown"/>
+        <WorkingDirectory Value="C:/work/markdown"/>
       </local>
       <FormatVersion Value="2"/>
       <Modes Count="4">
@@ -158,8 +161,8 @@
         </Mode2>
         <Mode3 Name="windows">
           <local>
-            <CommandLineParams Value="-mdRoot /Users/grahamegrieve/Work/markdown"/>
-            <WorkingDirectory Value="/Users/grahamegrieve/Work/markdown"/>
+            <CommandLineParams Value="-mdRoot C:/work/markdown"/>
+            <WorkingDirectory Value="C:/work/markdown"/>
           </local>
         </Mode3>
       </Modes>

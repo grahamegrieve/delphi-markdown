@@ -2,7 +2,7 @@
     <PropertyGroup>
         <ProjectGuid>{0F996D0A-8D4D-4355-988E-097866EA5B5C}</ProjectGuid>
         <ProjectVersion>19.0</ProjectVersion>
-        <FrameworkType>None</FrameworkType>
+        <FrameworkType>VCL</FrameworkType>
         <MainSource>MarkDownTests.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
@@ -42,7 +42,7 @@
     <PropertyGroup Condition="'$(Base)'!=''">
         <DCC_Define>TESTINSIGHT;$(DCC_Define)</DCC_Define>
         <SanitizedProjectName>MarkDownTests</SanitizedProjectName>
-        <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;$(DCC_Namespace)</DCC_Namespace>
+        <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
         <DCC_DcuOutput>.\$(Platform)\$(Config)</DCC_DcuOutput>
         <DCC_ExeOutput>.\$(Platform)\$(Config)</DCC_ExeOutput>
         <DCC_E>false</DCC_E>

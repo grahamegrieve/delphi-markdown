@@ -59,7 +59,7 @@ To run the tests:
 Versions Supported:
 
 * tested with FPC 3.2.0+ (but no particular reason it shouldn't work with earlier versions)
-* tested with win32, win64, linux64 (but no reason it shouldn't work on other platforms)
+* tested with win32, win64, linux64, OSX (but no reason it shouldn't work on other platforms)
 
 To use the code:
 
@@ -69,6 +69,7 @@ To use the code:
 To run the tests:
 
 * Test Program is markdown/fpc/MarkdownTestProgram.lpi
+* you need to provide command line parameter -mdRoot [x] where [x] is the location of the repo on your local drive
 
 ## License
 

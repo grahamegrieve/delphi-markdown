@@ -34,38 +34,43 @@ interface
 
 uses
   SysUtils,
-  {$IFDEF FPC} FPCUnit {$ELSE}DUnitX.TestFramework {$ENDIF};
+  {$IFDEF FPC} FPCUnit {$ELSE} TestFramework {$ENDIF};
 
 var
   MDTestRoot : String;
 
 type
-
   { TCommonTestCase }
-
-  TCommonTestBaseCase = class {$IFDEF FPC} (TTestCase) {$ENDIF}
+  TCommonTestBaseCase = class (TTestCase)
   protected
     procedure assertEqual(left, right : String; message : String);
     procedure assertFail(message : String);
   end;
 
   { TCommonTestCase }
-
   TCommonTestSuiteCase = class (TCommonTestBaseCase)
   protected
-    {$IFDEF FPC}
     FName : String;
+    {$IFDEF FPC}
     function GetTestName: string; override;
     {$ENDIF}
   public
-    {$IFDEF FPC}
-    constructor Create(name : String);
+    constructor Create(name : String); {$IFNDEF FPC} reintroduce;
+    function GetName: string; override;
     {$ENDIF}
     procedure TestCase(name : String); virtual;
   published
     {$IFDEF FPC}
     procedure Test;
+    {$ELSE}
+    procedure Run;
     {$ENDIF}
+  end;
+
+  TCommonTestSuite = class (TTestSuite)
+  private
+  public
+    constructor Create; {$IFDEF FPC} override; {$ELSE} virtual; {$ENDIF}
   end;
 
 function getCommandLineParam(name : String; var res : String) : boolean;
@@ -79,7 +84,7 @@ begin
   {$IFDEF FPC}
   TAssert.AssertEquals(message, left, right);
   {$ELSE}
-  Assert.AreEqual(left, right, message);
+  CheckEquals(left, right, message);
   {$ENDIF}
 end;
 
@@ -88,7 +93,7 @@ begin
   {$IFDEF FPC}
   TAssert.Fail(message);
   {$ELSE}
-  Assert.Fail(message);
+  Fail(message);
   {$ENDIF}
 end;
 
@@ -99,14 +104,19 @@ begin
   // nothing - override this
 end;
 
-{$IFDEF FPC}
 
 constructor TCommonTestSuiteCase.Create(name : String);
 begin
+  {$IFDEF FPC}
   inherited CreateWith('Test', name);
+  {$ELSE}
+  inherited Create('Run');
+  {$ENDIF}
+
   FName := name;
 end;
 
+{$IFDEF FPC}
 function TCommonTestSuiteCase.GetTestName: string;
 begin
   Result := FName;
@@ -117,7 +127,20 @@ begin
   TestCase(FName);
 end;
 
+{$ELSE}
+
+function TCommonTestSuiteCase.GetName: string;
+begin
+  result := FName;
+end;
+
+procedure TCommonTestSuiteCase.Run;
+begin
+  TestCase(FName);
+end;
+
 {$ENDIF}
+
 
 function getCommandLineParam(name : String; var res : String) : boolean;
 var
@@ -136,6 +159,13 @@ begin
   {$ELSE}
   result := FindCmdLineSwitch(name, res, true, [clstValueNextParam]);
   {$ENDIF}
+end;
+
+{ TCommonTestSuite }
+
+constructor TCommonTestSuite.Create;
+begin
+  inherited Create;
 end;
 
 end.

@@ -34,33 +34,13 @@ interface
 
 uses
   SysUtils, Classes, Character, {$IFDEF WINDOWS} ShellApi, {$ENDIF} Generics.Collections,
-  {$IFDEF FPC} FPCUnit, TestRegistry, {$ELSE} DUnitX.TestFramework, {$ENDIF}
+  {$IFDEF FPC} FPCUnit, TestRegistry, {$ELSE} TestFramework, {$ENDIF}
   {$IFDEF FPC} FPJson, JsonParser, {$ELSE} Json, {$ENDIF}
   CommonTestBase, MarkdownCommonMark;
 
 type
   {$IFDEF FPC}
   TJSONValue = TJSONEnum;
-
-  TMarkdownCommonMarkTests = class (TTestSuite)
-  public
-    constructor Create; override;
-  end;
-
-  TMarkdownGFMTests = class (TTestSuite)
-  public
-    constructor Create; override;
-  end;
-
-  {$ELSE}
-
-  CommonMarkDownParserTestCaseAttributeBase = class abstract (CustomTestCaseSourceAttribute)
-  protected
-    function GetCaseInfoArray : TestCaseInfoArray; override;
-  end;
-
-  CommonMarkDownParserTestCaseAttribute = class (CommonMarkDownParserTestCaseAttributeBase);
-  GFMParserTestCaseAttribute = class (CommonMarkDownParserTestCaseAttributeBase);
   {$ENDIF}
 
   TMarkdownCommonMarkTestBase = class abstract (TCommonTestSuiteCase)
@@ -70,18 +50,24 @@ type
     procedure DoTest(tests : TJSONArray; Name : String);
   end;
 
-  {$IFNDEF FPC}[TextFixture]{$ENDIF}
   TMarkdownCommonMarkTest = class (TMarkdownCommonMarkTestBase)
   public
-    {$IFNDEF FPC}[CommonMarkDownParserTestCase]{$ENDIF}
     procedure TestCase(Name : String); override;
   end;
 
-  {$IFNDEF FPC}[TextFixture]{$ENDIF}
+  TMarkdownCommonMarkTests = class (TCommonTestSuite)
+  public
+    constructor Create; override;
+  end;
+
   TMarkdownGFMTest = class (TMarkdownCommonMarkTestBase)
   public
-    {$IFNDEF FPC}[GFMParserTestCase]{$ENDIF}
     procedure TestCase(Name : String); override;
+  end;
+
+  TMarkdownGFMTests = class (TCommonTestSuite)
+  public
+    constructor Create; override;
   end;
 
 procedure RegisterTests;
@@ -178,8 +164,6 @@ end;
 
 // ** Test Set up **************************************************************
 
-{$IFDEF FPC}
-
 { TMarkdownCommonMarkTests }
 
 constructor TMarkdownCommonMarkTests.create;
@@ -193,8 +177,13 @@ begin
   for i := 0 to tests.Count - 1 do
   begin
     t := tests.Items[i] as TJSONObject;
+    {$IFDEF FPC}
     if (t.Find('mode') = nil) then
       AddTest(TMarkdownCommonMarkTest.Create(leftPad(t.Strings['example'], '0', 4)));
+    {$ELSE}
+    if (t.Values['mode'] = nil) then
+      AddTest(TMarkdownCommonMarkTest.Create(leftPad(t.Values['example'].ToString, '0', 4)));
+    {$ENDIF}
   end;
 end;
 
@@ -211,45 +200,15 @@ begin
   for i := 0 to tests.Count - 1 do
   begin
     t := tests.Items[i] as TJSONObject;
+    {$IFDEF FPC}
     if (t.Find('mode') = nil) then
       AddTest(TMarkdownGFMTest.Create(leftPad(t.Strings['example'], '0', 4)));
-  end;
-end;
-
-{$ELSE}
-
-{ CommonMarkDownParserTestCaseAttributeBase }
-
-function CommonMarkDownParserTestCaseAttributeBase.GetCaseInfoArray: TestCaseInfoArray;
-var
-  i, c : integer;
-  t : TJSONObject;
-  tests : TJSONArray;
-begin
-  if self is CommonMarkDownParserTestCaseAttribute then
-    tests := getTestsBase
-  else if self is GFMParserTestCaseAttribute then
-    tests := getTestsGFM
-  else
-    raise Exception.Create('self is '+ClassName);
-
-  SetLength(result, tests.Count);
-  c := 0;
-  for i := 0 to tests.Count - 1 do
-  begin
-    t := tests.Items[i] as TJSONObject;
+    {$ELSE}
     if (t.Values['mode'] = nil) then
-    begin
-      result[c].Name := leftPad(t.Values['example'].ToString, '0', 4);
-      SetLength(result[c].Values, 1);
-      result[c].Values[0] := result[c].Name;
-      inc(c);
-    end;
+      AddTest(TMarkdownGFMTest.Create(leftPad(t.Values['example'].ToString, '0', 4)));
+    {$ENDIF}
   end;
-  SetLength(result, c);
 end;
-
-{$ENDIF}
 
 { TMarkdownCommonMarkTest }
 
@@ -309,13 +268,8 @@ end;
 procedure RegisterTests;
 // don't use initialization - give other code time to set up directories etc
 begin
-  {$IFDEF FPC}
-  RegisterTest('CommonMark', TMarkdownCommonMarkTests.create);
-  RegisterTest('GFM', TMarkdownGFMTests.create);
-  {$ELSE}
-  TDUnitX.RegisterTestFixture(TMarkdownCommonMarkTest);
-  TDUnitX.RegisterTestFixture(TMarkdownGFMTest);
-  {$ENDIF}
+  RegisterTest('Markdown.CommonMark', TMarkdownCommonMarkTests.create);
+  RegisterTest('Markdown.GFM', TMarkdownGFMTests.create);
 end;
 
 initialization

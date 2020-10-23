@@ -34,8 +34,8 @@ interface
 
 uses
   SysUtils, Classes, Character,
-  {$IFDEF FPC} FPCUnit, TestRegistry {$ELSE} DUnitX.TestFramework {$ENDIF},
-  CommonTestBase, MarkdownDaringFireball;
+  {$IFDEF FPC} FPCUnit, TestRegistry {$ELSE} TestFramework {$ENDIF}, CommonTestBase,
+  MarkdownDaringFireball;
 
 const
   TEST_NAMEs: array[0..26] of String = (
@@ -50,40 +50,23 @@ var
   TestFolder : String = 'resources/df';
 
 type
-  {$IFDEF FPC}
-  TMarkdownDaringFireballTests = class(TTestSuite)
-  private
-  public
-    constructor Create; override;
-  end;
-  {$ELSE}
-  MarkDownParserTestCaseAttribute = class (CustomTestCaseSourceAttribute)
-  protected
-    function GetCaseInfoArray : TestCaseInfoArray; override;
-  end;
-
-  [TextFixture]
-  {$ENDIF}
   TMarkdownDaringFireballTest = class (TCommonTestSuiteCase)
   private
     function openFile(name: String): String;
     function tidy(cnt: String): String;
     procedure saveFile(name, content: String);
   public
-    {$IFNDEF FPC}
-    [MarkDownParserTestCase]
-    {$ENDIF}
     procedure TestCase(name : String); override;
   end;
 
-  {$IFNDEF FPC}
-  [TextFixture]
-  {$ENDIF}
+  TMarkdownDaringFireballTests = class (TCommonTestSuite)
+  private
+  public
+    constructor Create; override;
+  end;
+
   TMarkdownDaringFireballTest2 = class (TCommonTestBaseCase)
   published
-    {$IFNDEF FPC}
-    [TestCase]
-    {$ENDIF}
     procedure TestIssue10;
   end;
 
@@ -210,8 +193,6 @@ begin
   end;
 end;
 
-{$IFDEF FPC}
-
 { TMarkdownDaringFireballTests }
 
 constructor TMarkdownDaringFireballTests.Create;
@@ -219,28 +200,9 @@ var
   i : integer;
 begin
   inherited Create;
-  for i := 0 to Length(TEST_NAMEs)- 1 do
+  for i := 0 to Length(TEST_NAMEs) - 1 do
     AddTest(TMarkdownDaringFireballTest.Create(TEST_NAMEs[i]));
 end;
-
-{$ELSE}
-
-{ MarkDownParserTestCaseAttribute }
-
-function MarkDownParserTestCaseAttribute.GetCaseInfoArray: TestCaseInfoArray;
-var
-  i : integer;
-begin
-  setLength(result, Length(TEST_NAMEs));
-  for i := 0 to Length(TEST_NAMEs)- 1 do
-  begin
-    result[i].Name := TEST_NAMEs[i];
-    SetLength(result[i].Values, 1);
-    result[i].Values[0] := TEST_NAMEs[i];
-  end;
-end;
-
-{$ENDIF}
 
 { TMarkdownDaringFireballTest2 }
 
@@ -261,13 +223,9 @@ end;
 procedure RegisterTests;
 // don't use initialization - give other code time to set up directories etc
 begin
-{$IFNDEF FPC}
-  TDUnitX.RegisterTestFixture(TMarkdownDaringFireballTest);
-  TDUnitX.RegisterTestFixture(TMarkdownDaringFireballTest2);
-{$ELSE}
-  RegisterTest('Daring Fireball', TMarkdownDaringFireballTests.create);
-  RegisterTest('Daring Fireball 2', TMarkdownDaringFireballTest2);
-{$ENDIF}
+  RegisterTest('Markdown.DaringFireball', TMarkdownDaringFireballTests.create);
+  RegisterTest('Markdown.DaringFireball2', TMarkdownDaringFireballTest2.Suite);
+//  RegisterTest({'Markdown.DaringFireball2', TMarkdownDaringFireballTest2{$IFNDEF FPC}.Create{$ENDIF});
 end;
 
 end.
