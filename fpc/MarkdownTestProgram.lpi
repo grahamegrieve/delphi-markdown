@@ -136,8 +136,8 @@
     </PublishOptions>
     <RunParams>
       <local>
-        <CommandLineParams Value="-mdRoot C:/work/markdown"/>
-        <WorkingDirectory Value="C:/work/markdown"/>
+        <CommandLineParams Value="-mdRoot /home/gg/markdown"/>
+        <WorkingDirectory Value="/home/gg/markdown"/>
       </local>
       <FormatVersion Value="2"/>
       <Modes Count="4">
@@ -205,7 +205,7 @@
         <IsPartOfProject Value="True"/>
       </Unit5>
       <Unit6>
-        <Filename Value="../tests/xguitestrunner.pas"/>
+        <Filename Value="../tests/XGuiTestRunner.pas"/>
         <IsPartOfProject Value="True"/>
         <HasResources Value="True"/>
       </Unit6>
