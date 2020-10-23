@@ -25,8 +25,8 @@
         <UnitName Value="MarkdownDaringFireballTests"/>
       </Item>
       <Item>
-        <Filename Value="XGuiTestRunner.pas"/>
-        <UnitName Value="XGuiTestRunner"/>
+        <Filename Value="xguitestrunner.pas"/>
+        <UnitName Value="xguitestrunner"/>
       </Item>
     </Files>
     <RequiredPkgs>

@@ -27,7 +27,7 @@
 This is an exact copy of the normal GUI Test Runner, but it allows you to specify the location for the ini file (for OSX)
 Also, add a stop button
 }
-unit XGuiTestRunner;
+unit xguitestrunner;
 
 {$mode objfpc}{$H+}
 
