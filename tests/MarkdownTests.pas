@@ -8,7 +8,8 @@ unit MarkdownTests;
 interface
 
 uses
-  LazarusPackageIntf;
+  CommonTestBase, MarkdownCommonMarkTests, MarkdownDaringFireballTests, 
+  xguitestrunner, LazarusPackageIntf;
 
 implementation
 

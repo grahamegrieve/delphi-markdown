@@ -11,13 +11,34 @@
         <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
     </CompilerOptions>
-    <RequiredPkgs Count="2">
+    <Files Count="4">
       <Item1>
-        <PackageName Value="fpcunittestrunner"/>
+        <Filename Value="CommonTestBase.pas"/>
+        <UnitName Value="CommonTestBase"/>
       </Item1>
       <Item2>
-        <PackageName Value="LCL"/>
+        <Filename Value="MarkdownCommonMarkTests.pas"/>
+        <UnitName Value="MarkdownCommonMarkTests"/>
       </Item2>
+      <Item3>
+        <Filename Value="MarkdownDaringFireballTests.pas"/>
+        <UnitName Value="MarkdownDaringFireballTests"/>
+      </Item3>
+      <Item4>
+        <Filename Value="xguitestrunner.pas"/>
+        <UnitName Value="xguitestrunner"/>
+      </Item4>
+    </Files>
+    <RequiredPkgs Count="3">
+      <Item1>
+        <PackageName Value="MarkdownEngine"/>
+      </Item1>
+      <Item2>
+        <PackageName Value="fpcunittestrunner"/>
+      </Item2>
+      <Item3>
+        <PackageName Value="LCL"/>
+      </Item3>
     </RequiredPkgs>
     <UsageOptions>
       <UnitPath Value="$(PkgOutDir)"/>

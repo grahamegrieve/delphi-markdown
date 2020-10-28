@@ -133,6 +133,10 @@
       <Version Value="2"/>
     </PublishOptions>
     <RunParams>
+      <local>
+        <CommandLineParams Value="-mdRoot /home/grahame/work/markdown"/>
+        <WorkingDirectory Value="/home/grahame/work/markdown"/>
+      </local>
       <FormatVersion Value="2"/>
       <Modes Count="4">
         <Mode0 Name="default">
@@ -143,8 +147,8 @@
         </Mode0>
         <Mode1 Name="linux">
           <local>
-            <CommandLineParams Value="-mdRoot /home/gg/markdown"/>
-            <WorkingDirectory Value="/home/gg/markdown"/>
+            <CommandLineParams Value="-mdRoot /home/grahame/work/markdown"/>
+            <WorkingDirectory Value="/home/grahame/work/markdown"/>
           </local>
         </Mode1>
         <Mode2 Name="osx">
@@ -237,7 +241,7 @@
     </Linking>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="5">
+    <Exceptions Count="6">
       <Item1>
         <Name Value="EAbort"/>
       </Item1>
@@ -253,6 +257,9 @@
       <Item5>
         <Name Value="EConvertError"/>
       </Item5>
+      <Item6>
+        <Name Value="EReadError"/>
+      </Item6>
     </Exceptions>
   </Debugging>
 </CONFIG>
