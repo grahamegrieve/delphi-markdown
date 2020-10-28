@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="12"/>
+    <Version Value="11"/>
     <General>
-      <Flags>
-        <CompatibilityMode Value="True"/>
-      </Flags>
       <SessionStorage Value="InProjectDir"/>
+      <MainUnit Value="0"/>
       <Title Value="MarkdownTestProgram"/>
       <ResourceType Value="res"/>
       <UseXPManifest Value="True"/>
@@ -135,10 +133,6 @@
       <Version Value="2"/>
     </PublishOptions>
     <RunParams>
-      <local>
-        <CommandLineParams Value="-mdRoot /home/gg/markdown"/>
-        <WorkingDirectory Value="/home/gg/markdown"/>
-      </local>
       <FormatVersion Value="2"/>
       <Modes Count="4">
         <Mode0 Name="default">

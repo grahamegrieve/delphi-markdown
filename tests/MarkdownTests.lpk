@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
-  <Package Version="5">
+  <Package Version="4">
     <PathDelim Value="\"/>
     <Name Value="MarkdownTests"/>
     <Type Value="RunAndDesignTime"/>
@@ -11,40 +11,13 @@
         <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
     </CompilerOptions>
-    <Files>
-      <Item>
-        <Filename Value="CommonTestBase.pas"/>
-        <UnitName Value="CommonTestBase"/>
-      </Item>
-      <Item>
-        <Filename Value="MarkdownCommonMarkTests.pas"/>
-        <UnitName Value="MarkdownCommonMarkTests"/>
-      </Item>
-      <Item>
-        <Filename Value="MarkdownDaringFireballTests.pas"/>
-        <UnitName Value="MarkdownDaringFireballTests"/>
-      </Item>
-      <Item>
-        <Filename Value="xguitestrunner.pas"/>
-        <UnitName Value="xguitestrunner"/>
-      </Item>
-    </Files>
-    <RequiredPkgs>
-      <Item>
-        <PackageName Value="SynEdit"/>
-      </Item>
-      <Item>
-        <PackageName Value="LCLBase"/>
-      </Item>
-      <Item>
-        <PackageName Value="fpcunitconsolerunner"/>
-      </Item>
-      <Item>
-        <PackageName Value="MarkdownEngine"/>
-      </Item>
-      <Item>
-        <PackageName Value="FCL"/>
-      </Item>
+    <RequiredPkgs Count="2">
+      <Item1>
+        <PackageName Value="fpcunittestrunner"/>
+      </Item1>
+      <Item2>
+        <PackageName Value="LCL"/>
+      </Item2>
     </RequiredPkgs>
     <UsageOptions>
       <UnitPath Value="$(PkgOutDir)"/>
