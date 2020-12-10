@@ -8,8 +8,8 @@ unit MarkdownEngine;
 interface
 
 uses
-  MarkdownUnicodeUtils, MarkdownHTMLEntities, MarkdownCommonMark, 
-  MarkdownDaringFireball, MarkdownProcessor, LazarusPackageIntf;
+  MarkdownCommonMark, MarkdownDaringFireball, MarkdownHTMLEntities, 
+  MarkdownProcessor, MarkdownUnicodeUtils, LazarusPackageIntf;
 
 implementation
 

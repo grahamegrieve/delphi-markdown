@@ -143,10 +143,10 @@ end;
 
 
 function getCommandLineParam(name : String; var res : String) : boolean;
+{$IFDEF FPC}
 var
   i : integer;
 begin
-  {$IFDEF FPC}
   result := false;
   for i := 1 to paramCount - 1 do
   begin
@@ -156,9 +156,10 @@ begin
       exit(true);
     end;
   end;
-  {$ELSE}
+{$ELSE}
+begin
   result := FindCmdLineSwitch(name, res, true, [clstValueNextParam]);
-  {$ENDIF}
+{$ENDIF}
 end;
 
 { TCommonTestSuite }

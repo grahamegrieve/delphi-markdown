@@ -3,9 +3,8 @@ program MarkdownTestProgram;
 {$IFDEF FPC}{$MODE DELPHI}{$ENDIF}
 
 uses
-  Interfaces, SysUtils, Forms, xguitestrunner, consoletestrunner,
-  MarkdownHTMLEntities, MarkdownCommonMark, MarkdownDaringFireball,
-  CommonTestBase, MarkdownCommonMarkTests, MarkdownDaringFireballTests;
+  Interfaces, SysUtils, Forms, consoletestrunner,
+  CommonTestBase, MarkdownDaringFireballTests, MarkdownCommonMarkTests, idetester_form;
 
 {$R *.res}
 
@@ -32,8 +31,8 @@ begin
   else
   begin
     Application.Initialize;
-    Application.CreateForm(TGuiXTestRunner, TestRunner);
-    TestRunner.FileName := IncludeTrailingPathDelimiter(MDTestRoot)+'tests.íni';
+    Application.CreateForm(TTesterForm, TesterForm);
+    TesterForm.caption := 'Markdown Tests';
     Application.Run;
     Application.Free;
   end;

@@ -8,6 +8,7 @@
       <Version Value="11"/>
       <PathDelim Value="\"/>
       <SearchPaths>
+        <OtherUnitFiles Value="..\source"/>
         <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Parsing>
@@ -18,28 +19,28 @@
     </CompilerOptions>
     <Files Count="6">
       <Item1>
-        <Filename Value="MarkdownUnicodeUtils.pas"/>
-        <UnitName Value="MarkdownUnicodeUtils"/>
+        <Filename Value="markdownengine.pas"/>
+        <UnitName Value="MarkdownEngine"/>
       </Item1>
       <Item2>
-        <Filename Value="MarkdownHTMLEntities.pas"/>
-        <UnitName Value="MarkdownHTMLEntities"/>
+        <Filename Value="..\source\MarkdownCommonMark.pas"/>
+        <UnitName Value="MarkdownCommonMark"/>
       </Item2>
       <Item3>
-        <Filename Value="MarkdownCommonMark.pas"/>
-        <UnitName Value="MarkdownCommonMark"/>
+        <Filename Value="..\source\MarkdownDaringFireball.pas"/>
+        <UnitName Value="MarkdownDaringFireball"/>
       </Item3>
       <Item4>
-        <Filename Value="MarkdownDaringFireball.pas"/>
-        <UnitName Value="MarkdownDaringFireball"/>
+        <Filename Value="..\source\MarkdownHTMLEntities.pas"/>
+        <UnitName Value="MarkdownHTMLEntities"/>
       </Item4>
       <Item5>
-        <Filename Value="MarkdownProcessor.pas"/>
+        <Filename Value="..\source\MarkdownProcessor.pas"/>
         <UnitName Value="MarkdownProcessor"/>
       </Item5>
       <Item6>
-        <Filename Value="markdownengine.pas"/>
-        <UnitName Value="MarkdownEngine"/>
+        <Filename Value="..\source\MarkdownUnicodeUtils.pas"/>
+        <UnitName Value="MarkdownUnicodeUtils"/>
       </Item6>
     </Files>
     <CompatibilityMode Value="True"/>

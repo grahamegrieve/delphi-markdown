@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
-  <Package Version="4">
+  <Package Version="5">
     <PathDelim Value="\"/>
     <Name Value="MarkdownTests"/>
     <Type Value="RunAndDesignTime"/>
@@ -11,7 +11,7 @@
         <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
     </CompilerOptions>
-    <Files Count="4">
+    <Files Count="3">
       <Item1>
         <Filename Value="CommonTestBase.pas"/>
         <UnitName Value="CommonTestBase"/>
@@ -24,11 +24,8 @@
         <Filename Value="MarkdownDaringFireballTests.pas"/>
         <UnitName Value="MarkdownDaringFireballTests"/>
       </Item3>
-      <Item4>
-        <Filename Value="xguitestrunner.pas"/>
-        <UnitName Value="xguitestrunner"/>
-      </Item4>
     </Files>
+    <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="3">
       <Item1>
         <PackageName Value="MarkdownEngine"/>

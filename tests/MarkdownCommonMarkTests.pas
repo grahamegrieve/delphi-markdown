@@ -43,11 +43,15 @@ type
   TJSONValue = TJSONEnum;
   {$ENDIF}
 
+  { TMarkdownCommonMarkTestBase }
+
   TMarkdownCommonMarkTestBase = class abstract (TCommonTestSuiteCase)
   private
-    function findTest(tests : TJSONArray; name : String) : TJSONObject;
+    FTest : TJSONObject;
   protected
     procedure DoTest(tests : TJSONArray; Name : String);
+  public
+    Constructor Create(test : TJSONObject; name : String);
   end;
 
   TMarkdownCommonMarkTest = class (TMarkdownCommonMarkTestBase)
@@ -79,15 +83,11 @@ var
   gTestsGFM : TJSONArray = nil;
 
 function TestFileCM : String;
-var
-  s : String;
 begin
   result := IncludeTrailingPathDelimiter(MDTestRoot) + 'resources/commonmark/spec.json';
 end;
 
 function TestFileGFM : String;
-var
-  s : String;
 begin
   result := IncludeTrailingPathDelimiter(MDTestRoot) + 'resources/commonmark/gfm_tests.json';
 end;
@@ -168,7 +168,7 @@ end;
 
 constructor TMarkdownCommonMarkTests.create;
 var
-  i, c : integer;
+  i : integer;
   t : TJSONObject;
   tests : TJSONArray;
 begin
@@ -179,10 +179,10 @@ begin
     t := tests.Items[i] as TJSONObject;
     {$IFDEF FPC}
     if (t.Find('mode') = nil) then
-      AddTest(TMarkdownCommonMarkTest.Create(leftPad(t.Strings['example'], '0', 4)));
+      AddTest(TMarkdownCommonMarkTest.Create(t, leftPad(t.Strings['example'], '0', 4)));
     {$ELSE}
     if (t.Values['mode'] = nil) then
-      AddTest(TMarkdownCommonMarkTest.Create(leftPad(t.Values['example'].ToString, '0', 4)));
+      AddTest(TMarkdownCommonMarkTest.Create(t, leftPad(t.Values['example'].ToString, '0', 4)));
     {$ENDIF}
   end;
 end;
@@ -191,7 +191,7 @@ end;
 
 constructor TMarkdownGFMTests.create;
 var
-  i, c : integer;
+  i : integer;
   t : TJSONObject;
   tests : TJSONArray;
 begin
@@ -202,10 +202,10 @@ begin
     t := tests.Items[i] as TJSONObject;
     {$IFDEF FPC}
     if (t.Find('mode') = nil) then
-      AddTest(TMarkdownGFMTest.Create(leftPad(t.Strings['example'], '0', 4)));
+      AddTest(TMarkdownGFMTest.Create(t, leftPad(t.Strings['example'], '0', 4)));
     {$ELSE}
     if (t.Values['mode'] = nil) then
-      AddTest(TMarkdownGFMTest.Create(leftPad(t.Values['example'].ToString, '0', 4)));
+      AddTest(TMarkdownGFMTest.Create(t, leftPad(t.Values['example'].ToString, '0', 4)));
     {$ENDIF}
   end;
 end;
@@ -226,44 +226,28 @@ end;
 
 { TMarkdownCommonMarkTestBase }
 
-function TMarkdownCommonMarkTestBase.findTest(tests : TJSONArray; name : String) : TJSONObject;
-var
-  v : TJSONValue;
-  o : TJSONObject;
+constructor TMarkdownCommonMarkTestBase.Create(test: TJSONObject; name: String);
 begin
-  result := nil;
-  for v in tests do
-  begin
-    o := v{$IFDEF FPC}.value{$ENDIF} as TJSONObject;
-    if leftPad(jsonStr(o, 'example', true), '0', 4) = name then
-      exit(o);
-  end;
+  inherited Create(name);
+  FTest := test;
 end;
 
 procedure TMarkdownCommonMarkTestBase.DoTest(tests : TJSONArray; Name : String);
 var
-  test : TJSONObject;
   doc : TCommonMarkDocument;
   src, html, exp : String;
 begin
-  test := findTest(tests, name);
-  if (test = nil) then
-  begin
-    assertFail('Test '+name+' not found');
-  end
-  else
-  begin
-    src := jsonStr(test, 'markdown').replace('\n', #10);
-    doc := TCommonMarkEngine.parse(src, self is TMarkdownGFMTest);
-    try
-      html := TCommonMarkEngine.render(doc);
-    finally
-      doc.Free;
-    end;
-    exp := jsonStr(test, 'html').replace('\n', #10);
-    assertEqual(exp, html, 'output does not match expected for input "'+src+'"');
+  src := jsonStr(FTest, 'markdown').replace('\n', #10);
+  doc := TCommonMarkEngine.parse(src, self is TMarkdownGFMTest);
+  try
+    html := TCommonMarkEngine.render(doc);
+  finally
+    doc.Free;
   end;
+  exp := jsonStr(FTest, 'html').replace('\n', #10);
+  assertEqual(exp, html, 'output does not match expected for input "'+src+'"');
 end;
+
 
 procedure RegisterTests;
 // don't use initialization - give other code time to set up directories etc

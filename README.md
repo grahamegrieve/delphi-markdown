@@ -70,6 +70,7 @@ To run the tests:
 
 * Test Program is markdown/fpc/MarkdownTestProgram.lpi
 * you need to provide command line parameter -mdRoot [x] where [x] is the location of the repo on your local drive
+* depends on https://github.com/grahamegrieve/lazarus-ide-tester
 
 ## License
 
