@@ -10,6 +10,9 @@
       <Title Value="MarkdownTestProgram"/>
       <ResourceType Value="res"/>
       <UseXPManifest Value="True"/>
+      <XPManifest>
+        <DpiAware Value="Per-monitor"/>
+      </XPManifest>
       <Icon Value="0"/>
     </General>
     <MacroValues Count="1">
@@ -44,11 +47,6 @@
             <Debugging>
               <DebugInfoType Value="dsDwarf2Set"/>
             </Debugging>
-            <Options>
-              <Win32>
-                <GraphicApplication Value="True"/>
-              </Win32>
-            </Options>
           </Linking>
         </CompilerOptions>
       </Item2>
@@ -133,7 +131,7 @@
     </PublishOptions>
     <RunParams>
       <local>
-        <CommandLineParams Value="-mdRoot C:/work/pascal/markdown"/>
+        <CommandLineParams Value="-fpc4169C1B6-1D5C-4E4D-A790-8458C64CDA57 -run 0.0.0 -mdRoot C:/work/pascal/markdown"/>
         <WorkingDirectory Value="C:/work/pascal/markdown"/>
       </local>
       <FormatVersion Value="2"/>
@@ -158,7 +156,7 @@
         </Mode2>
         <Mode3 Name="windows">
           <local>
-            <CommandLineParams Value="-mdRoot C:/work/pascal/markdown"/>
+            <CommandLineParams Value="-fpc4169C1B6-1D5C-4E4D-A790-8458C64CDA57 -run 0.0.0 -mdRoot C:/work/pascal/markdown"/>
             <WorkingDirectory Value="C:/work/pascal/markdown"/>
           </local>
         </Mode3>
