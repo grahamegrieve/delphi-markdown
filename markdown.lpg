@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectGroup FileVersion="2">
+    <Targets>
+      <Target FileName="packages\markdownengine.lpk"/>
+      <Target FileName="tests\markdowntests.lpk"/>
+      <Target FileName="fpc\MarkdownTestProgram.lpi">
+        <BuildModes>
+          <Mode Name="Win32" Compile="True"/>
+          <Mode Name="Win64"/>
+          <Mode Name="Linux"/>
+          <Mode Name="OSX"/>
+        </BuildModes>
+      </Target>
+    </Targets>
+  </ProjectGroup>
+</CONFIG>
