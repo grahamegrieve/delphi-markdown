@@ -162,7 +162,7 @@
         </Mode3>
       </Modes>
     </RunParams>
-    <RequiredPackages Count="6">
+    <RequiredPackages Count="5">
       <Item1>
         <PackageName Value="idetester"/>
       </Item1>
@@ -173,14 +173,11 @@
         <PackageName Value="MarkdownEngine"/>
       </Item3>
       <Item4>
-        <PackageName Value="fpcunittestrunner"/>
+        <PackageName Value="LCL"/>
       </Item4>
       <Item5>
-        <PackageName Value="LCL"/>
-      </Item5>
-      <Item6>
         <PackageName Value="FCL"/>
-      </Item6>
+      </Item5>
     </RequiredPackages>
     <Units Count="1">
       <Unit0>

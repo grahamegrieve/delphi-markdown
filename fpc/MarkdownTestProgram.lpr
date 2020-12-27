@@ -4,6 +4,7 @@ program MarkdownTestProgram;
 
 uses
   {$IFDEF MSWINDOWS} Windows, {$ENDIF}
+  {$IFDEF LINUX} cthreads, {$ENDIF}
   Interfaces, SysUtils, Forms, idetester_console,
   CommonTestBase, MarkdownDaringFireballTests, MarkdownCommonMarkTests, idetester_runtime, idetester_form;
 
