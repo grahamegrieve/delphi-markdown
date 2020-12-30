@@ -35,8 +35,8 @@ begin
   begin
     {$IFDEF MSWINDOWS} FreeConsole; {$ENDIF}
     Application.Initialize;
-    Application.CreateForm(TTesterForm, TesterForm);
-    TesterForm.caption := 'Markdown Tests';
+    Application.CreateForm(TIdeTesterForm, IdeTesterForm);
+    IdeTesterForm.caption := 'Markdown Tests';
     Application.Run;
     Application.Free;
   end;
