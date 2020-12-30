@@ -157,3 +157,6 @@ tests/lib/
 /source/lib/x86_64-darwin
 /delphi/Win32/Debug
 /packages/lib/x86_64-win64
+
+packages/lib/x86_64-linux/
+/fpc/MarkdownTestProgram.testing.ini

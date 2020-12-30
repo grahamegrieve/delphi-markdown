@@ -131,15 +131,15 @@
     </PublishOptions>
     <RunParams>
       <local>
-        <CommandLineParams Value="-fpc4169C1B6-1D5C-4E4D-A790-8458C64CDA57 -run 0.0.0 -mdRoot C:/work/pascal/markdown"/>
-        <WorkingDirectory Value="C:/work/pascal/markdown"/>
+        <CommandLineParams Value="-mdRoot /home/grahame/work/markdown"/>
+        <WorkingDirectory Value="/home/grahame/work/markdown"/>
       </local>
       <FormatVersion Value="2"/>
       <Modes Count="4">
         <Mode0 Name="default">
           <local>
-            <CommandLineParams Value="-mdRoot /Users/grahamegrieve/Work/markdown"/>
-            <WorkingDirectory Value="/Users/grahamegrieve/Work/markdown"/>
+            <CommandLineParams Value="-mdRoot /home/grahame/work/markdown"/>
+            <WorkingDirectory Value="/home/grahame/work/markdown"/>
           </local>
         </Mode0>
         <Mode1 Name="linux">
@@ -162,7 +162,7 @@
         </Mode3>
       </Modes>
     </RunParams>
-    <RequiredPackages Count="6">
+    <RequiredPackages Count="5">
       <Item1>
         <PackageName Value="idetester"/>
       </Item1>
@@ -173,14 +173,11 @@
         <PackageName Value="MarkdownEngine"/>
       </Item3>
       <Item4>
-        <PackageName Value="fpcunittestrunner"/>
+        <PackageName Value="LCL"/>
       </Item4>
       <Item5>
-        <PackageName Value="LCL"/>
-      </Item5>
-      <Item6>
         <PackageName Value="FCL"/>
-      </Item6>
+      </Item5>
     </RequiredPackages>
     <Units Count="1">
       <Unit0>
