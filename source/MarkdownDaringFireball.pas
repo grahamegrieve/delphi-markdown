@@ -3377,7 +3377,7 @@ end;
 function TStringBuilder.GetChar(index: integer): char;
 begin
   if (index < 0) or (index >= Length) then
-    raise Exception.Create('Out of bounds');
+    raise EMarkdownProcessor.Create('Out of bounds');
   result := FContent[index+1];
 end;
 

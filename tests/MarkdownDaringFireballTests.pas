@@ -35,7 +35,7 @@ interface
 uses
   SysUtils, Classes, Character,
   {$IFDEF FPC} FPCUnit, TestRegistry {$ELSE} TestFramework {$ENDIF}, CommonTestBase,
-  MarkdownDaringFireball;
+  MarkdownProcessor, MarkdownDaringFireball;
 
 const
   TEST_NAMEs: array[0..26] of String = (
@@ -105,7 +105,7 @@ begin
     result := TEncoding.UTF8.GetString(bytes);
   end
   else
-    raise Exception.Create('File "' + filename + '" not found');
+    raise EMarkdownProcessor.Create('File "' + filename + '" not found');
 end;
 
 procedure TMarkdownDaringFireballTest.saveFile(name, content: String);

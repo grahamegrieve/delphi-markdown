@@ -1,6 +1,6 @@
 unit MarkdownUITestForm;
 
-// VCL Demo by NoSi – https://nosi.de
+// VCL Demo Copyright (c) by NoSi – https://nosi.de 
 
 interface
 

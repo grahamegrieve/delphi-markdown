@@ -63,6 +63,8 @@ uses
 Type
   TMarkdownProcessorDialect = (mdDaringFireball, mdCommonMark{, mdAsciiDoc});
 
+  EMarkdownProcessor = class (Exception);
+
   TMarkdownProcessor = class abstract
   protected
     function GetUnSafe: boolean; virtual; abstract;
@@ -89,7 +91,7 @@ begin
     mdDaringFireball : result := TMarkdownDaringFireball.Create;
     mdCommonMark : result := TCommonMarkProcessor.Create;
   else
-    raise Exception.Create('Unknown Markdown dialect');
+    raise EMarkdownProcessor.Create('Unknown Markdown dialect');
   end;
 end;
 
