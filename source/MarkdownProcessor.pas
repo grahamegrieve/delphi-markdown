@@ -67,13 +67,13 @@ Type
 
   TMarkdownProcessor = class abstract
   protected
-    function GetUnSafe: boolean; virtual; abstract;
-    procedure SetUnSafe(const Value: boolean); virtual; abstract;
+    function GetAllowUnSafe: boolean; virtual; abstract;
+    procedure SetAllowUnSafe(const Value: boolean); virtual; abstract;
   public
     class function CreateDialect(dialect : TMarkdownProcessorDialect) : TMarkdownProcessor;
 
-    // when Unsafe = true, then the processor can create scripts etc.
-    property UnSafe : boolean read GetUnSafe write SetUnSafe;
+    // when AllowUnsafe = true, then the processor can create scripts etc.
+    property AllowUnsafe : boolean read GetAllowUnSafe write SetAllowUnSafe;
     function process(source : String) : String; virtual; abstract;
   end;
 

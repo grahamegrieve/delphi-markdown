@@ -527,8 +527,8 @@ type
 
   TCommonMarkProcessor = class (TMarkdownProcessor)
   protected
-    function GetUnSafe: boolean; override;
-    procedure SetUnSafe(const value: boolean); override;
+    function GetAllowUnSafe: boolean; override;
+    procedure SetAllowUnSafe(const value: boolean); override;
   public
     function process(source : String) : String; override; // want to process the syntax tree? Use the TCommonMarkEngine Directly
   end;
@@ -3616,7 +3616,7 @@ end;
 
 { TCommonMarkProcessor }
 
-function TCommonMarkProcessor.GetUnSafe: boolean;
+function TCommonMarkProcessor.GetAllowUnSafe: boolean;
 begin
   result := false;
 end;
@@ -3634,7 +3634,7 @@ begin
 
 end;
 
-procedure TCommonMarkProcessor.SetUnSafe(const value: boolean);
+procedure TCommonMarkProcessor.SetAllowUnSafe(const value: boolean);
 begin
   if value then
     raise EMarkdownProcessor.Create('The common mark processor cannot operate in unsafe mode+');

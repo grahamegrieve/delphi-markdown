@@ -1,4 +1,4 @@
-﻿Unit MarkdownCommonMarkTests;
+Unit MarkdownCommonMarkTests;
 
 {
 Copyright (c) 2011+, Health Intersections Pty Ltd (http://www.healthintersections.com.au)

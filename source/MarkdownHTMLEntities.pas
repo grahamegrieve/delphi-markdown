@@ -2172,7 +2172,7 @@ begin
   add('&zopf;', #$D835#$DD6B);
   add('&zscr;', #$D835#$DCCF);
   add('&zwj;', #$200D);
-  add('&zwnj;', #$200);
+  add('&zwnj;', #$200C);
 end;
 
 end.
