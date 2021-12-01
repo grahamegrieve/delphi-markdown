@@ -162,3 +162,5 @@ packages/lib/x86_64-linux/
 /fpc/MarkdownTestProgram.testing.ini
 /packages/lib/i386-win32
 /packages/lib/x86_64-darwin
+
+packages/lib
