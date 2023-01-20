@@ -45,32 +45,16 @@ function unicodeChars(s : String) : TArray<UnicodeChar>;
 implementation
 
 {$IFDEF FPC}
-uses
-  LazUTF8;
-{$ENDIF}
-
-{$IFDEF FPC}
 
 function unicodeChars(s : String) : TArray<UnicodeChar>;
 var
-  i, c, l, cl : integer;
-  ch : UnicodeChar;
-  p: PChar;
+  i, l: integer;
+  us: UnicodeString;
 begin
-  l := length(s);
-  SetLength(result, l); // maximum possible length
-  i := 0;
-  c := 1;
-  p := @s[1];
-  while l > 0 do
-  begin
-    ch := UnicodeChar(UTF8CodepointToUnicode(p, cl));
-    result[i] := ch;
-    inc(i);
-    dec(l, cl);
-    inc(p, cl);
-  end;
-  SetLength(result, i);
+  us := UTF8Decode(s);
+  l := Length(us);
+  SetLength(result, l);
+  for i:=1 to l do result[i-1] := us[i];
 end;
 
 {$ELSE}
