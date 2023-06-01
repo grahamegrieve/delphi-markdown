@@ -16,6 +16,11 @@
           <SyntaxMode Value="Delphi"/>
         </SyntaxOptions>
       </Parsing>
+      <Other>
+        <CompilerMessages>
+          <IgnoredMessages idx6058="True"/>
+        </CompilerMessages>
+      </Other>
     </CompilerOptions>
     <Files Count="6">
       <Item1>

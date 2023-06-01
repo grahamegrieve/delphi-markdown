@@ -29,7 +29,7 @@ POSSIBILITY OF SUCH DAMAGE.
 }
 
 {$IFDEF FPC}{$MODE DELPHI}{$ENDIF}
-
+{$WARN 3057 off : An inherited method is hidden by "$1"}
 interface
 
 uses
