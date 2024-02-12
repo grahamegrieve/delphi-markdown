@@ -2307,7 +2307,7 @@ begin
     s := copyWhile(ls, ['0'..'9']);
     if (s = '') or (length(s) > 9) then
       exit(false);
-    if not CharInSet(ls[s.Length+1], ['.', ')']) then
+    if (s.length = ls.length) or not CharInSet(ls[s.Length+1], ['.', ')']) then
       exit(false);
     if inPara(blocks, false) and (s <> '1') then
       exit(false); // rule 267
