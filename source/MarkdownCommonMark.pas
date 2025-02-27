@@ -48,8 +48,10 @@ note about GFM:
   processing of lists indented more than 3 spaces. This is probably
   just poor quality in the GFM tests, which do have a number of inconsistencies
 }
+{$IFDEF FPC}
 {$WARN 4105 off : Implicit string type conversion with potential data loss from "$1" to "$2"}
 {$WARN 4044 off : Comparison might be always false due to range of constant and expression}
+{$ENDIF}
 interface
 
 uses
