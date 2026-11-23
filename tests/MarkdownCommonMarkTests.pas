@@ -48,10 +48,13 @@ type
   TMarkdownCommonMarkTestBase = class abstract (TCommonTestSuiteCase)
   private
     FTest : TJSONObject;
+    FCheckOutput : boolean;
   protected
     procedure DoTest(tests : TJSONArray; Name : String);
   public
-    Constructor Create(test : TJSONObject; name : String);
+    // checkOutput = false: tests for features that aren't supported (link references, html blocks).
+    // these are still run, to check that processing doesn't blow up, but the output isn't compared
+    Constructor Create(test : TJSONObject; name : String; checkOutput : boolean);
   end;
 
   { TMarkdownCommonMarkUtilTests }
@@ -101,19 +104,6 @@ procedure RegisterTests;
 implementation
 
 
-procedure BytesToFile(bytes : TBytes; filename : String);
-var
-  f : TFileStream;
-begin
-  f := TFileStream.Create(filename, fmCreate);
-  try
-    if length(bytes) > 0 then
-      f.Write(bytes[0], length(bytes));
-  finally
-    f.free;
-  end;
-end;
-
 function FileToBytes(filename : string) : TBytes;
 var
   f : TFileStream;
@@ -124,27 +114,6 @@ begin
     f.Read(result[0], f.Size);
   finally
     f.free;
-  end;
-end;
-
-procedure StringToFile(content, filename : String; encoding : TEncoding);
-var
-  LFileStream: TFilestream;
-  bytes : TBytes;
-begin
-  LFileStream := TFileStream.Create(filename, fmCreate);
-  try
-    if encoding = nil then // special case
-    begin
-      SetLength(bytes, content.length);
-      if (content.length > 0) then
-        move(content[1], bytes[0], content.length);
-    end
-    else
-      bytes := encoding.GetBytes(content);
-    LFileStream.write(bytes[0], length(bytes));
-  finally
-    LFileStream.free;
   end;
 end;
 
@@ -180,14 +149,12 @@ end;
 function loadJson(filename : String) : TJsonArray;
 var
   f : TFileStream;
-  fn : String;
   b : TBytes;
   s : String;
   {$IFDEF FPC}
   json : TJSONParser;
   {$ENDIF}
 begin
-  fn := ExtractFileName(filename);
   f := TFileStream.Create(filename, fmOpenRead + fmShareDenyWrite);
   try
     SetLength(b, f.Size);
@@ -196,8 +163,6 @@ begin
     f.Free;
   end;
   s := TEncoding.UTF8.GetString(b);
-  bytesToFile(b, '/Users/grahamegrieve/temp/utf8/'+fn);
-  stringToFile(s, '/Users/grahamegrieve/temp/utf8/'+fn.replace('.', '-b.'), TEncoding.ASCII);
 
   {$IFDEF FPC}
   json := TJSONParser.create(s);
@@ -254,10 +219,14 @@ begin
     t := tests.Items[i] as TJSONObject;
     {$IFDEF FPC}
     if (t.Find('mode') = nil) then
-      AddTest(TMarkdownCommonMarkTest.Create(t, leftPad(t.Strings['example'], '0', 4)));
+      AddTest(TMarkdownCommonMarkTest.Create(t, leftPad(t.Strings['example'], '0', 4), true))
+    else
+      AddTest(TMarkdownCommonMarkTest.Create(t, leftPad(t.Strings['example'], '0', 4)+' ('+t.Strings['mode']+', not checked)', false));
     {$ELSE}
     if (t.Values['mode'] = nil) then
-      AddTest(TMarkdownCommonMarkTest.Create(t, leftPad(t.Values['example'].ToString, '0', 4)));
+      AddTest(TMarkdownCommonMarkTest.Create(t, leftPad(t.Values['example'].ToString, '0', 4), true))
+    else
+      AddTest(TMarkdownCommonMarkTest.Create(t, leftPad(t.Values['example'].ToString, '0', 4)+' ('+(t.Values['mode'] as TJSONString).Value+', not checked)', false));
     {$ENDIF}
   end;
 end;
@@ -277,10 +246,14 @@ begin
     t := tests.Items[i] as TJSONObject;
     {$IFDEF FPC}
     if (t.Find('mode') = nil) then
-      AddTest(TMarkdownGFMTest.Create(t, leftPad(t.Strings['example'], '0', 4)));
+      AddTest(TMarkdownGFMTest.Create(t, leftPad(t.Strings['example'], '0', 4), true))
+    else
+      AddTest(TMarkdownGFMTest.Create(t, leftPad(t.Strings['example'], '0', 4)+' ('+t.Strings['mode']+', not checked)', false));
     {$ELSE}
     if (t.Values['mode'] = nil) then
-      AddTest(TMarkdownGFMTest.Create(t, leftPad(t.Values['example'].ToString, '0', 4)));
+      AddTest(TMarkdownGFMTest.Create(t, leftPad(t.Values['example'].ToString, '0', 4), true))
+    else
+      AddTest(TMarkdownGFMTest.Create(t, leftPad(t.Values['example'].ToString, '0', 4)+' ('+(t.Values['mode'] as TJSONString).Value+', not checked)', false));
     {$ENDIF}
   end;
 end;
@@ -301,10 +274,11 @@ end;
 
 { TMarkdownCommonMarkTestBase }
 
-constructor TMarkdownCommonMarkTestBase.Create(test: TJSONObject; name: String);
+constructor TMarkdownCommonMarkTestBase.Create(test: TJSONObject; name: String; checkOutput : boolean);
 begin
   inherited Create(name);
   FTest := test;
+  FCheckOutput := checkOutput;
 end;
 
 procedure TMarkdownCommonMarkTestBase.DoTest(tests : TJSONArray; Name : String);
@@ -312,19 +286,18 @@ var
   doc : TCommonMarkDocument;
   src, html, exp : String;
 begin
-  src := jsonStr(FTest, 'markdown').replace('\n', #10);
+  src := jsonStr(FTest, 'markdown');
   doc := TCommonMarkEngine.parse(src, self is TMarkdownGFMTest);
   try
     html := TCommonMarkEngine.render(doc);
   finally
     doc.Free;
   end;
-  exp := jsonStr(FTest, 'html').replace('\n', #10);
-  stringToFile(src, '/Users/grahamegrieve/temp/utf8/src.txt', TEncoding.UTF8);
-  stringToFile(html, '/Users/grahamegrieve/temp/utf8/html.txt', TEncoding.UTF8);
-  stringToFile(exp, '/Users/grahamegrieve/temp/utf8/exp.txt', TEncoding.UTF8);
-
-  assertEqual(exp, html, 'output does not match expected for input "'+src+'"');
+  if FCheckOutput then
+  begin
+    exp := jsonStr(FTest, 'html');
+    assertEqual(exp, html, 'output does not match expected for input "'+src+'"');
+  end;
 end;
 
 { TMarkdownCommonMarkUtilTests }
@@ -332,13 +305,14 @@ end;
 procedure TMarkdownCommonMarkUtilTests.testUtf8;
 var
   bb, ba : TBytes;
-  s : String;
+  s : UnicodeString;
 begin
-  bb := FileToBytes('/Users/grahamegrieve/temp/utf8/before-utf8.txt');
+  // check that UTF-8 survives a round trip (spec.json has plenty of non-ASCII content)
+  bb := FileToBytes(TestFileCM);
   s := TEncoding.UTF8.GetString(bb);
   ba := TEncoding.UTF8.GetBytes(s);
-  BytesToFile(ba, '/Users/grahamegrieve/temp/utf8/after-utf8.txt');
-  AssertTrue(ba = bb);
+  if (length(ba) <> length(bb)) or ((length(ba) > 0) and not CompareMem(@ba[0], @bb[0], length(ba))) then
+    assertFail('UTF-8 round trip changed the content of '+TestFileCM);
 end;
 
 

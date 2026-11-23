@@ -92,12 +92,8 @@ procedure RegisterTests;
 implementation
 
 function GetWorkingFilename(name : String) : String;
-var
-  s : String;
 begin
-  if not getCommandLineParam('mdroot', s) then
-    s := GetCurrentDir;
-  result := IncludeTrailingPathDelimiter(s)+IncludeTrailingPathDelimiter(TestFolder) + name;
+  result := IncludeTrailingPathDelimiter(MDTestRoot)+IncludeTrailingPathDelimiter(TestFolder) + name;
 end;
 
 { TMarkdownDaringFireballTest }

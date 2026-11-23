@@ -65,6 +65,7 @@ To use the code:
 
 * clone the repository, and compile the MarkdownEngine package in source
 * alternatively, you can use the units in \source directly
+* on unix (linux, OSX), include the cwstring unit in your program (`{$IFDEF UNIX} cwstring, {$ENDIF}`) - without it, FPC's string conversions replace all non-ASCII characters with '?'
 
 To run the tests:
 
