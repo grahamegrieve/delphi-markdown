@@ -36,7 +36,7 @@ uses
   SysUtils, Classes, Character, {$IFDEF WINDOWS} ShellApi, {$ENDIF} Generics.Collections,
   {$IFDEF FPC} FPCUnit, TestRegistry, {$ELSE} TestFramework, {$ENDIF}
   {$IFDEF FPC} FPJson, JsonParser, {$ELSE} Json, {$ENDIF}
-  CommonTestBase, MarkdownCommonMark;
+  DateUtils, CommonTestBase, MarkdownCommonMark;
 
 type
   {$IFDEF FPC}
@@ -60,6 +60,20 @@ type
   private
   published
     procedure testUtf8;
+  end;
+
+  { TMarkdownCommonMarkSecurityTests }
+
+  TMarkdownCommonMarkSecurityTests = class (TCommonTestBaseCase)
+  published
+    procedure testFenceInfoEscaped;
+    procedure testJavascriptLinks;
+    procedure testJavascriptAutoLink;
+    procedure testUnmatchedBrackets;
+    procedure testLongDocument;
+    procedure testDeepQuotes;
+    procedure testDeepLists;
+    procedure testPathologicalInlines;
   end;
 
   TMarkdownCommonMarkTest = class (TMarkdownCommonMarkTestBase)
@@ -328,10 +342,109 @@ begin
 end;
 
 
+{ TMarkdownCommonMarkSecurityTests }
+
+function cmProcess(src : String) : String;
+begin
+  result := TCommonMarkEngine.process(src, true);
+end;
+
+function repeatStr(s : String; count : integer) : String;
+var
+  b : TStringBuilder;
+  i : integer;
+begin
+  b := TStringBuilder.Create;
+  try
+    for i := 1 to count do
+      b.append(s);
+    result := b.toString;
+  finally
+    b.Free;
+  end;
+end;
+
+procedure TMarkdownCommonMarkSecurityTests.testFenceInfoEscaped;
+begin
+  assertEqual('<pre><code class="language-&quot;&gt;&lt;script&gt;x&lt;/script&gt;"></code></pre>'+#10, cmProcess('```"><script>x</script>'), 'Outputs differ');
+end;
+
+procedure TMarkdownCommonMarkSecurityTests.testJavascriptLinks;
+begin
+  assertEqual('<p><a href="">x</a></p>'+#10, cmProcess('[x](javascript:alert(1))'), 'Outputs differ');
+  assertEqual('<p><a href="">x</a></p>'+#10, cmProcess('[x](JavaScript&#58;alert(1))'), 'Outputs differ');
+  assertEqual('<p><img src="" alt="i" /></p>'+#10, cmProcess('![i](javascript:alert(1))'), 'Outputs differ');
+end;
+
+procedure TMarkdownCommonMarkSecurityTests.testJavascriptAutoLink;
+begin
+  assertEqual('<p>&lt;javascript:alert(1)&gt;</p>'+#10, cmProcess('<javascript:alert(1)>'), 'Outputs differ');
+  assertEqual('<p><a href="https://example.com">https://example.com</a></p>'+#10, cmProcess('<https://example.com>'), 'Outputs differ');
+end;
+
+procedure TMarkdownCommonMarkSecurityTests.testUnmatchedBrackets;
+begin
+  // these used to be treated as emphasis delimiters
+  assertEqual('<p>[[[[[[</p>'+#10, cmProcess('[[[[[['), 'Outputs differ');
+end;
+
+procedure TMarkdownCommonMarkSecurityTests.testLongDocument;
+var
+  s : String;
+begin
+  s := cmProcess(repeatStr('x'+#10, 200000));
+  assertEqual('<p>x', copy(s, 1, 4), 'Outputs differ');
+end;
+
+procedure TMarkdownCommonMarkSecurityTests.testDeepQuotes;
+var
+  s : String;
+begin
+  // used to exhaust the stack, and take time cubic in the depth
+  s := cmProcess(repeatStr('>', 50000)+' x');
+  assertEqual('<blockquote>', copy(s, 1, 12), 'Outputs differ');
+end;
+
+procedure TMarkdownCommonMarkSecurityTests.testDeepLists;
+var
+  s : String;
+begin
+  s := cmProcess(repeatStr('- ', 50000)+'x');
+  assertEqual('<ul>', copy(s, 1, 4), 'Outputs differ');
+end;
+
+procedure TMarkdownCommonMarkSecurityTests.testPathologicalInlines;
+const
+  // note: emphasis ('*a* ', '_*' etc) is still quadratic in processEmphasis - not fixed yet
+  INPUTS : array[0..7] of String = ('<', '&', '[', '[](', '[](<', '[](x (', '`', '<div>'+#10);
+var
+  i : integer;
+  start : TDateTime;
+  s : String;
+begin
+  // each of these used to take time quadratic in the length of the input (seconds to minutes)
+  for i := 0 to length(INPUTS) - 1 do
+  begin
+    start := now;
+    s := cmProcess(repeatStr(INPUTS[i], 50000));
+    if MilliSecondsBetween(now, start) > 5000 then
+      assertFail('Processing "'+INPUTS[i]+'" x 50000 took '+inttostr(MilliSecondsBetween(now, start))+'ms');
+  end;
+  // backtick runs of every length
+  s := '';
+  for i := 1 to 400 do
+    s := s + repeatStr('`', i)+'x';
+  start := now;
+  cmProcess(s);
+  if MilliSecondsBetween(now, start) > 5000 then
+    assertFail('Processing backtick runs took '+inttostr(MilliSecondsBetween(now, start))+'ms');
+end;
+
 procedure RegisterTests;
 // don't use initialization - give other code time to set up directories etc
 begin
   RegisterTest('Markdown.Utils', TMarkdownCommonMarkUtilTests);
+  RegisterTest('Markdown.Security', TMarkdownCommonMarkSecurityTests);
   RegisterTest('Markdown.CommonMark', TMarkdownCommonMarkTests.create);
   RegisterTest('Markdown.GFM', TMarkdownGFMTests.create);
 end;

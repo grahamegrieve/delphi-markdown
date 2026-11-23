@@ -68,6 +68,10 @@ uses
 
 const
   LENGTH_INCREMENT = 116;
+  // limits to protect against stack exhaustion and runaway processing time
+  MAX_BLOCK_NESTING = 32;  // nested block quotes / lists
+  MAX_ENTITY_LENGTH = 32;  // longest entity name (between & and ;)
+  MAX_LINK_NESTING = 32;   // nested () in link destinations
   EMAIL_REGEX = '^[a-zA-Z0-9.!#$%&''*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$';
   TEST_STYLING = false; // set this true to check style tracking while doing unit tests (10% speed hit)
 
@@ -385,6 +389,7 @@ type
     FStartLine : integer;
     FLines : TObjectList<TCMLine>;
     FStyling : boolean;
+    FRunStarts : TDictionary<integer, integer>; // for backtick runs: length -> start of the last run of that length
     function GetDone: boolean;
     function GetPeek: char;
     function GetPeekNext: char;
@@ -444,6 +449,7 @@ type
     FStack : TObjectList<TCMDelimiter>;
     FStyling : boolean;
     FGFMExtensions : boolean;
+    FDepth : integer; // block nesting depth
 
     // line operations
     procedure parseLines(src : String);
@@ -631,7 +637,7 @@ end;
 procedure TStringBuilder.append(c: char);
 begin
   if FLength+1 > FBuild.Length then
-    setLength(FBuild, FBuild.Length+LENGTH_INCREMENT);
+    setLength(FBuild, FBuild.Length*2+LENGTH_INCREMENT);
   inc(FLength);
   FBuild[FLength] := c;
 end;
@@ -641,7 +647,7 @@ var
   i : integer;
 begin
   if FLength+length(s) > FBuild.Length then
-    setLength(FBuild, FBuild.Length+length(s)+LENGTH_INCREMENT);
+    setLength(FBuild, Max(FBuild.Length*2, FLength+length(s)+LENGTH_INCREMENT));
   for i := 1 to length(s) do
     FBuild[FLength+i] := s[i];
   inc(FLength, length(s));
@@ -674,7 +680,7 @@ end;
 procedure TCMTextNode.addText(ch: char);
 begin
   if FLength+1 > FBuild.Length then
-    setLength(FBuild, FBuild.Length+LENGTH_INCREMENT);
+    setLength(FBuild, FBuild.Length*2+LENGTH_INCREMENT);
   inc(FLength);
   FBuild[FLength] := ch;
 end;
@@ -1459,6 +1465,7 @@ end;
 
 destructor TCMTextLexer.Destroy;
 begin
+  FRunStarts.Free;
   FBuilder.Free;
   inherited;
 end;
@@ -1472,17 +1479,30 @@ end;
 
 function TCMTextLexer.runExistsAfter(s: String): boolean;
 var
-  i, len : integer;
+  i, j, len : integer;
 begin
+  // is there a run of exactly the same length later in the text?
+  // index the runs once, rather than scanning the rest of the text for every run
   len := s.Length;
-  i := FCursor + len + 1;
-  result := false;
-  while i+len <= FText.Length + 1 do
+  if FRunStarts = nil then
   begin
-    if (copy(FText, i, len) = s) and (FText[i-1] <> s[1]) and ((i+len = FText.Length+1) or (FText[i+len] <> s[1])) then
-      exit(true);
-    inc(i);
+    FRunStarts := TDictionary<integer, integer>.create;
+    i := 1;
+    while i <= FText.Length do
+    begin
+      if FText[i] = s[1] then
+      begin
+        j := i;
+        while (j <= FText.Length) and (FText[j] = s[1]) do
+          inc(j);
+        FRunStarts.AddOrSetValue(j - i, i);
+        i := j;
+      end
+      else
+        inc(i);
+    end;
   end;
+  result := FRunStarts.TryGetValue(len, i) and (i >= FCursor + len + 1);
 end;
 
 function TCMTextLexer.runExistsAfterBeforeChar(s: String; c : char): boolean;
@@ -2173,6 +2193,8 @@ var
   i, i2 : integer;
   s, m : String;
 begin
+  if FDepth >= MAX_BLOCK_NESTING then
+    exit(false); // nested too deep - treat as plain text
   if line.isEmpty then
     exit(false);
   if line.countWS >= 4 then
@@ -2218,9 +2240,11 @@ begin
   redoLine;
   // now, instead of grabbing the >, we recurse and get the processor to do that
   lp := TCMListProcessor.Create(processor, list, li);
+  inc(FDepth);
   try
     parse(li, lp);
   finally
+    dec(FDepth);
     lp.Free;
   end;
 end;
@@ -2290,6 +2314,8 @@ var
   s,sl, m, ls : String;
 begin
   result := false;
+  if FDepth >= MAX_BLOCK_NESTING then
+    exit(false); // nested too deep - treat as plain text
   if line.isEmpty then
     exit(false);
   if line.countWS >= 4 then
@@ -2351,9 +2377,11 @@ begin
   redoLine;
   // now, instead of grabbing the >, we recurse and get the processor to do that
   lp := TCMListProcessor.Create(processor, list, li);
+  inc(FDepth);
   try
     parse(li, lp);
   finally
+    dec(FDepth);
     lp.Free;
   end;
 end;
@@ -2364,6 +2392,8 @@ var
   q : TCMQuoteBlock;
   qp : TCMQuoteProcessor;
 begin
+  if FDepth >= MAX_BLOCK_NESTING then
+    exit(false); // nested too deep - treat as plain text
   if line.countWS >= 4 then
     exit(false);
   s := line.focus.Trim;
@@ -2375,9 +2405,11 @@ begin
   redoline;
   // now, instead of grabbing the >, we recurse and get the processor to do that
   qp := TCMQuoteProcessor.Create(processor, q);
+  inc(FDepth);
   try
     parse(q, qp);
   finally
+    dec(FDepth);
     qp.Free;
   end;
   q.closed := true;
@@ -2532,7 +2564,7 @@ begin
       if j <= length(s) then
       begin
         s1 := parseEntityString(copy(s, i, j-i+1));
-        delete(s, i, j-1);
+        delete(s, i, j-i+1);
         insert(s1, s, i);
         inc(i, s1.Length-1);
       end;
@@ -2553,7 +2585,7 @@ begin
   c := TCMCodeBlock.Create(FCurrentLine);
   blocks.Add(c);
   c.fenced := true;
-  c.lang := lang;
+  c.lang := htmlEscape(lang); // rendered directly into the class attribute
   terminated := false;
 
   while not done and not terminated and not isEnded do
@@ -2682,11 +2714,14 @@ var
 begin
   lexer.mark;
   lexer.grab(cmControlChar);
-  s := lexer.peekUntil(['>']);
+  // an autolink can't contain whitespace or <, so don't scan past them looking for the >
+  s := lexer.peekUntil(['>', '<', ' ', #9, #10]);
+  if (s <> '') and (lexer.FText[lexer.FCursor + s.Length] <> '>') then
+    s := '';
   if (wsMode <> wsLeave) then
   begin
     ok := true;
-    if isAbsoluteURI(s) then
+    if isAbsoluteURI(s) and isSafeUrl(s, false) then
     begin
       a := nodes.addOpener(lexer.location, 'a');
       a.attrs.Add('href', urlEscape(s));
@@ -2906,6 +2941,8 @@ begin
       lexer.grab(cmControlChar);
       while not lexer.done and (lexer.peek <> '>') do
       begin
+        if CharInSet(lexer.peek, [#10, '<']) then
+          exit; // not allowed in a <> destination
         if (lexer.peek = '\') and isEscapable(lexer.peekNext) then
         begin
          lexer.grab(cmControlChar);
@@ -2951,7 +2988,11 @@ begin
         else
         begin
           if lexer.peek = '(' then
-            inc(lvl)
+          begin
+            inc(lvl);
+            if lvl > MAX_LINK_NESTING then
+              exit;
+          end
           else if lexer.peek = ')' then
             dec(lvl);
           b.Append(lexer.grab(cmUrl));
@@ -2973,6 +3014,8 @@ begin
         marker := ')';
       while not lexer.done and (lexer.peek <> marker) do
       begin
+        if (marker = ')') and (lexer.peek = '(') then
+          exit; // unescaped ( not allowed in a (title)
         if (lexer.peek = '\') then
         begin
           lexer.grab(cmControlChar);
@@ -3001,6 +3044,8 @@ begin
     line := FLines[del.FNode.FPos.line];
     line.updateStyle(del.FNode.FPos.col-1, length(del.FNode.FContent), cmDelimiter);
 
+    if not isSafeUrl(url, del.delimiter = '![') then
+      url := '';
     if del.delimiter = '![' then
     begin
       del.Node.name := 'img';
@@ -3204,7 +3249,10 @@ var
   i : integer;
 begin
   lexer.grab(cmEntity);
-  s := lexer.peekUntil([';']);
+  // entity names are short and alphanumeric - don't scan the rest of the text looking for a ;
+  s := lexer.peekWhile(['a'..'z', 'A'..'Z', '0'..'9', '#']);
+  if (s.Length > MAX_ENTITY_LENGTH) or (lexer.FCursor + s.Length > lexer.FText.Length) or (lexer.FText[lexer.FCursor + s.Length] <> ';') then
+    s := '';
   if FEntities.TryGetValue('&'+s+';', c) then
   begin
     lexer.grab(cmEntity, s.Length+1);
@@ -3537,7 +3585,8 @@ begin
   current := bottom;
   while current < FStack.count do
   begin
-    while (current < FStack.Count) and FStack[current].isEmph and not FStack[current].isCloser do
+    // only emphasis delimiters can close (unmatched [ and ![ are left on the stack for us to clean up)
+    while (current < FStack.Count) and not (FStack[current].isEmph and FStack[current].isCloser) do
       inc(current);
     if current = FStack.count then
       break; // we're done.
@@ -3571,7 +3620,7 @@ begin
       iC := FStack.IndexOf(c);
       if iC > iO + 1 then
       begin
-        for i := iO+1 to iC-iO do
+        for i := iO+1 to iC-1 do
         begin
           line := FLines[FStack[i].FNode.FPos.line];
           line.updateStyle(FStack[i].FNode.FPos.col-1, length(FStack[i].FNode.FContent), cmText);

@@ -33,7 +33,7 @@ POSSIBILITY OF SUCH DAMAGE.
 interface
 
 uses
-  SysUtils, Classes, Character,
+  SysUtils, Classes, Character, DateUtils,
   {$IFDEF FPC} FPCUnit, TestRegistry {$ELSE} TestFramework {$ENDIF}, CommonTestBase,
   MarkdownProcessor, MarkdownDaringFireball;
 
@@ -68,6 +68,23 @@ type
   TMarkdownDaringFireballTest2 = class (TCommonTestBaseCase)
   published
     procedure TestIssue10;
+
+    // security: safe mode (the default)
+    procedure TestSafeModeScript;
+    procedure TestSafeModeAttributes;
+    procedure TestSafeModeHtmlBlock;
+    procedure TestSafeModeJavascriptLink;
+    procedure TestSafeModeJavascriptAutoLink;
+    procedure TestSafeModeDataImage;
+    procedure TestUnsafeModePassesHtml;
+
+    // security: stack exhaustion and processing time
+    procedure TestLongDocument;
+    procedure TestManyParagraphs;
+    procedure TestDeepQuotes;
+    procedure TestDeepLists;
+    procedure TestDeepEmphasis;
+    procedure TestPathologicalInlines;
   end;
 
 procedure RegisterTests;
@@ -179,6 +196,8 @@ var
 begin
   processor := TMarkdownDaringFireball.Create;
   try
+    // these are reference outputs from Markdown.pl, which passes raw html through
+    processor.AllowUnsafe := true;
     text := openFile(name + '.text');
     compare := openFile(name + '.html');
     processed := processor.process(text);
@@ -217,6 +236,139 @@ begin
     assertEqual('<p>Please send comments to <a href="mailto:email@example.com">email@example.com</a> ASAP</p>'+#10, processed, 'Outputs differ');
   finally
     processor.Free;
+  end;
+end;
+
+function dfProcess(src : String; unsafe : boolean = false) : String;
+var
+  processor: TMarkdownDaringFireball;
+begin
+  processor := TMarkdownDaringFireball.Create;
+  try
+    processor.AllowUnsafe := unsafe;
+    result := processor.process(src);
+  finally
+    processor.Free;
+  end;
+end;
+
+function repeatStr(s : String; count : integer) : String;
+var
+  b : TStringBuilder;
+  i : integer;
+begin
+  b := TStringBuilder.Create;
+  try
+    for i := 1 to count do
+      b.append(s);
+    result := b.toString;
+  finally
+    b.Free;
+  end;
+end;
+
+procedure TMarkdownDaringFireballTest2.TestSafeModeScript;
+begin
+  assertEqual('<p>&lt;script>alert(1)&lt;/script></p>'+#10, dfProcess('<script>alert(1)</script>'), 'Outputs differ');
+end;
+
+procedure TMarkdownDaringFireballTest2.TestSafeModeAttributes;
+begin
+  assertEqual('<p>a &lt;img src=x onerror=alert(1)> b</p>'+#10, dfProcess('a <img src=x onerror=alert(1)> b'), 'Outputs differ');
+end;
+
+procedure TMarkdownDaringFireballTest2.TestSafeModeHtmlBlock;
+begin
+  assertEqual('<p>&lt;div>hi&lt;/div></p>'+#10, dfProcess('<div>hi</div>'), 'Outputs differ');
+end;
+
+procedure TMarkdownDaringFireballTest2.TestSafeModeJavascriptLink;
+begin
+  assertEqual('<p><a href="">x</a></p>'+#10, dfProcess('[x](javascript:alert(1))'), 'Outputs differ');
+  assertEqual('<p><a href="">x</a></p>'+#10, dfProcess('[x]( JavaScript:alert(1))'), 'Outputs differ');
+  assertEqual('<p><a href="">x</a></p>'+#10, dfProcess('[x](data:text/html,abc)'), 'Outputs differ');
+  assertEqual('<p><a href="">x</a></p>'+#10, dfProcess('[x][r]'+#10+#10+'[r]: javascript:alert(1)'), 'Outputs differ');
+end;
+
+procedure TMarkdownDaringFireballTest2.TestSafeModeJavascriptAutoLink;
+begin
+  assertEqual('<p>&lt;javascript:alert(1)></p>'+#10, dfProcess('<javascript:alert(1)>'), 'Outputs differ');
+  assertEqual('<p><a href="http://example.com/">http://example.com/</a></p>'+#10, dfProcess('<http://example.com/>'), 'Outputs differ');
+end;
+
+procedure TMarkdownDaringFireballTest2.TestSafeModeDataImage;
+begin
+  assertEqual('<p><img src="data:image/png;base64,AAAA" alt="i" /></p>'+#10, dfProcess('![i](data:image/png;base64,AAAA)'), 'Outputs differ');
+end;
+
+procedure TMarkdownDaringFireballTest2.TestUnsafeModePassesHtml;
+begin
+  assertEqual('<p>a <b>b</b> c</p>'+#10, dfProcess('a <b>b</b> c', true), 'Outputs differ');
+end;
+
+procedure TMarkdownDaringFireballTest2.TestLongDocument;
+var
+  s : String;
+begin
+  // the line list used to be freed recursively - this blew the stack
+  s := dfProcess(repeatStr('x'+#10, 200000));
+  assertEqual('<p>x', copy(s, 1, 4), 'Outputs differ');
+end;
+
+procedure TMarkdownDaringFireballTest2.TestManyParagraphs;
+var
+  s : String;
+begin
+  s := dfProcess(repeatStr('x'+#10+#10, 100000));
+  assertEqual('<p>x</p>', copy(s, 1, 8), 'Outputs differ');
+end;
+
+procedure TMarkdownDaringFireballTest2.TestDeepQuotes;
+var
+  s : String;
+begin
+  s := dfProcess(repeatStr('>', 50000)+' x');
+  assertEqual('<blockquote>', copy(s, 1, 12), 'Outputs differ');
+end;
+
+procedure TMarkdownDaringFireballTest2.TestDeepLists;
+var
+  s : String;
+begin
+  s := dfProcess(repeatStr('- ', 50000)+'x');
+  assertEqual('<ul>', copy(s, 1, 4), 'Outputs differ');
+end;
+
+procedure TMarkdownDaringFireballTest2.TestDeepEmphasis;
+var
+  s : String;
+begin
+  s := dfProcess(repeatStr('_*', 50000));
+  assertEqual('<p>', copy(s, 1, 3), 'Outputs differ');
+  s := dfProcess(repeatStr('*_[a ', 20000));
+  assertEqual('<p>', copy(s, 1, 3), 'Outputs differ');
+end;
+
+procedure TMarkdownDaringFireballTest2.TestPathologicalInlines;
+const
+  INPUTS : array[0..8] of String = ('<', '&', '[', '[](', '[a](<', '[](x (', '`', '<div>'+#10, '<!--'+#10);
+var
+  i : integer;
+  start : TDateTime;
+  s : String;
+begin
+  // each of these used to take time quadratic in the length of the input (seconds to minutes)
+  for i := 0 to length(INPUTS) - 1 do
+  begin
+    start := now;
+    s := dfProcess(repeatStr(INPUTS[i], 50000));
+    if MilliSecondsBetween(now, start) > 5000 then
+      assertFail('Processing "'+INPUTS[i]+'" x 50000 took '+inttostr(MilliSecondsBetween(now, start))+'ms');
+    // unsafe mode: unclosed html blocks and comments are still quadratic (not fixed - unsafe mode is for trusted content)
+    if (INPUTS[i] <> '<div>'+#10) and (INPUTS[i] <> '<!--'+#10) then
+      s := dfProcess(repeatStr(INPUTS[i], 50000), true);
+    if MilliSecondsBetween(now, start) > 10000 then
+      assertFail('Processing "'+INPUTS[i]+'" x 50000 (unsafe) took '+inttostr(MilliSecondsBetween(now, start))+'ms');
   end;
 end;
 

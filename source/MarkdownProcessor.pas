@@ -78,11 +78,44 @@ Type
     function process(source : String) : String; virtual; abstract;
   end;
 
+// true if the url is safe to put in a href or src attribute when not running in unsafe mode.
+// rejects schemes that can execute script (javascript:, vbscript:, and data: other than images)
+function isSafeUrl(url : String; isImage : boolean) : boolean;
+
 implementation
 
 uses
   MarkdownDaringFireball,
   MarkdownCommonMark;
+
+function isSafeUrl(url : String; isImage : boolean) : boolean;
+var
+  s : String;
+  i : integer;
+begin
+  // browsers ignore whitespace and control characters in the scheme
+  s := '';
+  for i := 1 to length(url) do
+  begin
+    if url[i] = ':' then
+    begin
+      s := s + ':';
+      break;
+    end;
+    if url[i] > ' ' then
+      s := s + url[i];
+  end;
+  s := LowerCase(s);
+  if (s = 'javascript:') or (s = 'vbscript:') then
+    result := false
+  else if (s = 'data:') then
+  begin
+    s := LowerCase(Trim(url));
+    result := isImage and (s.StartsWith('data:image/png') or s.StartsWith('data:image/gif') or s.StartsWith('data:image/jpeg') or s.StartsWith('data:image/webp'));
+  end
+  else
+    result := true;
+end;
 
 { TMarkdownProcessor }
 

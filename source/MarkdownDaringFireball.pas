@@ -76,6 +76,12 @@ const
 
   BUFFER_INCREMENT_SIZE = 1024;
 
+  // limits on nesting, to protect against stack exhaustion and runaway processing time
+  MAX_BLOCK_NESTING = 32;  // nested block quotes / lists
+  MAX_INLINE_NESTING = 32; // nested emphasis / links etc
+  MAX_ENTITY_LENGTH = 32;  // longest entity name (between & and ;)
+  MAX_LINK_NESTING = 32;   // nested [] or () in link ids / destinations
+
 Type
   TReader = class
   private
@@ -465,6 +471,7 @@ Type
     linkRefs: TStringList;
     FConfig: TConfiguration;
     FuseExtensions: boolean;
+    FDepth : integer;
     procedure emitCodeLines(out_: TStringBuilder; lines: TLine; meta: String; removeIndent: boolean);
     procedure emitRawLines(out_: TStringBuilder; lines: TLine);
     procedure emitMarkedLines(out_: TStringBuilder; lines: TLine);
@@ -472,6 +479,7 @@ Type
     function getToken(s: String; position: integer): TMarkToken;
     function checkLink(out_: TStringBuilder; s: String; start: integer; token: TMarkToken): integer;
     function recursiveEmitLine(out_: TStringBuilder; s: String; start: integer; token: TMarkToken): integer;
+    function emitLineInner(out_: TStringBuilder; s: String; start: integer; token: TMarkToken): integer;
     function checkHTML(out_: TStringBuilder; s: String; start: integer): integer;
     class function checkEntity(out_: TStringBuilder; s: String; start: integer): integer;
     class function whitespaceToSpace(c: char): char;
@@ -490,9 +498,11 @@ Type
     FConfig: TConfiguration;
     Femitter: TEmitter;
     FuseExtensions: boolean;
+    FDepth : integer;
     function readLines(reader : TReader): TBlock;
     procedure initListBlock(root: TBlock);
     procedure recurse(root: TBlock; listMode: boolean);
+    procedure recurseInner(root: TBlock; listMode: boolean);
 
   protected
     function GetAllowUnSafe: boolean; override;
@@ -513,7 +523,7 @@ var
   i: integer;
 Begin
   for i := 0 to length(aNames) - 1 do
-    if sName <> aNames[i] then
+    if sName = aNames[i] then
       exit(true);
   result := false;
 End;
@@ -763,7 +773,7 @@ begin
           else
           begin
             // Store linkRef and skip line
-            lr := TLinkRef.Create(link, comment, (comment <> '') and (Length(link) = 1) and (link[1 + 1] = '*'));
+            lr := TLinkRef.Create(link, comment, (comment <> '') and (Length(link) = 1) and (link[1] = '*'));
             Femitter.addLinkRef(id, lr);
             if (comment = '') then
               lastLinkRef := lr;
@@ -810,6 +820,26 @@ begin
 end;
 
 procedure TMarkdownDaringFireball.recurse(root: TBlock; listMode: boolean);
+begin
+  inc(FDepth);
+  try
+    if FDepth > MAX_BLOCK_NESTING then
+    begin
+      // nested too deeply - treat whatever is left as a plain paragraph
+      if listMode then
+        root.removeListIndent(FConfig);
+      root.removeSurroundingEmptyLines;
+      if root.lines <> nil then
+        root.split(root.lineTail).type_ := btPARAGRAPH;
+    end
+    else
+      recurseInner(root, listMode);
+  finally
+    dec(FDepth);
+  end;
+end;
+
+procedure TMarkdownDaringFireball.recurseInner(root: TBlock; listMode: boolean);
 var
   block, list: TBlock;
   line: TLine;
@@ -1015,8 +1045,19 @@ begin
 end;
 
 destructor TLine.Destroy;
+var
+  n, t : TLine;
 begin
-  FNext.Free;
+  // free the rest of the list iteratively - recursion here exhausts the stack on long documents
+  n := FNext;
+  FNext := nil;
+  while n <> nil do
+  begin
+    t := n.FNext;
+    n.FNext := nil;
+    n.Free;
+    n := t;
+  end;
   inherited;
 end;
 
@@ -1372,7 +1413,11 @@ begin
       temp.Clear;
       useLt := s[1 + position] = '<';
       if useLt then
-        position := TUtils.readUntil(temp, s, position + 1, '>')
+      begin
+        position := TUtils.readUntil(temp, s, position + 1, ['>', '<', #10]);
+        if (position > start) and (s[1 + position] <> '>') then
+          exit(-1);
+      end
       else
         position := TUtils.readMdLink(temp, s, position);
       if (position < start) then
@@ -1436,6 +1481,8 @@ begin
     end;
     if (not hasLink) then
       exit(-1);
+    if FConfig.safeMode and not isSafeUrl(link, token = mtIMAGE) then
+      link := '';
 
     if (token = mtLINK) then
     begin
@@ -1498,11 +1545,11 @@ begin
   try
     // Check for auto links
     temp.Clear;
-    position := TUtils.readUntil(temp, s, start + 1, [':', ' ', '>', #10]);
+    position := TUtils.readUntil(temp, s, start + 1, [':', ' ', '>', #10, '<']);
     if (position <> -1) and (s[1 + position] = ':') and (THTML.isLinkPrefix(temp.ToString())) then
     begin
-      position := TUtils.readUntil(temp, s, position, ['>']);
-      if (position <> -1) then
+      position := TUtils.readUntil(temp, s, position, ['>', '<', ' ', #10]);
+      if (position <> -1) and (s[1 + position] = '>') then
       begin
         link := temp.ToString();
         FConfig.decorator.openLink(out_);
@@ -1517,11 +1564,11 @@ begin
 
     // Check for mailto auto link
     temp.Clear;
-    position := TUtils.readUntil(temp, s, start + 1, ['@', ' ', '>', #10]);
+    position := TUtils.readUntil(temp, s, start + 1, ['@', ' ', '>', #10, '<']);
     if (position <> -1) and (s[1 + position] = '@') then
     begin
-      position := TUtils.readUntil(temp, s, position, '>');
-      if (position <> -1) then
+      position := TUtils.readUntil(temp, s, position, ['>', '<', ' ', #10]);
+      if (position <> -1) and (s[1 + position] = '>') then
       begin
         link := temp.ToString();
         FConfig.decorator.openLink(out_);
@@ -1580,6 +1627,13 @@ var
   position, i: integer;
   c: char;
 begin
+  // quick check: & + up to MAX_ENTITY_LENGTH name characters + ;  (don't scan the rest of the text looking for a ;)
+  i := start + 1;
+  while (i < Length(s)) and (i - start <= MAX_ENTITY_LENGTH) and (isLetterOrDigit(s[1 + i]) or (s[1 + i] = '#')) do
+    inc(i);
+  if (i >= Length(s)) or (s[1 + i] <> ';') then
+    exit(-1);
+
   position := TUtils.readUntil(out_, s, start, ';');
   if (position < 0) or (out_.length < 3) then
     exit(-1);
@@ -1626,6 +1680,24 @@ begin
 end;
 
 function TEmitter.recursiveEmitLine(out_: TStringBuilder; s: String; start: integer; token: TMarkToken): integer;
+begin
+  if FDepth >= MAX_INLINE_NESTING then
+  begin
+    // nested too deeply - no more inline processing. Plain text if we were asked to emit
+    // the whole thing; otherwise report no closing token, and the caller treats the opener as text
+    if token = mtNONE then
+      TUtils.appendCode(out_, s, start, Length(s));
+    exit(-1);
+  end;
+  inc(FDepth);
+  try
+    result := emitLineInner(out_, s, start, token);
+  finally
+    dec(FDepth);
+  end;
+end;
+
+function TEmitter.emitLineInner(out_: TStringBuilder; s: String; start: integer; token: TMarkToken): integer;
 var
   position, a, b: integer;
   temp: TStringBuilder;
@@ -1984,45 +2056,18 @@ end;
 
 procedure TEmitter.emitRawLines(out_: TStringBuilder; lines: TLine);
 var
-  s: String;
   line: TLine;
-  temp: TStringBuilder;
-  position, t: integer;
 begin
   line := lines;
   if (FConfig.safeMode) then
   begin
-    temp := TStringBuilder.Create();
-    try
-      while (line <> nil) do
-      begin
-        if (not line.isEmpty) then
-          temp.append(line.value);
-        temp.append(#10);
-        line := line.next;
-      end;
-      s := temp.ToString();
-      position := 0;
-      while position < length(s) do
-      begin
-        if (s[1 + position] = '<') then
-        begin
-          temp.Clear;
-          t := TUtils.readXML(temp, s, position, FConfig.safeMode);
-          if (t <> -1) then
-          begin
-            out_.append(temp);
-            position := t;
-          end
-          else
-            out_.append(s[1 + position]);
-        end
-        else
-          out_.append(s[1 + position]);
-        inc(position);
-      end
-    finally
-      temp.Free;
+    // no raw html in safe mode (and html blocks aren't recognised in safe mode anyway)
+    while (line <> nil) do
+    begin
+      if (not line.isEmpty) then
+        TUtils.appendCode(out_, line.value, 0, Length(line.value));
+      out_.append(#10);
+      line := line.next;
     end;
   end
   else
@@ -2212,7 +2257,11 @@ begin
       endReached := false;
       case ch of
         '(':
-          inc(counter);
+          begin
+            inc(counter);
+            if counter > MAX_LINK_NESTING then
+              exit(-1);
+          end;
         ' ':
           if (counter = 1) then
             endReached := true;
@@ -2253,6 +2302,8 @@ begin
       '[':
         begin
           inc(counter);
+          if counter > MAX_LINK_NESTING then
+            exit(-1);
           out_.append(ch);
         end;
       ']':
@@ -2336,7 +2387,7 @@ begin
         inc(position);
         if (position < Length(s)) then
         begin
-          out_.append(ch);
+          out_.append(s[1 + position]);
           inc(position);
         end;
         continue;
@@ -2358,6 +2409,8 @@ begin
     begin
       if CharInSet(ch, cend) then
         break;
+      if (ch = '<') then // not valid in a tag; stop here rather than scanning on
+        exit(-1);
     end;
     out_.append(ch);
     inc(position);
@@ -2481,6 +2534,11 @@ var
   temp: TStringBuilder;
   tag: String;
 begin
+  // in safe mode, no raw html is passed through at all - the caller escapes it.
+  // (checking element names isn't enough - e.g. <img onerror=...>)
+  if safeMode then
+    exit(-1);
+
   if (1 + start + 1) > s.length then
     exit(start);
 
@@ -2609,7 +2667,7 @@ class function THTML.isUnsafeHtmlElement(s: String): boolean;
 var
   ht: THTMLElement;
 begin
-  ht := THTMLElement(StringToEnum(TypeInfo(THTMLElement), s, ord(heNONE)));
+  ht := THTMLElement(StringToEnum(TypeInfo(THTMLElement), 'he' + s, ord(heNONE)));
   result := ht in UNSAFE_ELEMENTS;
 end;
 
@@ -2802,7 +2860,7 @@ begin
       exit(ltOLIST);
   end;
 
-  if (value[1 + leading] = '<') then
+  if (value[1 + leading] = '<') and not configuration.safeMode then
   begin
     if (checkHTML()) then
       exit(ltXML);
@@ -3061,10 +3119,21 @@ begin
 end;
 
 destructor TBlock.Destroy;
+var
+  n, t : TBlock;
 begin
   FLines.Free;
   FBlocks.Free;
-  FNext.free;
+  // free the rest of the list iteratively - recursion here exhausts the stack on long documents
+  n := FNext;
+  FNext := nil;
+  while n <> nil do
+  begin
+    t := n.FNext;
+    n.FNext := nil;
+    n.Free;
+    n := t;
+  end;
   inherited;
 end;
 
@@ -3360,7 +3429,7 @@ begin
   If (value <> '') Then
   Begin
     If FLength + System.Length(value) > System.Length(FContent) Then
-      SetLength(FContent, System.Length(FContent) + Math.Max(FBufferSize, System.Length(value)));
+      SetLength(FContent, Math.Max(System.Length(FContent) * 2, FLength + System.Length(value) + FBufferSize));
 
     Move(value[1], FContent[FLength + 1], System.Length(value) * SizeOf(Char));
 
