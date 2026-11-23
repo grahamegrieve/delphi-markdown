@@ -2,6 +2,10 @@
 
 Markdown Processor for Pascal (Delphi/FPC)
 
+## Deprecation Notice 
+
+This code is no longer well maintained. You might consider mriscoc's fork of this. Or not. Or you might volunteer to take ownership of it. 
+
 ## Basic Information
 
 This is a Pascal library that processes to markdown to HTML.
